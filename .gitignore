@@ -1,0 +1,13 @@
+# 作業系統 / 編輯器
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/
+.idea/
+
+# Python 打包腳本的暫存
+__pycache__/
+*.pyc
+
+# 測試用的暫存檔
+_test-*.html

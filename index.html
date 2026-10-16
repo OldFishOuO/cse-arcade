@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-Hant" data-motion="on" data-scanline="on">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>CSE ARCADE · 資工系遊戲攤</title>
+<meta name="description" content="七款資工系主題小遊戲：二進位、邏輯閘、抓 Bug、排序、終端機打字、封包路由、系所迷思破解。">
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="%23070b10"/><text x="32" y="45" font-size="30" font-family="monospace" font-weight="bold" fill="%2339ff88" text-anchor="middle">&lt;/&gt;</text></svg>'>
+<link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+<canvas id="bgfx" aria-hidden="true"></canvas>
+<div id="crt" aria-hidden="true"></div>
+
+<header class="topbar">
+  <a class="brand" href="#/">
+    <span class="brand-mark">&lt;/&gt;</span>
+    <span class="brand-text">
+      <b id="brandTitle">CSE ARCADE</b>
+      <small id="brandSub">資工系遊戲攤</small>
+    </span>
+  </a>
+  <nav class="nav" id="nav" aria-label="主選單"></nav>
+  <div class="topright">
+    <a class="chip" id="totalChip" href="#/board" title="你的總分（各遊戲最佳分數加總）"><span>總分</span><b>0</b></a>
+    <button class="iconbtn" id="btnSound" type="button" title="音效開關" aria-label="音效開關">♪</button>
+    <button class="iconbtn" id="btnFull" type="button" title="全螢幕" aria-label="全螢幕">⛶</button>
+  </div>
+</header>
+
+<main id="view" class="view" tabindex="-1"></main>
+
+<footer class="foot">
+  <span id="footText">資工系遊戲攤</span>
+  <span class="footsep">·</span><a href="#/board">排行榜</a>
+  <span class="footsep">·</span><a href="#/about">關於資工系</a>
+  <span class="footsep">·</span><a href="#/settings">攤位設定</a>
+</footer>
+
+<div id="toasts" class="toasts" aria-live="polite" aria-atomic="false"></div>
+<div id="modals"></div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/core.js"></script>
+<script src="assets/js/scores.js"></script>
+<script src="assets/js/host.js"></script>
+<script src="assets/js/games/binary.js"></script>
+<script src="assets/js/games/logic.js"></script>
+<script src="assets/js/games/bughunt.js"></script>
+<script src="assets/js/games/sort.js"></script>
+<script src="assets/js/games/typing.js"></script>
+<script src="assets/js/games/packet.js"></script>
+<script src="assets/js/games/myth.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,4606 @@
+<!doctype html>
+<html lang="zh-Hant" data-motion="on" data-scanline="on">
+<head>
+<!-- 這是自動打包的單檔版本。要改內容請改原始碼後重新執行 build-single-file.py，不要直接改這個檔。 -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>CSE ARCADE · 資工系遊戲攤</title>
+<meta name="description" content="七款資工系主題小遊戲：二進位、邏輯閘、抓 Bug、排序、終端機打字、封包路由、系所迷思破解。">
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="%23070b10"/><text x="32" y="45" font-size="30" font-family="monospace" font-weight="bold" fill="%2339ff88" text-anchor="middle">&lt;/&gt;</text></svg>'>
+<style>
+/* ===== assets/css/main.css ===== */
+/* ============================================================
+   CSE ARCADE — 資工系遊戲攤
+   風格：終端機 / CRT 螢光幕 / 電路板
+   ============================================================ */
+
+:root{
+  /* 背景層 */
+  --bg:        #060a0f;
+  --bg-2:      #0a1016;
+  --panel:     #0c141c;
+  --panel-2:   #101b25;
+  --line:      #1c2c3a;
+  --line-2:    #2a4256;
+
+  /* 文字 */
+  --fg:        #cfdde9;
+  --fg-dim:    #8aa2b5;
+  --fg-faint:  #5b7287;
+
+  /* 強調色（每款遊戲一個） */
+  --green:     #39ff88;
+  --cyan:      #38d9ff;
+  --amber:     #ffc14d;
+  --red:       #ff5f6d;
+  --violet:    #b98bff;
+  --pink:      #ff78c4;
+  --lime:      #c6ff4d;
+
+  --ok:        var(--green);
+  --bad:       var(--red);
+
+  /* 當前強調色，由 JS / 類別覆寫 */
+  --accent:    var(--green);
+
+  --radius:    4px;
+  --radius-lg: 8px;
+  --gap:       14px;
+
+  --font-mono: ui-monospace, "Cascadia Mono", "JetBrains Mono", Consolas,
+               "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", monospace;
+
+  --shadow:    0 10px 30px -12px rgba(0,0,0,.8);
+}
+
+*,*::before,*::after{ box-sizing:border-box; }
+
+html,body{ height:100%; }
+html{ -webkit-text-size-adjust:100%; }
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--fg);
+  font-family:var(--font-mono);
+  font-size:15px;
+  line-height:1.6;
+  display:flex;
+  flex-direction:column;
+  min-height:100%;
+  overflow-x:hidden;
+  overscroll-behavior-y:none;
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* 背景電路網格 + 暈影 */
+body::before{
+  content:"";
+  position:fixed; inset:0; z-index:-3; pointer-events:none;
+  background:
+    radial-gradient(1200px 700px at 50% -15%, #0d2030 0%, transparent 70%),
+    linear-gradient(transparent 95%, rgba(57,255,136,.045) 95%) 0 0/100% 34px,
+    linear-gradient(90deg, transparent 95%, rgba(56,217,255,.035) 95%) 0 0/34px 100%,
+    var(--bg);
+}
+body::after{
+  content:"";
+  position:fixed; inset:0; z-index:-2; pointer-events:none;
+  background:radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(0,0,0,.65) 100%);
+}
+
+#bgfx{ position:fixed; inset:0; z-index:-1; width:100%; height:100%; opacity:.5; pointer-events:none; }
+
+/* CRT 掃描線 */
+#crt{
+  position:fixed; inset:0; z-index:900; pointer-events:none;
+  background:repeating-linear-gradient(to bottom,
+    rgba(255,255,255,.035) 0 1px, transparent 1px 3px);
+  mix-blend-mode:overlay;
+}
+html[data-scanline="off"] #crt{ display:none; }
+html[data-motion="off"] #bgfx{ display:none; }
+
+::selection{ background:color-mix(in srgb, var(--accent) 35%, transparent); }
+
+a{ color:var(--cyan); text-decoration:none; }
+a:hover{ text-decoration:underline; }
+
+:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+/* ===================== 頂列 ===================== */
+.topbar{
+  position:sticky; top:0; z-index:300;
+  display:flex; align-items:center; gap:12px;
+  padding:9px clamp(10px,2.5vw,22px);
+  background:linear-gradient(180deg, rgba(6,10,15,.96), rgba(6,10,15,.78));
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);
+}
+.brand{ display:flex; align-items:center; gap:10px; color:inherit; flex:0 0 auto; }
+.brand:hover{ text-decoration:none; }
+.brand-mark{
+  display:grid; place-items:center;
+  width:36px; height:36px; border-radius:var(--radius);
+  background:#09130d; color:var(--green);
+  border:1px solid color-mix(in srgb, var(--green) 45%, transparent);
+  font-weight:700; font-size:15px;
+  box-shadow:0 0 16px -6px var(--green) inset, 0 0 12px -6px var(--green);
+}
+.brand-text{ display:flex; flex-direction:column; line-height:1.15; }
+.brand-text b{ font-size:15px; letter-spacing:.14em; color:var(--green); }
+.brand-text small{ font-size:11px; color:var(--fg-faint); letter-spacing:.06em; }
+
+.nav{ display:flex; gap:4px; margin-left:6px; flex:1 1 auto; overflow-x:auto; scrollbar-width:none; }
+.nav::-webkit-scrollbar{ display:none; }
+.nav a{
+  flex:0 0 auto;
+  padding:6px 11px; border-radius:var(--radius);
+  color:var(--fg-dim); font-size:13px; letter-spacing:.04em;
+  border:1px solid transparent; white-space:nowrap;
+}
+.nav a:hover{ color:var(--fg); background:var(--panel); text-decoration:none; }
+.nav a[aria-current="page"]{
+  color:var(--green); border-color:color-mix(in srgb, var(--green) 40%, transparent);
+  background:#0a1510;
+}
+
+.topright{ display:flex; align-items:center; gap:7px; flex:0 0 auto; }
+.chip{
+  display:flex; align-items:baseline; gap:7px;
+  padding:5px 11px; border-radius:999px;
+  background:var(--panel); border:1px solid var(--line-2);
+  font-size:12px; color:var(--fg-dim);
+}
+.chip:hover{ text-decoration:none; border-color:var(--accent); }
+.chip b{ font-size:14px; color:var(--amber); }
+.iconbtn{
+  width:34px; height:34px; display:grid; place-items:center;
+  background:var(--panel); color:var(--fg-dim);
+  border:1px solid var(--line-2); border-radius:var(--radius);
+  cursor:pointer; font-size:15px; font-family:inherit;
+}
+.iconbtn:hover{ color:var(--green); border-color:var(--green); }
+.iconbtn[aria-pressed="false"]{ color:var(--fg-faint); opacity:.55; }
+
+/* ===================== 版面 ===================== */
+.view{
+  flex:1 1 auto; width:100%;
+  max-width:1180px; margin:0 auto;
+  padding:clamp(16px,3vw,30px) clamp(12px,3vw,24px) 40px;
+}
+.foot{
+  padding:14px 18px 20px; text-align:center;
+  color:var(--fg-faint); font-size:12px;
+  border-top:1px solid var(--line);
+}
+.footsep{ margin:0 7px; opacity:.4; }
+
+/* ===================== 元件 ===================== */
+.panel{
+  position:relative;
+  background:linear-gradient(180deg, var(--panel), var(--bg-2));
+  border:1px solid var(--line);
+  border-radius:var(--radius-lg);
+  padding:clamp(14px,2.2vw,22px);
+  box-shadow:var(--shadow);
+}
+.panel--accent{ border-color:color-mix(in srgb, var(--accent) 32%, var(--line)); }
+.panel > .corner{
+  position:absolute; width:11px; height:11px;
+  border:1px solid color-mix(in srgb, var(--accent) 65%, transparent);
+  pointer-events:none;
+}
+.panel > .corner.tl{ top:-1px; left:-1px; border-right:0; border-bottom:0; }
+.panel > .corner.tr{ top:-1px; right:-1px; border-left:0; border-bottom:0; }
+.panel > .corner.bl{ bottom:-1px; left:-1px; border-right:0; border-top:0; }
+.panel > .corner.br{ bottom:-1px; right:-1px; border-left:0; border-top:0; }
+
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:7px;
+  min-height:42px; padding:9px 18px;
+  font-family:inherit; font-size:14px; letter-spacing:.05em;
+  color:var(--fg); background:var(--panel-2);
+  border:1px solid var(--line-2); border-radius:var(--radius);
+  cursor:pointer; transition:background .12s, border-color .12s, color .12s, transform .08s;
+  user-select:none;
+}
+.btn:hover:not(:disabled){ border-color:var(--accent); color:#fff; background:#13222e; }
+.btn:active:not(:disabled){ transform:translateY(1px); }
+.btn:disabled{ opacity:.4; cursor:not-allowed; }
+.btn--primary{
+  background:color-mix(in srgb, var(--accent) 20%, #0b1319);
+  border-color:var(--accent); color:#fff; font-weight:600;
+  box-shadow:0 0 20px -8px var(--accent);
+}
+.btn--primary:hover:not(:disabled){ background:color-mix(in srgb, var(--accent) 34%, #0b1319); }
+.btn--ghost{ background:transparent; }
+.btn--lg{ min-height:54px; padding:13px 30px; font-size:16px; }
+.btn--sm{ min-height:34px; padding:5px 12px; font-size:12.5px; }
+.btn--danger:hover:not(:disabled){ border-color:var(--red); color:var(--red); }
+
+.row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+.spread{ justify-content:space-between; }
+.stack{ display:flex; flex-direction:column; gap:var(--gap); }
+.center{ text-align:center; }
+.muted{ color:var(--fg-dim); }
+.faint{ color:var(--fg-faint); }
+.nowrap{ white-space:nowrap; }
+.hidden{ display:none !important; }
+/* inert 的後備：舊瀏覽器至少擋掉滑鼠 */
+[inert]{ pointer-events:none; user-select:none; }
+
+.kicker{
+  font-size:11.5px; letter-spacing:.24em; text-transform:uppercase;
+  color:var(--accent); margin:0 0 6px;
+}
+h1,h2,h3{ margin:0 0 10px; line-height:1.25; font-weight:700; }
+h1{ font-size:clamp(24px,4.4vw,38px); letter-spacing:.02em; }
+h2{ font-size:clamp(18px,2.6vw,24px); }
+h3{ font-size:16px; }
+p{ margin:0 0 10px; }
+
+.tag{
+  display:inline-block; padding:2px 9px; border-radius:999px;
+  font-size:11px; letter-spacing:.08em;
+  background:color-mix(in srgb, var(--accent) 14%, transparent);
+  border:1px solid color-mix(in srgb, var(--accent) 38%, transparent);
+  color:var(--accent);
+}
+
+.divider{ height:1px; background:var(--line); margin:16px 0; border:0; }
+
+/* 終端機提示字 */
+.prompt{ color:var(--green); }
+.prompt::before{ content:"$ "; color:var(--fg-faint); }
+.caret{
+  display:inline-block; width:9px; height:1.05em; vertical-align:-2px;
+  background:var(--green); animation:blink 1.05s steps(1) infinite; margin-left:3px;
+}
+@keyframes blink{ 50%{ opacity:0; } }
+
+/* ===================== 首頁 ===================== */
+.hero{ margin-bottom:26px; }
+.hero .term{
+  background:#070d13; border:1px solid var(--line);
+  border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow);
+}
+.term-bar{
+  display:flex; align-items:center; gap:8px;
+  padding:8px 12px; background:#0b141c; border-bottom:1px solid var(--line);
+  font-size:11.5px; color:var(--fg-faint);
+}
+.term-dot{ width:10px; height:10px; border-radius:50%; background:#2a3b49; }
+.term-dot.r{ background:#ff5f6d; } .term-dot.y{ background:#ffc14d; } .term-dot.g{ background:#39ff88; }
+.term-body{ padding:clamp(16px,3vw,28px); }
+.term-body h1{ color:#fff; text-shadow:0 0 28px rgba(57,255,136,.3); }
+.hero-sub{ color:var(--fg-dim); max-width:62ch; }
+.hero-stats{ display:flex; gap:22px; flex-wrap:wrap; margin-top:16px; }
+.hero-stat b{ display:block; font-size:22px; color:var(--green); line-height:1.1; }
+.hero-stat span{ font-size:11.5px; color:var(--fg-faint); letter-spacing:.1em; }
+
+.grid-games{
+  display:grid; gap:var(--gap);
+  grid-template-columns:repeat(auto-fill, minmax(258px, 1fr));
+}
+.gcard{
+  position:relative; display:flex; flex-direction:column; gap:9px;
+  padding:16px; text-align:left;
+  background:linear-gradient(165deg, var(--panel) 0%, var(--bg-2) 100%);
+  border:1px solid var(--line); border-left:3px solid var(--accent);
+  border-radius:var(--radius-lg); color:inherit; cursor:pointer;
+  font-family:inherit; font-size:inherit;
+  transition:transform .14s, border-color .14s, box-shadow .14s;
+  overflow:hidden;
+}
+.gcard::after{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(260px 120px at 110% -10%,
+    color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%);
+  opacity:0; transition:opacity .18s;
+}
+.gcard:hover{ transform:translateY(-3px); box-shadow:0 16px 34px -18px var(--accent); }
+.gcard:hover::after{ opacity:1; }
+.gcard-top{ display:flex; align-items:center; gap:11px; }
+.gcard-icon{
+  flex:0 0 auto; width:42px; height:42px; display:grid; place-items:center;
+  border-radius:var(--radius);
+  background:color-mix(in srgb, var(--accent) 15%, #0a1218);
+  border:1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  color:var(--accent); font-size:17px; font-weight:700; letter-spacing:-.04em;
+}
+.gcard-name{ font-size:16.5px; font-weight:700; color:#fff; line-height:1.2; }
+.gcard-tag{ font-size:11px; color:var(--fg-faint); letter-spacing:.07em; }
+.gcard-blurb{ font-size:13px; color:var(--fg-dim); min-height:3.2em; }
+.gcard-foot{
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  font-size:11.5px; color:var(--fg-faint);
+  border-top:1px dashed var(--line); padding-top:9px; margin-top:auto;
+}
+.gcard-best b{ color:var(--amber); }
+.medal{ font-size:14px; letter-spacing:1px; }
+
+.notice{
+  display:flex; gap:11px; align-items:flex-start;
+  padding:12px 14px; margin-bottom:18px;
+  background:#131007; border:1px solid color-mix(in srgb, var(--amber) 35%, transparent);
+  border-radius:var(--radius); font-size:13px; color:#ffe3ad;
+}
+.notice .ic{ color:var(--amber); font-size:15px; line-height:1.4; }
+
+/* ===================== 遊戲外框 ===================== */
+.gframe{ display:flex; flex-direction:column; gap:var(--gap); }
+.gf-top{
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  padding:11px 14px; background:var(--panel);
+  border:1px solid var(--line); border-top:2px solid var(--accent);
+  border-radius:var(--radius-lg);
+}
+.gf-id{ display:flex; flex-direction:column; min-width:0; flex:1 1 150px; }
+.gf-id b{ font-size:16px; color:#fff; }
+.gf-id span{ font-size:11px; color:var(--fg-faint); letter-spacing:.07em; }
+.gf-stats{ display:flex; gap:8px; flex-wrap:wrap; }
+.statbox{
+  min-width:74px; padding:5px 11px; text-align:center;
+  background:#08111a; border:1px solid var(--line); border-radius:var(--radius);
+}
+.statbox span{ display:block; font-size:10.5px; color:var(--fg-faint); letter-spacing:.11em; }
+.statbox b{ font-size:18px; color:var(--fg); font-variant-numeric:tabular-nums; }
+.statbox.time b{ color:var(--cyan); }
+.statbox.score b{ color:var(--amber); }
+.statbox.warn b{ color:var(--red); animation:pulse .6s ease-in-out infinite alternate; }
+@keyframes pulse{ to{ opacity:.45; } }
+.gf-actions{ display:flex; gap:7px; }
+
+.gf-stage{
+  position:relative; min-height:clamp(380px, 56vh, 620px);
+  display:flex; flex-direction:column;
+  background:linear-gradient(180deg, var(--panel), var(--bg-2));
+  border:1px solid var(--line); border-radius:var(--radius-lg);
+  padding:clamp(14px,2.4vw,24px); box-shadow:var(--shadow);
+}
+.gf-hint{
+  text-align:center; font-size:13px; color:var(--fg-dim);
+  min-height:1.6em; margin-bottom:10px;
+}
+.gf-hint.good{ color:var(--green); }
+.gf-hint.bad{ color:var(--red); }
+
+/* 準備畫面 / 結果畫面（覆蓋在 stage 上） */
+.overlay{
+  position:absolute; inset:0; z-index:5;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:14px; padding:clamp(16px,3vw,28px);
+  background:linear-gradient(180deg, rgba(8,13,19,.97), rgba(6,10,15,.99));
+  border-radius:var(--radius-lg); text-align:center;
+  overflow-y:auto;
+}
+.overlay h2{ color:#fff; }
+.howto{ text-align:left; max-width:52ch; margin:0 auto; }
+.howto li{ margin-bottom:7px; font-size:13.5px; color:var(--fg-dim); }
+.howto li::marker{ color:var(--accent); }
+
+.bigscore{
+  font-size:clamp(44px,9vw,76px); line-height:1; font-weight:700;
+  color:var(--amber); text-shadow:0 0 36px rgba(255,193,77,.35);
+  font-variant-numeric:tabular-nums;
+}
+.rank-title{ font-size:19px; color:var(--accent); letter-spacing:.1em; }
+.statlist{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+.statlist div{
+  padding:6px 13px; background:#08111a; border:1px solid var(--line);
+  border-radius:var(--radius); font-size:12.5px; color:var(--fg-dim);
+}
+.statlist b{ color:var(--fg); margin-left:5px; }
+
+.know{
+  text-align:left; max-width:58ch; margin:4px auto 0;
+  padding:13px 15px; border-radius:var(--radius);
+  background:#081219; border:1px solid var(--line);
+  border-left:3px solid var(--cyan);
+}
+.know h3{ font-size:13.5px; color:var(--cyan); letter-spacing:.06em; margin-bottom:7px; }
+.know li{ font-size:13px; color:var(--fg-dim); margin-bottom:5px; }
+.know ul{ margin:0; padding-left:18px; }
+
+.namebox{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:center; }
+input[type="text"], input[type="number"]{
+  font-family:inherit; font-size:15px; color:var(--fg);
+  background:#08111a; border:1px solid var(--line-2);
+  border-radius:var(--radius); padding:10px 13px; min-height:42px; width:170px;
+}
+input[type="text"]:focus{ border-color:var(--accent); outline:none; }
+
+/* ===================== 遊戲 1：二進位 ===================== */
+.bin-wrap{ display:flex; flex-direction:column; gap:clamp(12px,2.4vw,22px); margin:auto 0; }
+.bin-target{ text-align:center; }
+.bin-target .lbl{ font-size:11.5px; letter-spacing:.2em; color:var(--fg-faint); }
+.bin-target .num{
+  font-size:clamp(50px,13vw,96px); line-height:1; font-weight:700; color:#fff;
+  text-shadow:0 0 40px rgba(57,255,136,.35); font-variant-numeric:tabular-nums;
+}
+.bin-cur{ text-align:center; font-size:clamp(17px,3.4vw,24px); color:var(--fg-dim); }
+.bin-cur b{ font-variant-numeric:tabular-nums; }
+.bin-cur.hi b{ color:var(--red); } .bin-cur.lo b{ color:var(--cyan); }
+.bin-bits{
+  display:grid; grid-template-columns:repeat(8, 1fr); gap:clamp(4px,1.1vw,10px);
+  max-width:640px; margin:0 auto; width:100%;
+}
+.bit{
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  padding:clamp(7px,1.6vw,13px) 2px; cursor:pointer;
+  background:#08111a; border:1px solid var(--line-2); border-radius:var(--radius);
+  font-family:inherit; color:var(--fg-faint); transition:all .1s;
+}
+.bit .v{ font-size:clamp(20px,5vw,32px); font-weight:700; line-height:1; }
+.bit .w{ font-size:clamp(8.5px,1.7vw,11px); letter-spacing:.02em; }
+.bit[aria-pressed="true"]{
+  background:color-mix(in srgb, var(--green) 20%, #08111a);
+  border-color:var(--green); color:var(--green);
+  box-shadow:0 0 16px -5px var(--green);
+}
+.bit[aria-pressed="true"] .v{ color:var(--green); text-shadow:0 0 14px var(--green); }
+.bin-hintrow{ display:flex; justify-content:center; gap:9px; flex-wrap:wrap; }
+.bin-binary{
+  text-align:center; font-size:clamp(14px,3vw,20px); letter-spacing:.3em;
+  color:var(--cyan); min-height:1.5em;
+}
+
+/* ===================== 遊戲 2：邏輯閘 ===================== */
+.lg-wrap{ display:flex; flex-direction:column; gap:12px; flex:1; }
+.lg-task{
+  padding:10px 13px; background:#081219; border:1px solid var(--line);
+  border-left:3px solid var(--violet); border-radius:var(--radius); font-size:13.5px;
+}
+.lg-task b{ color:var(--violet); }
+.lg-canvas{ flex:1; display:grid; place-items:center; min-height:160px; }
+/* 限制高度，真值表和「驗證」按鈕才不會被擠到畫面外（攤位上沒人會想捲動） */
+.lg-canvas svg{ width:100%; max-width:760px; height:auto; max-height:min(40vh,300px); overflow:visible; }
+.wire{ fill:none; stroke:#2b4154; stroke-width:2.5; stroke-linecap:round; }
+.wire.on{ stroke:var(--green); filter:drop-shadow(0 0 5px var(--green)); }
+.gatebox{ fill:#0d1821; stroke:#35506a; stroke-width:1.5; }
+.gatebox.sel{ stroke:var(--amber); stroke-width:2.5; }
+.gatebox.q{ stroke:var(--amber); stroke-dasharray:5 4; }
+.gatelabel{ fill:#d7e6f2; font:700 14px var(--font-mono); text-anchor:middle; dominant-baseline:central; }
+.gatelabel.q{ fill:var(--amber); }
+.sw{ cursor:pointer; }
+.sw rect{ fill:#0d1821; stroke:#35506a; stroke-width:1.5; }
+.sw.on rect{ fill:color-mix(in srgb, var(--green) 22%, #0d1821); stroke:var(--green); }
+.sw text.n{ fill:var(--fg-dim); font:700 13px var(--font-mono); text-anchor:middle; }
+.sw.on text.n{ fill:var(--green); }
+.sw text.b{ fill:var(--fg-faint); font:700 15px var(--font-mono); text-anchor:middle; }
+.sw.on text.b{ fill:var(--green); }
+.lamp{ fill:#131a20; stroke:#35506a; stroke-width:2; }
+.lamp.on{ fill:var(--green); stroke:var(--green); filter:drop-shadow(0 0 10px var(--green)); }
+.hitbox{ fill:transparent; cursor:pointer; }
+.lg-palette{ display:flex; gap:7px; flex-wrap:wrap; justify-content:center; }
+.lg-truth{ display:flex; justify-content:center; }
+.lg-truth table{ border-collapse:collapse; font-size:12.5px; }
+.lg-truth th,.lg-truth td{
+  border:1px solid var(--line); padding:3px 11px; text-align:center;
+}
+.lg-truth th{ background:#0b1620; color:var(--fg-dim); font-weight:600; }
+.lg-truth td.out{ color:var(--amber); font-weight:700; }
+.lg-truth tr.now td{ background:#0e1c26; }
+.lvdots{ display:flex; gap:5px; justify-content:center; }
+.lvdot{ width:9px; height:9px; border-radius:50%; background:var(--line-2); }
+.lvdot.done{ background:var(--green); }
+.lvdot.now{ background:var(--amber); box-shadow:0 0 9px var(--amber); }
+
+/* ===================== 遊戲 3：抓 Bug ===================== */
+.bh-wrap{ display:flex; flex-direction:column; gap:12px; flex:1; }
+.bh-meta{ display:flex; gap:10px; justify-content:space-between; align-items:center; flex-wrap:wrap; font-size:12.5px; }
+.lives{ letter-spacing:3px; font-size:16px; color:var(--red); }
+.code{
+  flex:1; background:#070d13; border:1px solid var(--line);
+  border-radius:var(--radius); overflow:hidden; font-size:clamp(12.5px,2.2vw,15px);
+}
+.code-title{
+  padding:6px 12px; background:#0b141c; border-bottom:1px solid var(--line);
+  font-size:11.5px; color:var(--fg-faint);
+}
+.cline{
+  display:flex; gap:12px; padding:3px 12px; cursor:pointer;
+  border-left:3px solid transparent; white-space:pre; overflow-x:auto;
+  scrollbar-width:thin;
+}
+.cline:hover{ background:#0d1a24; border-left-color:var(--amber); }
+.cline.dead{ cursor:default; }
+.cline.dead:hover{ background:transparent; border-left-color:transparent; }
+.cline .ln{
+  flex:0 0 2.2em; text-align:right; color:#3f5467;
+  user-select:none; position:sticky; left:0;
+}
+.cline.right{ background:#0a1f14; border-left-color:var(--green); }
+.cline.wrong{ background:#220f12; border-left-color:var(--red); }
+.cline.reveal{ background:#0a1f14; border-left-color:var(--green); }
+.tk-key{ color:#ff78c4; } .tk-str{ color:#c6ff4d; }
+.tk-num{ color:#ffc14d; } .tk-com{ color:#5b7287; font-style:italic; }
+.tk-fn{ color:#38d9ff; }
+.bh-fb{
+  padding:12px 14px; border-radius:var(--radius); font-size:13.5px;
+  border:1px solid var(--line); background:#081219; min-height:3.4em;
+}
+.bh-fb.right{ border-left:3px solid var(--green); }
+.bh-fb.wrong{ border-left:3px solid var(--red); }
+.bh-fb b{ color:#fff; }
+.bh-fb code{ background:#0e1c26; padding:1px 5px; border-radius:3px; color:var(--lime); }
+
+/* ===================== 遊戲 4：排序 ===================== */
+.sm-wrap{ display:flex; flex-direction:column; gap:14px; flex:1; }
+.bars{
+  flex:1; display:flex; align-items:flex-end; justify-content:center;
+  gap:clamp(5px,1.4vw,14px); min-height:200px; padding-bottom:4px;
+}
+.bar{
+  position:relative; flex:1 1 0; max-width:86px; min-width:26px;
+  display:flex; align-items:flex-start; justify-content:center;
+  padding-top:7px; cursor:pointer; border-radius:4px 4px 0 0;
+  background:linear-gradient(180deg, color-mix(in srgb, var(--cyan) 72%, #0a1218), #0e2130);
+  border:1px solid color-mix(in srgb, var(--cyan) 45%, transparent); border-bottom:0;
+  color:#06141c; font-weight:700; font-size:clamp(11px,2.2vw,15px);
+  transition:height .22s cubic-bezier(.3,1.4,.5,1), transform .14s, background .14s;
+}
+.bar:hover{ transform:translateY(-4px); }
+.bar.sel{
+  background:linear-gradient(180deg, color-mix(in srgb, var(--amber) 85%, #0a1218), #2a1f08);
+  border-color:var(--amber); box-shadow:0 0 22px -6px var(--amber); transform:translateY(-6px);
+}
+.bar.ok{
+  background:linear-gradient(180deg, color-mix(in srgb, var(--green) 78%, #0a1218), #0a2317);
+  border-color:var(--green);
+}
+.bar.cmp{ background:linear-gradient(180deg, var(--violet), #241338); border-color:var(--violet); }
+.sm-info{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+
+/* ===================== 遊戲 5：打字 ===================== */
+.ty-wrap{ display:flex; flex-direction:column; gap:14px; flex:1; justify-content:center; }
+.ty-target{
+  text-align:center; font-size:clamp(20px,5vw,40px); line-height:1.45;
+  word-break:break-all; min-height:1.5em; letter-spacing:.01em;
+}
+.ty-target .ch{ color:var(--fg-faint); }
+.ty-target .ch.done{ color:var(--green); }
+.ty-target .ch.err{ color:#fff; background:var(--red); border-radius:2px; }
+.ty-target .ch.cur{ background:color-mix(in srgb, var(--cyan) 30%, transparent); border-radius:2px; color:#fff; }
+.ty-target .ch.sp.done{ background:color-mix(in srgb, var(--green) 22%, transparent); }
+.ty-desc{ text-align:center; font-size:13.5px; color:var(--fg-dim); min-height:2.6em; }
+.ty-desc b{ color:var(--cyan); }
+.ty-input{
+  width:100%; max-width:620px; margin:0 auto; display:block;
+  font-size:clamp(16px,3.4vw,22px); text-align:center; letter-spacing:.02em;
+}
+.ty-live{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+
+/* ===================== 遊戲 6：封包路由 ===================== */
+.pk-wrap{ display:flex; flex-direction:column; gap:11px; flex:1; }
+.pk-canvas{ flex:1; display:grid; place-items:center; min-height:240px; }
+.pk-canvas svg{ width:100%; max-width:720px; height:auto; }
+.edge{ stroke:#273d4f; stroke-width:3; stroke-linecap:round; }
+.edge.used{ stroke:var(--amber); stroke-width:5; filter:drop-shadow(0 0 6px var(--amber)); }
+.edge.best{ stroke:var(--green); stroke-width:4; stroke-dasharray:7 5; }
+.ew{ fill:var(--fg-faint); font:600 11.5px var(--font-mono); text-anchor:middle; dominant-baseline:central; }
+.ew-bg{ fill:#070d13; }
+.node circle{ fill:#0d1821; stroke:#3b5670; stroke-width:2; transition:all .12s; }
+.node text{ fill:var(--fg-dim); font:700 12px var(--font-mono); text-anchor:middle; dominant-baseline:central; }
+.node.reach circle{ stroke:var(--cyan); fill:#0b1d26; }
+.node.path circle{ fill:color-mix(in srgb, var(--amber) 30%, #0d1821); stroke:var(--amber); }
+.node.src circle{ fill:color-mix(in srgb, var(--green) 28%, #0d1821); stroke:var(--green); }
+.node.dst circle{ fill:color-mix(in srgb, var(--violet) 28%, #0d1821); stroke:var(--violet); }
+.node.src text,.node.dst text{ fill:#fff; }
+.pkt{ fill:var(--amber); filter:drop-shadow(0 0 8px var(--amber)); }
+.pk-info{ display:flex; gap:9px; justify-content:center; flex-wrap:wrap; }
+
+/* ===================== 遊戲 7：迷思破解 ===================== */
+.my-wrap{ display:flex; flex-direction:column; gap:16px; flex:1; justify-content:center; }
+.my-q{
+  text-align:center; font-size:clamp(18px,3.6vw,28px); line-height:1.5;
+  max-width:28ch; margin:0 auto; color:#fff; min-height:3em;
+  display:flex; align-items:center; justify-content:center;
+}
+.my-btns{ display:flex; gap:clamp(10px,2.4vw,22px); justify-content:center; }
+.my-btns .btn{
+  flex:1 1 0; max-width:220px; min-height:clamp(66px,13vw,96px);
+  font-size:clamp(18px,3.6vw,26px); font-weight:700; flex-direction:column; gap:2px;
+}
+.my-btns .btn small{ font-size:11px; font-weight:400; letter-spacing:.1em; opacity:.6; }
+.my-yes{ --accent:var(--green); }
+.my-no{ --accent:var(--red); }
+.my-fb{
+  max-width:56ch; margin:0 auto; text-align:left; font-size:13.5px;
+  padding:13px 15px; border-radius:var(--radius);
+  background:#081219; border:1px solid var(--line); min-height:5em;
+}
+.my-fb.right{ border-left:3px solid var(--green); }
+.my-fb.wrong{ border-left:3px solid var(--red); }
+.my-fb .verdict{ font-weight:700; font-size:15px; display:block; margin-bottom:5px; }
+.my-fb.right .verdict{ color:var(--green); }
+.my-fb.wrong .verdict{ color:var(--red); }
+.my-bar{ height:5px; background:var(--line); border-radius:3px; overflow:hidden; max-width:560px; margin:0 auto; width:100%; }
+.my-bar i{ display:block; height:100%; background:var(--pink); transition:width .25s; }
+
+/* ===================== 排行榜 / 關於 / 設定 ===================== */
+.lb-tabs{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
+table.data{ width:100%; border-collapse:collapse; font-size:13.5px; }
+table.data th,table.data td{
+  text-align:left; padding:8px 11px; border-bottom:1px solid var(--line);
+}
+table.data th{ color:var(--fg-faint); font-size:11.5px; letter-spacing:.11em; font-weight:600; }
+table.data td.n{ text-align:right; font-variant-numeric:tabular-nums; color:var(--amber); font-weight:700; }
+table.data tbody tr:nth-child(1) td.rk{ color:#ffd700; }
+table.data tbody tr:nth-child(2) td.rk{ color:#cfd8dc; }
+table.data tbody tr:nth-child(3) td.rk{ color:#d99a5b; }
+.empty{ padding:28px; text-align:center; color:var(--fg-faint); font-size:13px; }
+
+.badges{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px; }
+.badge{
+  display:flex; gap:10px; align-items:center; padding:10px 12px;
+  background:#08111a; border:1px solid var(--line); border-radius:var(--radius);
+  font-size:12.5px;
+}
+.badge.off{ opacity:.35; }
+.badge .bi{ font-size:21px; }
+.badge b{ display:block; color:#fff; font-size:13px; }
+.badge span{ color:var(--fg-faint); font-size:11px; }
+
+.about-grid{ display:grid; gap:var(--gap); grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); }
+.about-grid li{ font-size:13.5px; color:var(--fg-dim); margin-bottom:6px; }
+.setrow{
+  display:flex; justify-content:space-between; align-items:center; gap:14px;
+  padding:12px 0; border-bottom:1px solid var(--line); flex-wrap:wrap;
+}
+.setrow:last-child{ border-bottom:0; }
+.setrow .t b{ display:block; color:#fff; font-size:14px; }
+.setrow .t span{ font-size:12px; color:var(--fg-faint); }
+.toggle{
+  position:relative; width:52px; height:28px; flex:0 0 auto;
+  background:#0d1821; border:1px solid var(--line-2); border-radius:999px;
+  cursor:pointer; transition:all .15s;
+}
+.toggle::after{
+  content:""; position:absolute; top:3px; left:3px;
+  width:20px; height:20px; border-radius:50%; background:#44617a; transition:all .15s;
+}
+.toggle[aria-pressed="true"]{ background:color-mix(in srgb, var(--green) 25%, #0d1821); border-color:var(--green); }
+.toggle[aria-pressed="true"]::after{ left:27px; background:var(--green); }
+
+/* ===================== Toast / Modal ===================== */
+.toasts{
+  position:fixed; left:50%; bottom:24px; transform:translateX(-50%);
+  z-index:1000; display:flex; flex-direction:column; gap:8px;
+  align-items:center; pointer-events:none; width:min(92vw,460px);
+}
+.toast{
+  padding:10px 16px; border-radius:var(--radius); font-size:13.5px;
+  background:#0d1a24; border:1px solid var(--line-2); color:var(--fg);
+  box-shadow:var(--shadow); animation:tin .22s ease-out;
+}
+.toast.ok{ border-color:var(--green); color:var(--green); }
+.toast.bad{ border-color:var(--red); color:#ffb3b9; }
+@keyframes tin{ from{ opacity:0; transform:translateY(12px); } }
+
+.backdrop{
+  position:fixed; inset:0; z-index:1100;
+  background:rgba(3,6,9,.82); backdrop-filter:blur(3px);
+  display:grid; place-items:center; padding:18px; overflow-y:auto;
+}
+.dialog{
+  width:min(96vw,560px); max-height:88vh; overflow-y:auto;
+  background:var(--panel); border:1px solid var(--line-2);
+  border-top:2px solid var(--accent);
+  border-radius:var(--radius-lg); padding:20px; box-shadow:var(--shadow);
+  animation:din .18s ease-out;
+}
+@keyframes din{ from{ opacity:0; transform:translateY(-10px) scale(.98); } }
+
+/* 閒置吸引畫面 */
+.attract{
+  position:fixed; inset:0; z-index:800; display:grid; place-items:center;
+  background:rgba(4,7,11,.93); cursor:pointer; text-align:center; padding:24px;
+}
+.attract .big{
+  font-size:clamp(30px,8vw,66px); font-weight:700; color:var(--green);
+  text-shadow:0 0 44px rgba(57,255,136,.45); letter-spacing:.04em;
+  animation:float 2.6s ease-in-out infinite alternate;
+}
+.attract .sm{ color:var(--fg-dim); margin-top:14px; font-size:clamp(14px,2.6vw,18px); }
+@keyframes float{ to{ transform:translateY(-10px); } }
+
+/* ===================== 無障礙 / 動畫偏好 ===================== */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{ animation-duration:.001s !important; transition-duration:.001s !important; }
+}
+html[data-motion="off"] *,
+html[data-motion="off"] *::before,
+html[data-motion="off"] *::after{
+  animation-duration:.001s !important; transition-duration:.001s !important;
+}
+
+/* ===================== 手機 ===================== */
+@media (max-width:720px){
+  body{ font-size:14.5px; }
+  .brand-text small{ display:none; }
+  .nav{ order:3; width:100%; margin-left:0; padding-top:6px; border-top:1px solid var(--line); }
+  .topbar{ flex-wrap:wrap; }
+  .gf-actions{ width:100%; }
+  .gf-actions .btn{ flex:1; }
+  .gcard-blurb{ min-height:0; }
+  .my-btns .btn{ max-width:none; }
+  .chip span{ display:none; }
+}
+@media (max-width:420px){
+  .bin-bits{ grid-template-columns:repeat(4,1fr); }
+  .statbox{ min-width:62px; padding:4px 8px; }
+  .statbox b{ font-size:16px; }
+}
+/* 橫向小螢幕（攤位平板） */
+@media (max-height:560px) and (orientation:landscape){
+  .gf-stage{ min-height:300px; }
+  .hero{ margin-bottom:16px; }
+}
+
+</style>
+</head>
+<body>
+<canvas id="bgfx" aria-hidden="true"></canvas>
+<div id="crt" aria-hidden="true"></div>
+
+<header class="topbar">
+  <a class="brand" href="#/">
+    <span class="brand-mark">&lt;/&gt;</span>
+    <span class="brand-text">
+      <b id="brandTitle">CSE ARCADE</b>
+      <small id="brandSub">資工系遊戲攤</small>
+    </span>
+  </a>
+  <nav class="nav" id="nav" aria-label="主選單"></nav>
+  <div class="topright">
+    <a class="chip" id="totalChip" href="#/board" title="你的總分（各遊戲最佳分數加總）"><span>總分</span><b>0</b></a>
+    <button class="iconbtn" id="btnSound" type="button" title="音效開關" aria-label="音效開關">♪</button>
+    <button class="iconbtn" id="btnFull" type="button" title="全螢幕" aria-label="全螢幕">⛶</button>
+  </div>
+</header>
+
+<main id="view" class="view" tabindex="-1"></main>
+
+<footer class="foot">
+  <span id="footText">資工系遊戲攤</span>
+  <span class="footsep">·</span><a href="#/board">排行榜</a>
+  <span class="footsep">·</span><a href="#/about">關於資工系</a>
+  <span class="footsep">·</span><a href="#/settings">攤位設定</a>
+</footer>
+
+<div id="toasts" class="toasts" aria-live="polite" aria-atomic="false"></div>
+<div id="modals"></div>
+
+<script>
+/* ===== assets/js/config.js ===== */
+/* ============================================================
+   攤位設定檔
+   ------------------------------------------------------------
+   【整個網站的文字都從這裡改，不用動其他檔案】
+   改完存檔 → 重新整理瀏覽器就看得到。
+   要帶去攤位的單檔版，記得再跑一次：python build-single-file.py
+   ============================================================ */
+window.CSE = window.CSE || {};
+
+CSE.config = {
+
+  /* ---------- 1. 攤位 / 系所名稱 ----------
+     title    → 左上角的大標、瀏覽器分頁名稱
+     school   → 首頁終端機裡的「whoami」結果、頁尾
+     dept     → 頁尾、「關於資工系」頁面的大標
+     booth    → 左上角副標、頁尾
+     tagline  → 首頁大標下面那一行                          */
+  title:   'CSE ARCADE',
+  school:  '逢甲大學',
+  dept:    '資訊工程學系',
+  booth:   '資工系遊戲攤',
+  tagline: '七款小遊戲，10 分鐘看懂資工系在學什麼',
+
+  /* ---------- 2. 兌換小禮物的門檻 ----------
+     總分 = 七款遊戲各自的「最佳分數」加總（不是每一局累加）
+     enabled 改成 false 就不會顯示這個區塊                  */
+  prize: {
+    enabled: true,
+    threshold: 3000,
+    text: '總分達 3000 分，拿給攤位人員看就能兌換小禮物'
+  },
+
+  /* ---------- 3. 連結 ----------
+     填了才會在「關於資工系」頁面長出按鈕，留空就不顯示。
+     ↓ 把系上 / 系學會的網址貼進引號裡                      */
+  links: {
+    ig:   '',          // 例：'https://www.instagram.com/你們的帳號/'
+    web:  '',          // 例：系網站首頁
+    line: ''           // 例：LINE 社群邀請連結
+  },
+
+  /* ---------- 4.「關於資工系」整頁的內容 ---------- */
+  about: {
+
+    /* 開頭那段介紹文 */
+    intro: '資訊工程學系（Computer Science and Engineering）不是在學電腦維修，' +
+           '而是在學「如何讓機器幫人解決問題」：從底層的 0 與 1，' +
+           '一路到演算法、作業系統、網路、AI 與軟體工程。' +
+           '逢甲資工在大二之後還分成電腦系統、軟體工程、網際網路工程三個專業學程，' +
+           '可以依照興趣選擇要往哪個方向深入。',
+           // ↑ 三個學程的說法請再和系上確認一次，若有調整直接改這行
+
+    /* 核心課程：格式是 ['課名', '一句話說明'] */
+    courses: [
+      ['程式設計', '從零開始學寫程式，大一不需要任何基礎'],
+      ['資料結構', '資料怎麼擺，決定程式快一千倍還是慢一千倍'],
+      ['演算法', '解同一個問題的一百種方法，哪一種最聰明'],
+      ['計算機組織', '打開電腦，看 CPU 怎麼把 0 和 1 變成運算'],
+      ['作業系統', 'Windows / Linux 底下到底在忙什麼'],
+      ['計算機網路', '你按下 Enter 之後，封包去了哪裡'],
+      ['離散數學 / 線性代數', '寫程式的底層語言其實是數學'],
+      ['資料庫系統', '幾千萬筆資料怎麼在 0.01 秒內被找到'],
+      ['人工智慧 / 機器學習', '讓機器從資料中自己找出規則']
+    ],
+
+    /* 畢業出路：格式是 ['方向', '一句話說明'] */
+    careers: [
+      ['軟體工程師', '前端 / 後端 / 行動 App / 系統'],
+      ['資料科學與 AI', '資料分析、機器學習、模型訓練'],
+      ['資訊安全', '紅隊、藍隊、滲透測試、安全架構'],
+      ['網路與系統', '網路工程師、系統分析師、資料庫管理師'],
+      ['遊戲與圖學', '遊戲引擎、渲染、互動設計'],
+      ['晶片與嵌入式', '韌體、IC 設計、物聯網'],
+      ['研究與教學', '研究所、學界、產業研究院'],
+      ['創業 / 產品', '技術創辦人、產品經理、技術顧問']
+    ],
+
+    /* 想先知道的四件事：一行一個字串，可以自由增減 */
+    myths: [
+      '不會寫程式也能念 — 大一從 Hello World 開始教',
+      '數學很重要，但不是只有會考試的人才念得起來',
+      '不是只能當工程師，技術是通往很多領域的鑰匙',
+      '寫程式是團隊運動，溝通和協作一樣重要'
+    ]
+  }
+};
+
+</script>
+<script>
+/* ===== assets/js/core.js ===== */
+/* ============================================================
+   core.js — DOM 工具 / 儲存 / 設定 / 音效 / 提示 / 遊戲註冊表
+   刻意不使用 ES module，讓 index.html 直接雙擊（file://）也能跑
+   ============================================================ */
+(function () {
+  'use strict';
+  var CSE = window.CSE = window.CSE || {};
+
+  /* ---------------- 小工具 ---------------- */
+  function randInt(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function clamp(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
+  function pad(n, w) { var s = String(n); while (s.length < w) s = '0' + s; return s; }
+  function nf(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+  CSE.util = {
+    randInt: randInt, pick: pick, shuffle: shuffle,
+    clamp: clamp, pad: pad, nf: nf,
+    /* 以毫秒為單位的 mm:ss */
+    mmss: function (sec) {
+      sec = Math.max(0, Math.floor(sec));
+      return pad(Math.floor(sec / 60), 1) + ':' + pad(sec % 60, 2);
+    }
+  };
+
+  /* ---------------- DOM ---------------- */
+  function el(tag, attrs, kids) {
+    var n = document.createElement(tag);
+    if (attrs) {
+      for (var k in attrs) {
+        if (!Object.prototype.hasOwnProperty.call(attrs, k)) continue;
+        var v = attrs[k];
+        if (v === null || v === undefined || v === false) continue;
+        if (k === 'class') n.className = v;
+        else if (k === 'text') n.textContent = v;
+        else if (k === 'html') n.innerHTML = v;
+        else if (k === 'style' && typeof v === 'object') {
+          for (var s in v) { if (Object.prototype.hasOwnProperty.call(v, s)) n.style[s] = v[s]; }
+        } else if (k === 'dataset') {
+          for (var d in v) { if (Object.prototype.hasOwnProperty.call(v, d)) n.dataset[d] = v[d]; }
+        } else if (k.slice(0, 2) === 'on' && typeof v === 'function') {
+          n.addEventListener(k.slice(2), v);
+        } else {
+          n.setAttribute(k, v === true ? '' : v);
+        }
+      }
+    }
+    if (kids !== null && kids !== undefined) append(n, kids);
+    return n;
+  }
+  function append(parent, kids) {
+    if (Array.isArray(kids)) {
+      for (var i = 0; i < kids.length; i++) append(parent, kids[i]);
+    } else if (kids instanceof Node) {
+      parent.appendChild(kids);
+    } else if (kids !== null && kids !== undefined && kids !== false) {
+      parent.appendChild(document.createTextNode(String(kids)));
+    }
+  }
+  function svgEl(tag, attrs) {
+    var n = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    if (attrs) {
+      for (var k in attrs) {
+        if (!Object.prototype.hasOwnProperty.call(attrs, k)) continue;
+        var v = attrs[k];
+        if (v === null || v === undefined || v === false) continue;
+        if (k === 'text') n.textContent = v;
+        else if (k.slice(0, 2) === 'on' && typeof v === 'function') n.addEventListener(k.slice(2), v);
+        else n.setAttribute(k, v);
+      }
+    }
+    return n;
+  }
+  function clear(node) { while (node && node.firstChild) node.removeChild(node.firstChild); }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function corners() {
+    return [
+      el('i', { class: 'corner tl' }), el('i', { class: 'corner tr' }),
+      el('i', { class: 'corner bl' }), el('i', { class: 'corner br' })
+    ];
+  }
+
+  /* ---------------- 儲存（localStorage + 記憶體後援） ---------------- */
+  var PREFIX = 'cse.v1.';
+  var memStore = {};
+  var lsOK = (function () {
+    try {
+      var t = PREFIX + '__probe';
+      window.localStorage.setItem(t, '1');
+      window.localStorage.removeItem(t);
+      return true;
+    } catch (e) { return false; }
+  })();
+
+  CSE.store = {
+    ok: lsOK,
+    get: function (key, def) {
+      try {
+        var raw = lsOK ? window.localStorage.getItem(PREFIX + key) : memStore[key];
+        if (raw === null || raw === undefined) return def;
+        return JSON.parse(raw);
+      } catch (e) { return def; }
+    },
+    set: function (key, val) {
+      try {
+        var raw = JSON.stringify(val);
+        if (lsOK) window.localStorage.setItem(PREFIX + key, raw);
+        else memStore[key] = raw;
+        return true;
+      } catch (e) { return false; }
+    },
+    del: function (key) {
+      try {
+        if (lsOK) window.localStorage.removeItem(PREFIX + key);
+        else delete memStore[key];
+      } catch (e) { /* ignore */ }
+    },
+    keys: function () {
+      try {
+        if (!lsOK) return Object.keys(memStore);
+        var out = [];
+        for (var i = 0; i < window.localStorage.length; i++) {
+          var k = window.localStorage.key(i);
+          if (k && k.indexOf(PREFIX) === 0) out.push(k.slice(PREFIX.length));
+        }
+        return out;
+      } catch (e) { return []; }
+    },
+    clearAll: function () {
+      var self = this;
+      this.keys().forEach(function (k) { self.del(k); });
+      memStore = {};
+    }
+  };
+
+  /* ---------------- 設定 ---------------- */
+  var DEFAULTS = { sound: true, motion: true, scanline: true, kiosk: false, idle: 75 };
+
+  CSE.settings = {
+    _v: null,
+    all: function () {
+      if (!this._v) {
+        var saved = CSE.store.get('settings', {}) || {};
+        this._v = {};
+        for (var k in DEFAULTS) {
+          if (!Object.prototype.hasOwnProperty.call(DEFAULTS, k)) continue;
+          this._v[k] = (saved[k] === undefined) ? DEFAULTS[k] : saved[k];
+        }
+      }
+      return this._v;
+    },
+    get: function (k) { return this.all()[k]; },
+    set: function (k, v) {
+      this.all()[k] = v;
+      CSE.store.set('settings', this._v);
+      this.apply();
+      if (typeof this.onchange === 'function') this.onchange(k, v);
+    },
+    toggle: function (k) { this.set(k, !this.get(k)); return this.get(k); },
+    apply: function () {
+      var v = this.all();
+      var r = document.documentElement;
+      r.dataset.motion = v.motion ? 'on' : 'off';
+      r.dataset.scanline = v.scanline ? 'on' : 'off';
+      var b = document.getElementById('btnSound');
+      if (b) b.setAttribute('aria-pressed', v.sound ? 'true' : 'false');
+    },
+    onchange: null
+  };
+
+  /* ---------------- 音效（Web Audio，無外部檔案） ---------------- */
+  var actx = null;
+  var audioBlocked = false;
+
+  function ctx() {
+    if (audioBlocked) return null;
+    if (actx) return actx;
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) { audioBlocked = true; return null; }
+      actx = new AC();
+    } catch (e) { audioBlocked = true; return null; }
+    return actx;
+  }
+
+  function tone(freq, dur, type, vol, delay, slideTo) {
+    var c = ctx();
+    if (!c) return;
+    try {
+      var t0 = c.currentTime + (delay || 0);
+      var osc = c.createOscillator();
+      var g = c.createGain();
+      osc.type = type || 'square';
+      osc.frequency.setValueAtTime(freq, t0);
+      if (slideTo) osc.frequency.exponentialRampToValueAtTime(Math.max(30, slideTo), t0 + dur);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(vol === undefined ? 0.07 : vol, t0 + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      osc.connect(g); g.connect(c.destination);
+      osc.start(t0); osc.stop(t0 + dur + 0.02);
+    } catch (e) { /* ignore */ }
+  }
+
+  var SOUNDS = {
+    click: function () { tone(520, 0.045, 'square', 0.045); },
+    type:  function () { tone(880, 0.02, 'square', 0.02); },
+    tick:  function () { tone(1400, 0.03, 'sine', 0.035); },
+    ok:    function () { tone(660, 0.08, 'triangle', 0.07); tone(990, 0.1, 'triangle', 0.06, 0.07); },
+    great: function () { tone(660, 0.07, 'triangle', 0.07); tone(880, 0.07, 'triangle', 0.07, 0.06); tone(1320, 0.14, 'triangle', 0.06, 0.12); },
+    bad:   function () { tone(200, 0.18, 'sawtooth', 0.055, 0, 90); },
+    win:   function () { [523, 659, 784, 1046].forEach(function (f, i) { tone(f, 0.16, 'triangle', 0.065, i * 0.1); }); },
+    over:  function () { [392, 330, 262].forEach(function (f, i) { tone(f, 0.22, 'triangle', 0.06, i * 0.14); }); }
+  };
+
+  CSE.sfx = {
+    /* 必須在第一次使用者互動時呼叫，否則瀏覽器會擋住音訊 */
+    unlock: function () {
+      var c = ctx();
+      if (c && c.state === 'suspended') { try { c.resume(); } catch (e) { /* ignore */ } }
+    },
+    play: function (name) {
+      if (!CSE.settings.get('sound')) return;
+      var fn = SOUNDS[name];
+      if (fn) { this.unlock(); fn(); }
+    }
+  };
+
+  /* ---------------- Toast ---------------- */
+  CSE.toast = function (msg, kind, ms) {
+    var box = document.getElementById('toasts');
+    if (!box) return;
+    var t = el('div', { class: 'toast' + (kind ? ' ' + kind : ''), text: msg });
+    box.appendChild(t);
+    var life = ms || 2200;
+    setTimeout(function () {
+      t.style.transition = 'opacity .25s';
+      t.style.opacity = '0';
+      setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 260);
+    }, life);
+  };
+
+  /* ---------------- Modal ---------------- */
+  CSE.modal = function (opts) {
+    opts = opts || {};
+    var host = document.getElementById('modals');
+    var dialog = el('div', { class: 'dialog', role: 'dialog', 'aria-modal': 'true' });
+    var back = el('div', { class: 'backdrop' }, dialog);
+
+    if (opts.accent) dialog.style.setProperty('--accent', opts.accent);
+    if (opts.title) dialog.appendChild(el('h2', { text: opts.title }));
+    if (opts.body) append(dialog, opts.body);
+
+    function close() {
+      document.removeEventListener('keydown', onKey, true);
+      if (back.parentNode) back.parentNode.removeChild(back);
+      if (typeof opts.onClose === 'function') opts.onClose();
+    }
+    function onKey(e) { if (e.key === 'Escape') { e.stopPropagation(); close(); } }
+
+    var actions = opts.actions || [{ label: '關閉' }];
+    var bar = el('div', { class: 'row', style: { marginTop: '16px', justifyContent: 'flex-end' } });
+    actions.forEach(function (a) {
+      bar.appendChild(el('button', {
+        type: 'button',
+        class: 'btn' + (a.primary ? ' btn--primary' : '') + (a.danger ? ' btn--danger' : ''),
+        text: a.label,
+        onclick: function () {
+          CSE.sfx.play('click');
+          var keep = a.onClick && a.onClick();
+          if (!keep) close();
+        }
+      }));
+    });
+    dialog.appendChild(bar);
+
+    back.addEventListener('click', function (e) { if (e.target === back && !opts.sticky) close(); });
+    document.addEventListener('keydown', onKey, true);
+    host.appendChild(back);
+
+    var focusTarget = dialog.querySelector('input, button.btn--primary, button');
+    if (focusTarget) setTimeout(function () { focusTarget.focus(); }, 30);
+
+    return { close: close, dialog: dialog };
+  };
+
+  CSE.confirm = function (title, msg, onYes, yesLabel) {
+    CSE.modal({
+      title: title,
+      body: el('p', { class: 'muted', text: msg }),
+      actions: [
+        { label: yesLabel || '確定', primary: true, danger: true, onClick: onYes },
+        { label: '取消' }
+      ]
+    });
+  };
+
+  /* ---------------- 遊戲註冊表 ---------------- */
+  CSE.games = [];
+  CSE.gameById = {};
+  CSE.registerGame = function (def) {
+    if (!def || !def.id || typeof def.mount !== 'function') {
+      console.error('[CSE] 遊戲註冊失敗，缺少 id 或 mount：', def);
+      return;
+    }
+    if (CSE.gameById[def.id]) {
+      console.warn('[CSE] 重複的遊戲 id：' + def.id);
+      return;
+    }
+    def.duration = def.duration || 0;
+    def.medals = def.medals || { bronze: 400, silver: 900, gold: 1600 };
+    CSE.games.push(def);
+    CSE.gameById[def.id] = def;
+  };
+
+  CSE.ui = {
+    el: el, svg: svgEl, append: append, clear: clear, esc: esc, corners: corners
+  };
+})();
+
+</script>
+<script>
+/* ===== assets/js/scores.js ===== */
+/* ============================================================
+   scores.js — 排行榜 / 個人最佳 / 徽章 / 資料匯出
+   ============================================================ */
+(function () {
+  'use strict';
+  var CSE = window.CSE;
+  var store = CSE.store;
+
+  var MAX_ROWS = 60;          /* 每款遊戲保留的排行榜筆數 */
+  var NAME_MAX = 10;
+
+  /* 暱稱清理：去控制字元、限制長度、擋空白與少數髒字 */
+  var BLOCK = ['幹', '靠北', 'fuck', 'shit', 'bitch', 'dick', '婊', '賤'];
+  function cleanName(raw) {
+    var s = String(raw === null || raw === undefined ? '' : raw);
+    /* 移除控制字元與方向覆寫字元（避免排行榜被排版攻擊） */
+    s = s.replace(/[\u0000-\u001F\u007F​-‏‪-‮⁠-⁯]/g, '');
+    s = s.replace(/\s+/g, ' ').trim();
+    if (!s) return '';
+    if (s.length > NAME_MAX) s = s.slice(0, NAME_MAX);
+    var low = s.toLowerCase();
+    for (var i = 0; i < BLOCK.length; i++) {
+      if (low.indexOf(BLOCK[i]) >= 0) return '';
+    }
+    return s;
+  }
+
+  function lbKey(gameId) { return 'lb.' + gameId; }
+  function statKey(gameId) { return 'stat.' + gameId; }
+
+  var Scores = {
+    nameMax: NAME_MAX,
+    cleanName: cleanName,
+
+    /* ---- 排行榜 ---- */
+    top: function (gameId, n) {
+      var rows = store.get(lbKey(gameId), []) || [];
+      if (!Array.isArray(rows)) rows = [];
+      return rows.slice(0, n || MAX_ROWS);
+    },
+    submit: function (gameId, name, score, stats) {
+      var nm = cleanName(name);
+      if (!nm) return { ok: false, reason: 'name' };
+      var rows = store.get(lbKey(gameId), []) || [];
+      if (!Array.isArray(rows)) rows = [];
+      var entry = { n: nm, s: Math.round(score), t: Date.now(), m: stats || null };
+      rows.push(entry);
+      rows.sort(function (a, b) { return (b.s - a.s) || (a.t - b.t); });
+      rows = rows.slice(0, MAX_ROWS);
+      store.set(lbKey(gameId), rows);
+      store.set('lastName', nm);
+      var rank = rows.indexOf(entry) + 1;
+      return { ok: true, rank: rank, total: rows.length };
+    },
+    lastName: function () { return store.get('lastName', '') || ''; },
+
+    /* ---- 個人紀錄（不需暱稱，自動累計） ---- */
+    recordResult: function (gameId, score) {
+      var st = store.get(statKey(gameId), { best: 0, plays: 0, sum: 0 }) || {};
+      st.best = Math.max(st.best || 0, Math.round(score));
+      st.plays = (st.plays || 0) + 1;
+      st.sum = (st.sum || 0) + Math.round(score);
+      store.set(statKey(gameId), st);
+      return st;
+    },
+    stat: function (gameId) {
+      return store.get(statKey(gameId), { best: 0, plays: 0, sum: 0 }) || { best: 0, plays: 0, sum: 0 };
+    },
+    best: function (gameId) { return this.stat(gameId).best || 0; },
+    plays: function (gameId) { return this.stat(gameId).plays || 0; },
+
+    /* 總分 = 每款遊戲的最佳分數加總（鼓勵把七款都玩過） */
+    total: function () {
+      var self = this, sum = 0;
+      CSE.games.forEach(function (g) { sum += self.best(g.id); });
+      return sum;
+    },
+    totalPlays: function () {
+      var self = this, sum = 0;
+      CSE.games.forEach(function (g) { sum += self.plays(g.id); });
+      return sum;
+    },
+
+    /* ---- 獎牌 / 徽章 ---- */
+    medalOf: function (gameId, score) {
+      var g = CSE.gameById[gameId];
+      if (!g) return null;
+      var m = g.medals;
+      if (score >= m.gold) return 'gold';
+      if (score >= m.silver) return 'silver';
+      if (score >= m.bronze) return 'bronze';
+      return null;
+    },
+    medalIcon: function (medal) {
+      return medal === 'gold' ? '🥇' : medal === 'silver' ? '🥈' : medal === 'bronze' ? '🥉' : '';
+    },
+    rankTitle: function (gameId, score) {
+      var m = this.medalOf(gameId, score);
+      var g = CSE.gameById[gameId];
+      var titles = (g && g.titles) || ['體驗組', '新手上路', '熟練工程師', '系上傳說'];
+      return m === 'gold' ? titles[3] : m === 'silver' ? titles[2] : m === 'bronze' ? titles[1] : titles[0];
+    },
+
+    badges: function () {
+      var self = this;
+      var out = [];
+      CSE.games.forEach(function (g) {
+        var best = self.best(g.id);
+        var medal = self.medalOf(g.id, best);
+        out.push({
+          id: 'g.' + g.id,
+          icon: medal ? self.medalIcon(medal) : '▢',
+          name: g.name,
+          note: medal
+            ? self.rankTitle(g.id, best) + '（' + CSE.util.nf(best) + ' 分）'
+            : (best > 0 ? '還差 ' + CSE.util.nf(g.medals.bronze - best) + ' 分拿銅牌' : '尚未挑戰'),
+          got: !!medal
+        });
+      });
+
+      var playedAll = CSE.games.every(function (g) { return self.plays(g.id) > 0; });
+      var allBronze = CSE.games.every(function (g) { return self.medalOf(g.id, self.best(g.id)); });
+      var allGold = CSE.games.every(function (g) { return self.medalOf(g.id, self.best(g.id)) === 'gold'; });
+      var total = self.total();
+      var th = (CSE.config.prize && CSE.config.prize.threshold) || 3000;
+
+      out.push({ id: 'meta.all', icon: '🎒', name: '全系通識', note: '七款遊戲都玩過一次', got: playedAll });
+      out.push({ id: 'meta.bronze', icon: '🔧', name: '修完必修', note: '每款至少拿到銅牌', got: allBronze });
+      out.push({ id: 'meta.prize', icon: '🎁', name: '兌換資格', note: '總分達 ' + CSE.util.nf(th) + ' 分', got: total >= th });
+      out.push({ id: 'meta.gold', icon: '👑', name: '系主任認證', note: '每款都拿到金牌', got: allGold });
+      return out;
+    },
+
+    /* ---- 攤位結束後的資料匯出 ---- */
+    exportCsv: function () {
+      var rows = [['game_id', 'game_name', 'rank', 'nickname', 'score', 'time_iso']];
+      var self = this;
+      CSE.games.forEach(function (g) {
+        self.top(g.id).forEach(function (r, i) {
+          rows.push([g.id, g.name, i + 1, r.n, r.s, new Date(r.t).toISOString()]);
+        });
+      });
+      var csv = rows.map(function (r) {
+        return r.map(function (c) {
+          var s = String(c);
+          return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+        }).join(',');
+      }).join('\r\n');
+      /* BOM：讓 Excel 正確讀中文 */
+      return '﻿' + csv;
+    },
+    summary: function () {
+      var self = this;
+      return CSE.games.map(function (g) {
+        var rows = self.top(g.id);
+        return {
+          id: g.id, name: g.name,
+          plays: self.plays(g.id),
+          entries: rows.length,
+          best: rows.length ? rows[0].s : 0,
+          avg: rows.length ? Math.round(rows.reduce(function (s, r) { return s + r.s; }, 0) / rows.length) : 0
+        };
+      });
+    },
+    resetAll: function () { store.clearAll(); CSE.settings._v = null; }
+  };
+
+  CSE.scores = Scores;
+
+  /* 下載檔案（file:// 與 http:// 都可用） */
+  CSE.download = function (filename, text, mime) {
+    try {
+      var blob = new Blob([text], { type: (mime || 'text/plain') + ';charset=utf-8' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function () {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 150);
+      return true;
+    } catch (e) {
+      CSE.toast('這個瀏覽器無法下載檔案', 'bad');
+      return false;
+    }
+  };
+})();
+
+</script>
+<script>
+/* ===== assets/js/host.js ===== */
+/* ============================================================
+   host.js — 遊戲外框：準備畫面 / 計時 / 計分 / 結果畫面 / 資源回收
+   所有遊戲共用同一套生命週期，避免每款遊戲各自漏清計時器。
+   ============================================================ */
+(function () {
+  'use strict';
+  var CSE = window.CSE;
+  var ui = CSE.ui, el = ui.el;
+
+  var current = null;      /* 目前執行中的 instance */
+
+  var Host = {
+    busy: false,           /* true = 正在遊戲中（閒置重置不會打斷） */
+
+    stop: function () {
+      if (current) { current._destroy(); current = null; }
+      this.busy = false;
+    },
+
+    start: function (def, mountEl) {
+      this.stop();
+      current = createInstance(def, mountEl);
+      return current;
+    }
+  };
+
+  function createInstance(def, mountEl) {
+    /* ---------- 狀態 ---------- */
+    var S = {
+      score: 0,
+      left: def.duration || 0,
+      running: false,
+      ended: false,
+      cleanups: [],
+      rafId: 0,
+      extra: null
+    };
+
+    /* ---------- 外框 DOM ---------- */
+    var scoreB = el('b', { text: '0' });
+    var timeB = el('b', { text: def.duration ? String(def.duration) : '—' });
+    var timeBox = el('div', { class: 'statbox time' }, [el('span', { text: '時間' }), timeB]);
+    var scoreBox = el('div', { class: 'statbox score' }, [el('span', { text: '分數' }), scoreB]);
+    var extraSpan = el('span', { text: '' });
+    var extraB = el('b', { text: '' });
+    var extraBox = el('div', { class: 'statbox hidden' }, [extraSpan, extraB]);
+
+    var stage = el('div', { class: 'gf-stage' });
+    var hint = el('div', { class: 'gf-hint' });
+    var body = el('div', { style: { flex: '1', display: 'flex', flexDirection: 'column', minHeight: '0' } });
+    stage.appendChild(hint);
+    stage.appendChild(body);
+
+    var btnRestart = el('button', { type: 'button', class: 'btn btn--sm', text: '重來' });
+    var btnHow = el('button', { type: 'button', class: 'btn btn--sm', text: '玩法' });
+    var btnHome = el('button', { type: 'button', class: 'btn btn--sm', text: '離開' });
+
+    var frame = el('div', { class: 'gframe' }, [
+      el('div', { class: 'gf-top' }, [
+        el('div', { class: 'gf-id' }, [
+          el('b', { text: def.name }),
+          el('span', { text: def.tag || '' })
+        ]),
+        el('div', { class: 'gf-stats' }, [timeBox, scoreBox, extraBox]),
+        el('div', { class: 'gf-actions' }, [btnRestart, btnHow, btnHome])
+      ]),
+      stage
+    ]);
+
+    frame.style.setProperty('--accent', def.accent || 'var(--green)');
+    if (!def.duration) timeBox.classList.add('hidden');
+
+    ui.clear(mountEl);
+    mountEl.appendChild(frame);
+
+    btnHow.addEventListener('click', function () {
+      CSE.sfx.play('click');
+      CSE.modal({
+        title: '玩法：' + def.name,
+        accent: def.accent,
+        body: [
+          el('ol', { class: 'howto' }, (def.how || []).map(function (t) { return el('li', { text: t }); })),
+          def.controls ? el('p', { class: 'faint', style: { fontSize: '12.5px' }, text: '操作：' + def.controls }) : null
+        ]
+      });
+    });
+    btnRestart.addEventListener('click', function () {
+      CSE.sfx.play('click');
+      begin();
+    });
+    btnHome.addEventListener('click', function () {
+      CSE.sfx.play('click');
+      location.hash = '#/';
+    });
+
+    /* ---------- 給遊戲用的 API ---------- */
+    var api = {
+      def: def,
+      stage: body,
+      el: el,
+      svg: ui.svg,
+      sfx: CSE.sfx,
+      util: CSE.util,
+
+      get score() { return S.score; },
+
+      setScore: function (n) {
+        S.score = Math.max(0, Math.round(n));
+        scoreB.textContent = CSE.util.nf(S.score);
+        return S.score;
+      },
+      addScore: function (n) { return api.setScore(S.score + n); },
+
+      hint: function (text, kind) {
+        hint.textContent = text || '';
+        hint.className = 'gf-hint' + (kind ? ' ' + kind : '');
+      },
+
+      /* 第三個計分欄（連擊、關卡、剩餘生命…） */
+      setStat: function (label, value) {
+        if (label === null) { extraBox.classList.add('hidden'); return; }
+        extraBox.classList.remove('hidden');
+        extraSpan.textContent = label;
+        extraB.textContent = String(value);
+      },
+
+      timeLeft: function () { return S.left; },
+      addTime: function (sec) {
+        S.left = Math.max(0, S.left + sec);
+        paintTime();
+      },
+
+      /* 自動清理的事件監聽 */
+      on: function (target, type, fn, opts) {
+        target.addEventListener(type, fn, opts);
+        S.cleanups.push(function () { target.removeEventListener(type, fn, opts); });
+      },
+      after: function (ms, fn) {
+        var id = setTimeout(function () { if (!S.ended) fn(); }, ms);
+        S.cleanups.push(function () { clearTimeout(id); });
+        return id;
+      },
+      every: function (ms, fn) {
+        var id = setInterval(function () { if (!S.ended) fn(); }, ms);
+        S.cleanups.push(function () { clearInterval(id); });
+        return id;
+      },
+      onDestroy: function (fn) { S.cleanups.push(fn); },
+
+      /* 註冊「結算資料提供者」：時間到時 host 會呼叫它拿 stats / knowledge。
+         這樣遊戲不必自己攔截時間到的時機。 */
+      onResult: function (fn) { S.resultFn = fn; },
+
+      restart: function () { begin(); },
+
+      /* 結束一局 */
+      finish: function (result) { endGame(result || {}); }
+    };
+
+    /* ---------- 計時（requestAnimationFrame + delta 夾限）
+       好處：切到別的分頁時 rAF 不會觸發 → 計時自動暫停，
+       回來時 delta 被夾在 0.1 秒內，不會瞬間扣光時間。 ---------- */
+    var lastT = 0;
+    var tickAcc = 0;
+
+    function paintTime() {
+      if (!def.duration) return;
+      var s = Math.ceil(S.left);
+      timeB.textContent = String(s);
+      timeBox.classList.toggle('warn', s <= 10 && S.running);
+    }
+
+    function frameLoop(t) {
+      if (S.ended || !S.running) return;
+      S.rafId = requestAnimationFrame(frameLoop);
+      var dt = Math.min(0.1, (t - lastT) / 1000);
+      lastT = t;
+      if (def.duration) {
+        var before = Math.ceil(S.left);
+        S.left -= dt;
+        if (S.left <= 0) {
+          S.left = 0;
+          paintTime();
+          endGame({ reason: 'timeout' });
+          return;
+        }
+        var after = Math.ceil(S.left);
+        if (after !== before) {
+          paintTime();
+          if (after <= 5) CSE.sfx.play('tick');
+        }
+      }
+      tickAcc += dt;
+      if (S.onFrame) S.onFrame(dt);
+    }
+
+    /* ---------- 準備畫面 ---------- */
+    var readyOverlay = null;
+
+    function showReady() {
+      Host.busy = false;
+      S.running = false;
+      S.ended = false;
+      var best = CSE.scores.best(def.id);
+      readyOverlay = el('div', { class: 'overlay' }, [
+        el('div', { class: 'kicker', text: def.tag || 'MINI GAME' }),
+        el('h2', { text: def.name }),
+        el('p', { class: 'muted', style: { maxWidth: '46ch' }, text: def.blurb }),
+        el('ol', { class: 'howto' }, (def.how || []).map(function (t) { return el('li', { text: t }); })),
+        def.controls ? el('p', { class: 'faint', style: { fontSize: '12.5px' }, text: '操作：' + def.controls }) : null,
+        el('div', { class: 'row', style: { justifyContent: 'center' } }, [
+          el('button', {
+            type: 'button', class: 'btn btn--primary btn--lg', text: '開始遊戲',
+            onclick: function () { CSE.sfx.unlock(); CSE.sfx.play('ok'); begin(); }
+          })
+        ]),
+        el('div', { class: 'faint', style: { fontSize: '12px' } },
+          def.duration ? ('一局 ' + def.duration + ' 秒' + (best ? '　·　你的最佳：' + CSE.util.nf(best) + ' 分' : ''))
+            : (best ? '你的最佳：' + CSE.util.nf(best) + ' 分' : ''))
+      ]);
+      stage.appendChild(readyOverlay);
+    }
+
+    /* ---------- 開始一局 ---------- */
+    function begin() {
+      runCleanups();
+      S.score = 0; S.left = def.duration || 0;
+      S.ended = false; S.running = true; S.onFrame = null;
+      S.resultFn = null;
+      api.setScore(0);
+      api.setStat(null);
+      api.hint('');
+      paintTime();
+      ui.clear(body);
+      body.removeAttribute('inert');
+      removeOverlays();
+      Host.busy = true;
+
+      var r;
+      try {
+        r = def.mount(body, api);
+      } catch (e) {
+        console.error('[CSE] ' + def.id + ' 啟動失敗', e);
+        api.hint('這款遊戲載入失敗了，請按「重來」或回首頁。', 'bad');
+        Host.busy = false;
+        return;
+      }
+      if (r && typeof r.onFrame === 'function') S.onFrame = r.onFrame;
+      if (r && typeof r.destroy === 'function') S.cleanups.push(r.destroy);
+
+      lastT = performance.now();
+      cancelAnimationFrame(S.rafId);
+      S.rafId = requestAnimationFrame(frameLoop);
+    }
+
+    /* ---------- 結束一局 ---------- */
+    function endGame(result) {
+      if (S.ended) return;
+      S.ended = true;
+      S.running = false;
+      Host.busy = false;
+      cancelAnimationFrame(S.rafId);
+
+      /* 結果畫面蓋上後，底下的遊戲元件不能再被點擊或用 Tab 聚焦 */
+      try { body.setAttribute('inert', ''); } catch (e) { /* ignore */ }
+
+      /* 讓遊戲補上自己的結算統計 */
+      if (S.resultFn) {
+        try {
+          var extra = S.resultFn() || {};
+          if (!result.stats && extra.stats) result.stats = extra.stats;
+          if (!result.knowledge && extra.knowledge) result.knowledge = extra.knowledge;
+        } catch (e) { console.warn('[CSE] onResult 失敗', e); }
+      }
+
+      var score = S.score;
+      var prevBest = CSE.scores.best(def.id);
+      CSE.scores.recordResult(def.id, score);
+      var isPB = score > prevBest && score > 0;
+
+      CSE.sfx.play(score >= def.medals.silver ? 'win' : 'over');
+      if (typeof Host.onFinish === 'function') Host.onFinish(def.id, score);
+
+      showResult(score, prevBest, isPB, result);
+    }
+
+    function showResult(score, prevBest, isPB, result) {
+      var medal = CSE.scores.medalOf(def.id, score);
+      var title = CSE.scores.rankTitle(def.id, score);
+      var stats = result.stats || [];
+      var know = result.knowledge || def.knowledge;
+
+      var nameInput = el('input', {
+        type: 'text', maxlength: String(CSE.scores.nameMax),
+        placeholder: '暱稱（最多 ' + CSE.scores.nameMax + ' 字）',
+        value: CSE.scores.lastName(),
+        autocomplete: 'off', spellcheck: 'false'
+      });
+      var submitRow = el('div', { class: 'namebox' });
+      var submitMsg = el('div', { class: 'faint', style: { fontSize: '12px', minHeight: '1.4em' } });
+
+      function doSubmit() {
+        var res = CSE.scores.submit(def.id, nameInput.value, score,
+          stats.map(function (s) { return s.k + '=' + s.v; }).join('; '));
+        if (!res.ok) {
+          submitMsg.textContent = '請輸入 1–' + CSE.scores.nameMax + ' 個字的暱稱（避免不雅字）';
+          submitMsg.className = 'bad';
+          nameInput.focus();
+          return;
+        }
+        CSE.sfx.play('great');
+        ui.clear(submitRow);
+        submitRow.appendChild(el('div', { class: 'tag', text: '已登錄排行榜　第 ' + res.rank + ' 名' }));
+        submitRow.appendChild(el('a', { class: 'btn btn--sm', href: '#/board?g=' + def.id, text: '看排行榜' }));
+        submitMsg.textContent = '';
+      }
+
+      var btnSubmit = el('button', { type: 'button', class: 'btn btn--primary', text: '登錄排行榜', onclick: doSubmit });
+      submitRow.appendChild(nameInput);
+      submitRow.appendChild(btnSubmit);
+      nameInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); doSubmit(); }
+      });
+
+      var others = CSE.games.filter(function (g) { return g.id !== def.id; });
+      var next = others.length ? CSE.util.pick(others) : null;
+
+      var ov = el('div', { class: 'overlay' }, [
+        el('div', { class: 'kicker', text: result.reason === 'cleared' ? '全部通關' : '時間到' }),
+        el('div', { class: 'bigscore', text: CSE.util.nf(score) }),
+        el('div', { class: 'rank-title', text: (medal ? CSE.scores.medalIcon(medal) + ' ' : '') + title }),
+        isPB ? el('div', { class: 'tag', text: '★ 個人新紀錄！前一次最佳 ' + CSE.util.nf(prevBest) }) : null,
+        stats.length ? el('div', { class: 'statlist' }, stats.map(function (s) {
+          return el('div', {}, [s.k, el('b', { text: String(s.v) })]);
+        })) : null,
+        know ? el('div', { class: 'know' }, [
+          el('h3', { text: '▸ ' + (know.title || '小知識') }),
+          el('ul', {}, (know.lines || []).map(function (t) { return el('li', { text: t }); }))
+        ]) : null,
+        el('div', { class: 'divider' }),
+        submitRow,
+        submitMsg,
+        el('div', { class: 'row', style: { justifyContent: 'center' } }, [
+          el('button', { type: 'button', class: 'btn btn--primary', text: '再玩一次', onclick: function () { CSE.sfx.play('click'); begin(); } }),
+          next ? el('a', { class: 'btn', href: '#/g/' + next.id, text: '下一款：' + next.name } ) : null,
+          el('a', { class: 'btn btn--ghost', href: '#/', text: '回首頁' })
+        ])
+      ]);
+      stage.appendChild(ov);
+    }
+
+    function removeOverlays() {
+      var list = stage.querySelectorAll('.overlay');
+      for (var i = 0; i < list.length; i++) list[i].parentNode.removeChild(list[i]);
+      readyOverlay = null;
+    }
+
+    function runCleanups() {
+      var list = S.cleanups;
+      S.cleanups = [];
+      for (var i = 0; i < list.length; i++) {
+        try { list[i](); } catch (e) { console.warn('[CSE] cleanup 失敗', e); }
+      }
+    }
+
+    /* ---------- 銷毀 ---------- */
+    function destroy() {
+      S.ended = true;
+      S.running = false;
+      Host.busy = false;
+      cancelAnimationFrame(S.rafId);
+      runCleanups();
+      ui.clear(mountEl);
+    }
+
+    showReady();
+
+    return {
+      api: api,
+      begin: begin,
+      _destroy: destroy
+    };
+  }
+
+  CSE.host = Host;
+})();
+
+</script>
+<script>
+/* ===== assets/js/games/binary.js ===== */
+/* ============================================================
+   遊戲 1：二進位快打 — 撥 8 個位元開關湊出目標十進位數
+   教的是：位值、2 的次方、1 byte = 8 bits
+   ============================================================ */
+(function () {
+  'use strict';
+  var CSE = window.CSE;
+
+  var WEIGHTS = [128, 64, 32, 16, 8, 4, 2, 1];
+
+  CSE.registerGame({
+    id: 'binary',
+    name: '二進位快打',
+    tag: '數位邏輯 · BINARY',
+    icon: '10',
+    accent: 'var(--green)',
+    blurb: '電腦眼裡只有 0 和 1。撥動 8 個位元開關，湊出畫面上的十進位數字。',
+    how: [
+      '上方出現一個目標數字（1–255）。',
+      '點下方 8 個開關，讓「目前數值」等於目標。',
+      '數值一相符就自動跳下一題，連續答對有連擊加成。',
+      '不會算就按「提示」看答案的二進位，但該題分數砍半。'
+    ],
+    controls: '滑鼠點擊或手指觸控；也可按鍵盤 1–8 切換第 1–8 個開關',
+    duration: 60,
+    medals: { bronze: 600, silver: 1300, gold: 2200 },
+    titles: ['體驗組', '二進位新生', '位元快手', '人類 CPU'],
+    knowledge: {
+      title: '為什麼是 8 個開關？',
+      lines: [
+        '8 個位元 = 1 byte，剛好能表示 0–255，共 256 種狀態。',
+        '每個位元的「權重」是 2 的次方：128、64、32、16、8、4、2、1。',
+        '一個英文字元（ASCII）就是 1 byte；你剛剛其實是在手動編碼。',
+        '顏色 #FF8800 裡的 FF 就是 255，也就是 8 個位元全部打開。'
+      ]
+    },
+
+    mount: function (stage, api) {
+      var bits = [0, 0, 0, 0, 0, 0, 0, 0];
+      var target = 0;
+      var streak = 0, solved = 0, skipped = 0, hintsUsed = 0;
+      var qStart = 0, hintOn = false, qIndex = 0;
+
+      var numEl = api.el('div', { class: 'num', text: '0' });
+      var curVal = api.el('b', { text: '0' });
+      var curBin = api.el('span', { class: 'faint', text: '' });
+      var curEl = api.el('div', { class: 'bin-cur' }, ['目前：', curVal, ' ', curBin]);
+      var binHint = api.el('div', { class: 'bin-binary', text: '' });
+
+      var bitsWrap = api.el('div', { class: 'bin-bits' });
+      var bitBtns = [];
+
+      WEIGHTS.forEach(function (w, i) {
+        var vEl = api.el('div', { class: 'v', text: '0' });
+        var b = api.el('button', {
+          type: 'button', class: 'bit', 'aria-pressed': 'false',
+          'aria-label': '位元 ' + (i + 1) + '，權重 ' + w
+        }, [vEl, api.el('div', { class: 'w', text: String(w) })]);
+        b._v = vEl;
+        b.addEventListener('click', function () { toggle(i); });
+        bitBtns.push(b);
+        bitsWrap.appendChild(b);
+      });
+
+      var btnHint = api.el('button', {
+        type: 'button', class: 'btn btn--sm', text: '提示（分數砍半）',
+        onclick: function () {
+          if (hintOn) return;
+          hintOn = true; hintsUsed++;
+          api.sfx.play('click');
+          paintHint();
+        }
+      });
+      var btnSkip = api.el('button', {
+        type: 'button', class: 'btn btn--sm', text: '跳過（−20）',
+        onclick: function () {
+          skipped++;
+          streak = 0;
+          api.addScore(-20);
+          api.sfx.play('bad');
+          api.hint('跳過了，連擊歸零。', 'bad');
+          nextQuestion();
+        }
+      });
+      var btnClear = api.el('button', {
+        type: 'button', class: 'btn btn--sm', text: '全部歸零',
+        onclick: function () {
+          for (var i = 0; i < 8; i++) bits[i] = 0;
+          api.sfx.play('click');
+          paint();
+        }
+      });
+
+      stage.appendChild(api.el('div', { class: 'bin-wrap' }, [
+        api.el('div', { class: 'bin-target' }, [
+          api.el('div', { class: 'lbl', text: '目標數字' }),
+          numEl
+        ]),
+        binHint,
+        bitsWrap,
+        curEl,
+        api.el('div', { class: 'bin-hintrow' }, [btnHint, btnSkip, btnClear])
+      ]));
+
+      function value() {
+        var v = 0;
+        for (var i = 0; i < 8; i++) if (bits[i]) v += WEIGHTS[i];
+        return v;
+      }
+
+      function binStr(v) {
+        var s = '';
+        for (var i = 0; i < 8; i++) s += ((v >> (7 - i)) & 1);
+        return s;
+      }
+
+      function paintHint() {
+        binHint.textContent = hintOn ? binStr(target) : '';
+      }
+
+      function paint() {
+        var v = value();
+        curVal.textContent = String(v);
+        curBin.textContent = '(' + binStr(v) + ')';
+        curEl.className = 'bin-cur' + (v > target ? ' hi' : v < target ? ' lo' : '');
+        for (var i = 0; i < 8; i++) {
+          bitBtns[i].setAttribute('aria-pressed', bits[i] ? 'true' : 'false');
+          bitBtns[i]._v.textContent = bits[i] ? '1' : '0';
+        }
+        if (v === target) win();
+      }
+
+      function toggle(i) {
+        bits[i] = bits[i] ? 0 : 1;
+        api.sfx.play('click');
+        paint();
+      }
+
+      function win() {
+        solved++;
+        streak++;
+        var elapsed = (performance.now() - qStart) / 1000;
+        var speed = Math.max(0, Math.round((6 - elapsed) * 12));   /* 6 秒內有加成 */
+        var base = 60 + 12 * Math.min(streak - 1, 8);
+        var gain = Math.round((base + speed) * (hintOn ? 0.5 : 1));
+        api.addScore(gain);
+        api.setStat('連擊', streak);
+        api.sfx.play(streak >= 4 ? 'great' : 'ok');
+        api.hint('正確！+' + gain + ' 分' + (streak > 1 ? '（' + streak + ' 連擊）' : '') +
+          '　' + target + ' = ' + binStr(target), 'good');
+        nextQuestion();
+      }
+
+      function nextQuestion() {
+        qIndex++;
+        hintOn = false;
+        paintHint();
+        /* 前三題給小數字當暖身，之後整個 1–255 */
+        var hi = qIndex <= 3 ? 15 : (qIndex <= 6 ? 63 : 255);
+        var cur = value();
+        var t, guard = 0;
+        do {
+          t = CSE.util.randInt(1, hi);
+          guard++;
+        } while (t === cur && guard < 50);
+        target = t;
+        numEl.textContent = String(target);
+        qStart = performance.now();
+        paint();   /* 若剛好已相等（極端狀況）也會正確處理 */
+      }
+
+      /* 鍵盤 1–8 */
+      api.on(document, 'keydown', function (e) {
+        if (e.key >= '1' && e.key <= '8') {
+          e.preventDefault();
+          toggle(parseInt(e.key, 10) - 1);
+        }
+      });
+
+      api.setStat('連擊', 0);
+      api.hint('撥開關讓「目前」等於「目標」');
+      nextQuestion();
+
+      api.onResult(function () {
+        return {
+          stats: [
+            { k: '答對', v: solved + ' 題' },
+            { k: '跳過', v: skipped + ' 題' },
+            { k: '用提示', v: hintsUsed + ' 次' },
+            { k: '平均', v: solved ? (60 / solved).toFixed(1) + ' 秒/題' : '—' }
+          ]
+        };
+      });
+    }
+  });
+})();
+
+</script>
+<script>
+/* ===== assets/js/games/logic.js ===== */
+/* ============================================================
+   遊戲 2：邏輯閘實驗室 — 撥輸入讓輸出亮燈，後半段改成「選對的閘」
+   教的是：AND / OR / NOT / XOR / NAND、真值表
+   ============================================================ */
+(function () {
+  'use strict';
+  var CSE = window.CSE;
+
+  /* ---------- 邏輯運算 ---------- */
+  function gate(t, a, b) {
+    if (a === null || a === undefined) return null;
+    if (t !== 'NOT' && (b === null || b === undefined)) return null;
+    switch (t) {
+      case 'AND':  return (a && b) ? 1 : 0;
+      case 'OR':   return (a || b) ? 1 : 0;
+      case 'XOR':  return (a !== b) ? 1 : 0;
+      case 'NAND': return (a && b) ? 0 : 1;
+      case 'NOR':  return (a || b) ? 0 : 1;
+      case 'XNOR': return (a === b) ? 1 : 0;
+      case 'NOT':  return a ? 0 : 1;
+    }
+    return null;
+  }
+
+  var PALETTE = ['AND', 'OR', 'XOR', 'NAND', 'NOR'];
+
+  /* 遞迴計算，並把結果記在 node._val 上供畫線用 */
+  function evaluate(node, inv, assign) {
+    var v;
+    if (node.t === 'IN') {
+      v = inv[node.i] ? 1 : 0;
+    } else if (node.t === 'Q') {
+      var g = assign[node.slot];
+      var a = evaluate(node.a, inv, assign);
+      var b = node.b ? evaluate(node.b, inv, assign) : null;
+      v = g ? gate(g, a, b) : null;
+    } else if (node.t === 'NOT') {
+      v = gate('NOT', evaluate(node.a, inv, assign), null);
+    } else {
+      v = gate(node.t, evaluate(node.a, inv, assign), evaluate(node.b, inv, assign));
+    }
+    node._val = v;
+    return v;
+  }
+
+  function children(node) {
+    if (node.t === 'IN') return [];
+    return node.b ? [node.a, node.b] : [node.a];
+  }
+
+  /* ---------- 關卡 ---------- */
+  function IN(i) { return { t: 'IN', i: i }; }
+
+  var LEVELS = [
+    {
+      name: 'AND 很挑',
+      inputs: ['A', 'B'], mode: 'inputs', target: 1,
+      tree: { t: 'AND', a: IN(0), b: IN(1) },
+      note: 'AND（且）：<b>兩邊都是 1</b> 才輸出 1。讓燈泡亮起來。'
+    },
+    {
+      name: 'NOT 會翻臉',
+      inputs: ['A', 'B'], mode: 'inputs', target: 0,
+      tree: { t: 'OR', a: { t: 'NOT', a: IN(0) }, b: IN(1) },
+      note: 'NOT（反）把 0 變 1、1 變 0。這次目標是讓輸出變成 <b>0</b>。'
+    },
+    {
+      name: 'XOR 只愛不一樣',
+      inputs: ['A', 'B'], mode: 'inputs', target: 1,
+      tree: { t: 'XOR', a: IN(0), b: IN(1) },
+      note: 'XOR（互斥或）：<b>兩邊不一樣</b>才輸出 1。這就是加法器的核心。'
+    },
+    {
+      name: '三個輸入',
+      inputs: ['A', 'B', 'C'], mode: 'inputs', target: 1,
+      tree: { t: 'AND', a: { t: 'XOR', a: IN(0), b: IN(1) }, b: { t: 'NOT', a: IN(2) } },
+      note: '訊號會一層一層往右傳。目標輸出 <b>1</b>。'
+    },
+    {
+      name: 'NAND 是萬能的',
+      inputs: ['A', 'B', 'C'], mode: 'inputs', target: 0,
+      tree: { t: 'NAND', a: { t: 'OR', a: IN(0), b: IN(1) }, b: { t: 'AND', a: IN(1), b: IN(2) } },
+      note: 'NAND = NOT + AND。只用 NAND 就能組出所有邏輯閘，所以晶片特別愛它。目標輸出 <b>0</b>。'
+    },
+    {
+      name: '走到底',
+      inputs: ['A', 'B', 'C'], mode: 'inputs', target: 1,
+      tree: { t: 'AND', a: { t: 'OR', a: IN(0), b: IN(1) }, b: { t: 'NOT', a: { t: 'AND', a: IN(1), b: IN(2) } } },
+      note: '最後一題撥開關的題目。目標輸出 <b>1</b>。'
+    },
+    {
+      name: '補上缺的閘',
+      inputs: ['A', 'B'], mode: 'gate', slots: 1,
+      tree: { t: 'Q', slot: 0, a: IN(0), b: IN(1) },
+      table: [0, 1, 1, 1],
+      note: '這次換你當設計師：點 <b>?</b> 選一個閘，讓電路符合右邊的真值表，再按「驗證」。'
+    },
+    {
+      name: '反過來想',
+      inputs: ['A', 'B'], mode: 'gate', slots: 1,
+      tree: { t: 'NOT', a: { t: 'Q', slot: 0, a: IN(0), b: IN(1) } },
+      table: [1, 0, 0, 1],
+      note: '後面已經接了一個 NOT。前面要放什麼，整體才會符合真值表？'
+    },
+    {
+      name: '兩個空格',
+      inputs: ['A', 'B', 'C'], mode: 'gate', slots: 2,
+      tree: { t: 'Q', slot: 1, a: { t: 'Q', slot: 0, a: IN(0), b: IN(1) }, b: IN(2) },
+      table: [0, 1, 0, 1, 0, 1, 1, 1],
+      note: '兩個空格都要填。答案不只一組，只要真值表全對就算過關。'
+    }
+  ];
+
+  /* ---------- 版面計算 ---------- */
+  var ROW = 68, PAD = 44, IN_X = 54, COL_W = 132, GATE_W = 76, GATE_H = 46;
+
+  function buildLayout(level) {
+    var inputs = level.inputs;
+    var inputY = inputs.map(function (_, i) { return PAD + i * ROW; });
+
+    var all = [];
+    (function walk(n) {
+      children(n).forEach(walk);
+      if (n.t !== 'IN') all.push(n);
+    })(level.tree);
+
+    /* col：葉子在 0，往輸出遞增 */
+    function colOf(n) {
+      if (n.t === 'IN') return 0;
+      if (n._col !== undefined) return n._col;
+      var c = 0;
+      children(n).forEach(function (k) { c = Math.max(c, colOf(k)); });
+      n._col = c + 1;
+      return n._col;
+    }
+    function yOf(n) {
+      if (n.t === 'IN') return inputY[n.i];
+      if (n._y !== undefined) return n._y;
+      var ks = children(n), sum = 0;
+      ks.forEach(function (k) { sum += yOf(k); });
+      n._y = sum / ks.length;
+      return n._y;
+    }
+    all.forEach(function (n) { n._col = undefined; n._y = undefined; });
+    all.forEach(colOf);
+    all.forEach(yOf);
+
+    /* 同一欄避免重疊 */
+    var maxCol = 0;
+    all.forEach(function (n) { maxCol = Math.max(maxCol, n._col); });
+    for (var c = 1; c <= maxCol; c++) {
+      var inCol = all.filter(function (n) { return n._col === c; })
+        .sort(function (a, b) { return a._y - b._y; });
+      for (var i = 1; i < inCol.length; i++) {
+        if (inCol[i]._y - inCol[i - 1]._y < GATE_H + 14) {
+          inCol[i]._y = inCol[i - 1]._y + GATE_H + 14;
+        }
+      }
+    }
+    all.forEach(function (n) { n._x = IN_X + 96 + (n._col - 1) * COL_W; });
+
+    var maxY = Math.max.apply(null, inputY.concat(all.map(function (n) { return n._y; })));
+    var contentW = IN_X + 96 + (maxCol - 1) * COL_W + GATE_W / 2 + 110;
+
+    /* 小電路不要被放大到爆：給一個最小畫布寬度並置中 */
+    var w = Math.max(560, contentW);
+    var ox = (w - contentW) / 2;
+    all.forEach(function (n) { n._x += ox; });
+
+    return { nodes: all, inputY: inputY, ox: ox, w: w, h: maxY + PAD };
+  }
+
+  function outPort(n, lay) {
+    return n.t === 'IN'
+      ? { x: IN_X + lay.ox + 30, y: lay.inputY[n.i] }
+      : { x: n._x + GATE_W / 2, y: n._y };
+  }
+
+  CSE.registerGame({
+    id: 'logic',
+    name: '邏輯閘實驗室',
+    tag: '計算機組織 · LOGIC',
+    icon: '&',
+    accent: 'var(--violet)',
+    blurb: 'CPU 裡面幾十億個電晶體，做的就是 AND / OR / NOT。撥開關點亮燈泡，再換你來設計電路。',
+    how: [
+      '左邊是輸入開關（A、B、C），點一下切換 0 / 1。',
+      '訊號往右傳，亮綠色代表這條線是 1。',
+      '前 6 關：撥開關讓最右邊的燈泡符合題目要求。',
+      '後 3 關：點電路裡的「?」，從下方選一個邏輯閘，讓真值表全部正確，再按「驗證」。'
+    ],
+    controls: '點輸入開關切換 0/1；點「?」選閘',
+    duration: 160,
+    medals: { bronze: 650, silver: 1300, gold: 2100 },
+    titles: ['體驗組', '邏輯新生', '電路達人', '晶片設計師'],
+    knowledge: {
+      title: '幾十億個開關疊出一台電腦',
+      lines: [
+        'CPU 裡沒有魔法，只有電晶體組成的 AND / OR / NOT 這些邏輯閘。',
+        'XOR + AND 可以做出「半加器」，串起來就能做加法，再往上就是整台電腦。',
+        'NAND 和 NOR 叫做「通用閘」：只用其中一種就能組出所有邏輯。',
+        '這是資工系「數位邏輯設計」和「計算機組織」在教的東西。'
+      ]
+    },
+
+    mount: function (stage, api) {
+      var li = 0;                 /* 目前關卡 */
+      var inv = [];               /* 輸入值 */
+      var assign = {};            /* slot -> gate type */
+      var selSlot = null;
+      var cleared = 0, wrongTries = 0, levelStart = 0;
+
+      var taskEl = api.el('div', { class: 'lg-task' });
+      var dots = api.el('div', { class: 'lvdots' });
+      var canvas = api.el('div', { class: 'lg-canvas' });
+      var truth = api.el('div', { class: 'lg-truth' });
+      var palette = api.el('div', { class: 'lg-palette' });
+
+      stage.appendChild(api.el('div', { class: 'lg-wrap' }, [
+        dots, taskEl, canvas, truth, palette
+      ]));
+
+      function paintDots() {
+        CSE.ui.clear(dots);
+        LEVELS.forEach(function (_, i) {
+          dots.appendChild(api.el('i', {
+            class: 'lvdot ' + (i < li ? 'done' : i === li ? 'now' : '')
+          }));
+        });
+      }
+
+      /* ---------- 繪製電路 ---------- */
+      function render() {
+        var lv = LEVELS[li];
+        var lay = buildLayout(lv);
+        evaluate(lv.tree, inv, assign);
+
+        var svg = api.svg('svg', {
+          viewBox: '0 0 ' + Math.round(lay.w) + ' ' + Math.round(lay.h),
+          role: 'img', 'aria-label': '邏輯電路圖'
+        });
+
+        /* 連線 */
+        lay.nodes.forEach(function (n) {
+          var ks = children(n);
+          ks.forEach(function (k, idx) {
+            var p1 = outPort(k, lay);
+            var dy = ks.length === 2 ? (idx === 0 ? -12 : 12) : 0;
+            var p2 = { x: n._x - GATE_W / 2, y: n._y + dy };
+            var on = k._val === 1;
+            svg.appendChild(api.svg('path', {
+              class: 'wire' + (on ? ' on' : ''),
+              d: 'M' + p1.x + ' ' + p1.y +
+                 ' C' + (p1.x + 46) + ' ' + p1.y +
+                 ' ' + (p2.x - 46) + ' ' + p2.y +
+                 ' ' + p2.x + ' ' + p2.y
+            }));
+          });
+        });
+
+        /* 輸出線 + 燈泡 */
+        var root = lv.tree;
+        var rp = outPort(root, lay);
+        var lampX = rp.x + 72;
+        svg.appendChild(api.svg('path', {
+          class: 'wire' + (root._val === 1 ? ' on' : ''),
+          d: 'M' + rp.x + ' ' + rp.y + ' L' + (lampX - 18) + ' ' + rp.y
+        }));
+        svg.appendChild(api.svg('circle', {
+          class: 'lamp' + (root._val === 1 ? ' on' : ''),
+          cx: lampX, cy: rp.y, r: 17
+        }));
+        svg.appendChild(api.svg('text', {
+          class: 'ew', x: lampX, y: rp.y + 36, text: '輸出 ' + (root._val === null ? '?' : root._val)
+        }));
+
+        /* 輸入開關 */
+        lv.inputs.forEach(function (name, i) {
+          var y = lay.inputY[i];
+          var ix = IN_X + lay.ox;
+          var g = api.svg('g', { class: 'sw' + (inv[i] ? ' on' : ''), tabindex: '0', role: 'button',
+            'aria-label': '輸入 ' + name + ' 目前是 ' + (inv[i] ? 1 : 0) });
+          g.appendChild(api.svg('rect', { x: ix - 30, y: y - 21, width: 60, height: 42, rx: 7 }));
+          g.appendChild(api.svg('text', { class: 'n', x: ix - 14, y: y + 5, text: name }));
+          g.appendChild(api.svg('text', { class: 'b', x: ix + 14, y: y + 5, text: String(inv[i] ? 1 : 0) }));
+          function hit() { inv[i] = inv[i] ? 0 : 1; api.sfx.play('click'); afterChange(); }
+          g.addEventListener('click', hit);
+          g.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); hit(); }
+          });
+          svg.appendChild(g);
+        });
+
+        /* 閘 */
+        lay.nodes.forEach(function (n) {
+          var isQ = n.t === 'Q';
+          var label = isQ ? (assign[n.slot] || '?') : n.t;
+          var cls = 'gatebox' + (isQ && !assign[n.slot] ? ' q' : '') + (isQ && selSlot === n.slot ? ' sel' : '');
+          var g = api.svg('g', isQ ? { class: 'sw', tabindex: '0', role: 'button', 'aria-label': '空的邏輯閘' } : {});
+          g.appendChild(api.svg('rect', {
+            class: cls, x: n._x - GATE_W / 2, y: n._y - GATE_H / 2,
+            width: GATE_W, height: GATE_H, rx: 8
+          }));
+          g.appendChild(api.svg('text', {
+            class: 'gatelabel' + (isQ && !assign[n.slot] ? ' q' : ''),
+            x: n._x, y: n._y, text: label
+          }));
+          if (isQ) {
+            function sel() { selSlot = n.slot; api.sfx.play('click'); render(); paintPalette(); }
+            g.addEventListener('click', sel);
+            g.addEventListener('keydown', function (e) {
+              if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); sel(); }
+            });
+          }
+          svg.appendChild(g);
+        });
+
+        CSE.ui.clear(canvas);
+        canvas.appendChild(svg);
+      }
+
+      /* ---------- 真值表 ---------- */
+      function paintTruth() {
+        var lv = LEVELS[li];
+        CSE.ui.clear(truth);
+        if (lv.mode !== 'gate') return;
+        var n = lv.inputs.length;
+        var head = api.el('tr', {}, lv.inputs.map(function (name) { return api.el('th', { text: name }); })
+          .concat([api.el('th', { text: '期望' }), api.el('th', { text: '目前' })]));
+        var rows = [];
+        var curIdx = 0;
+        for (var i = 0; i < n; i++) curIdx = (curIdx << 1) | (inv[i] ? 1 : 0);
+        for (var idx = 0; idx < (1 << n); idx++) {
+          var bits = [];
+          for (var b = 0; b < n; b++) bits.push((idx >> (n - 1 - b)) & 1);
+          evaluate(lv.tree, bits, assign);
+          var got = lv.tree._val;
+          var want = lv.table[idx];
+          var tds = bits.map(function (v) { return api.el('td', { text: String(v) }); });
+          tds.push(api.el('td', { class: 'out', text: String(want) }));
+          tds.push(api.el('td', {
+            text: got === null ? '—' : String(got),
+            style: { color: got === null ? 'var(--fg-faint)' : (got === want ? 'var(--green)' : 'var(--red)') }
+          }));
+          rows.push(api.el('tr', { class: idx === curIdx ? 'now' : '' }, tds));
+        }
+        /* 還原成玩家目前撥的輸入 */
+        evaluate(lv.tree, inv, assign);
+        truth.appendChild(api.el('table', {}, [
+          api.el('thead', {}, head), api.el('tbody', {}, rows)
+        ]));
+      }
+
+      /* ---------- 工具列 ---------- */
+      function paintPalette() {
+        var lv = LEVELS[li];
+        CSE.ui.clear(palette);
+        if (lv.mode !== 'gate') {
+          palette.appendChild(api.el('div', { class: 'faint', style: { fontSize: '12.5px' },
+            text: '提示：先看最右邊的閘需要什麼，再往左推回去。' }));
+          return;
+        }
+        palette.appendChild(api.el('span', { class: 'faint', style: { fontSize: '12.5px' },
+          text: selSlot === null ? '先點電路裡的 ? →' : '放入：' }));
+        PALETTE.forEach(function (t) {
+          palette.appendChild(api.el('button', {
+            type: 'button', class: 'btn btn--sm', text: t, disabled: selSlot === null,
+            onclick: function () {
+              assign[selSlot] = t;
+              api.sfx.play('click');
+              selSlot = null;
+              afterChange();
+            }
+          }));
+        });
+        palette.appendChild(api.el('button', {
+          type: 'button', class: 'btn btn--sm', text: '清空',
+          onclick: function () { assign = {}; selSlot = null; api.sfx.play('click'); afterChange(); }
+        }));
+        palette.appendChild(api.el('button', {
+          type: 'button', class: 'btn btn--sm btn--primary', text: '驗證',
+          onclick: verify
+        }));
+      }
+
+      function verify() {
+        if (li >= LEVELS.length) return;          /* 全破之後不再接受操作 */
+        var lv = LEVELS[li];
+        var n = lv.inputs.length;
+        for (var s = 0; s < (lv.slots || 1); s++) {
+          if (!assign[s]) {
+            api.hint('還有空格沒填。', 'bad');
+            api.sfx.play('bad');
+            return;
+          }
+        }
+        var ok = true;
+        for (var idx = 0; idx < (1 << n) && ok; idx++) {
+          var bits = [];
+          for (var b = 0; b < n; b++) bits.push((idx >> (n - 1 - b)) & 1);
+          evaluate(lv.tree, bits, assign);
+          if (lv.tree._val !== lv.table[idx]) ok = false;
+        }
+        evaluate(lv.tree, inv, assign);
+        if (ok) { levelCleared(); }
+        else {
+          wrongTries++;
+          api.addScore(-30);
+          api.sfx.play('bad');
+          api.hint('還沒對。看「目前」欄哪幾列是紅的，就知道差在哪。', 'bad');
+          paintTruth();
+        }
+      }
+
+      function afterChange() {
+        if (li >= LEVELS.length) return;
+        var lv = LEVELS[li];
+        evaluate(lv.tree, inv, assign);
+        render();
+        paintTruth();
+        paintPalette();
+        if (lv.mode === 'inputs' && lv.tree._val === lv.target) levelCleared();
+      }
+
+      function levelCleared() {
+        cleared++;
+        var spent = (performance.now() - levelStart) / 1000;
+        var speed = Math.max(0, Math.round((20 - spent) * 6));
+        var gain = 150 + speed;
+        api.addScore(gain);
+        api.sfx.play('great');
+        api.hint('第 ' + (li + 1) + ' 關過關！+' + gain + ' 分', 'good');
+        li++;
+        if (li >= LEVELS.length) {
+          var bonus = Math.round(api.timeLeft() * 6);
+          api.addScore(bonus);
+          api.finish({
+            reason: 'cleared',
+            stats: [
+              { k: '過關', v: cleared + ' / ' + LEVELS.length },
+              { k: '驗證失敗', v: wrongTries + ' 次' },
+              { k: '剩餘時間加分', v: '+' + bonus }
+            ]
+          });
+          return;
+        }
+        api.after(650, loadLevel);
+      }
+
+      function loadLevel() {
+        if (li >= LEVELS.length) return;
+        var lv = LEVELS[li];
+        assign = {}; selSlot = null;
+        inv = lv.inputs.map(function () { return 0; });
+
+        /* 避免「一開始就已經達成目標」 */
+        if (lv.mode === 'inputs') {
+          evaluate(lv.tree, inv, assign);
+          if (lv.tree._val === lv.target) {
+            var n = lv.inputs.length;
+            for (var idx = 1; idx < (1 << n); idx++) {
+              var bits = [];
+              for (var b = 0; b < n; b++) bits.push((idx >> (n - 1 - b)) & 1);
+              evaluate(lv.tree, bits, assign);
+              if (lv.tree._val !== lv.target) { inv = bits; break; }
+            }
+          }
+        }
+
+        levelStart = performance.now();
+        api.setStat('關卡', (li + 1) + '/' + LEVELS.length);
+        taskEl.innerHTML = '<b>第 ' + (li + 1) + ' 關 · ' + CSE.ui.esc(lv.name) + '</b>　' + lv.note;
+        paintDots();
+        afterChange();
+      }
+
+      api.onResult(function () {
+        return {
+          stats: [
+            { k: '過關', v: cleared + ' / ' + LEVELS.length },
+            { k: '驗證失敗', v: wrongTries + ' 次' }
+          ]
+        };
+      });
+
+      loadLevel();
+    }
+  });
+})();
+
+</script>
+<script>
+/* ===== assets/js/games/bughunt.js ===== */
+/* ============================================================
+   遊戲 3：Bug 獵人 — 在程式碼裡點出有問題的那一行
+   教的是：常見錯誤型態（off-by-one、= vs ==、無限迴圈…）
+   ============================================================ */
+(function () {
+  'use strict';
+  var CSE = window.CSE;
+
+  /* bugLines 可給多行（有些錯誤本質上橫跨兩行） */
+  var SNIPPETS = [
+    {
+      title: 'average.py — 計算平均分數',
+      code: [
+        'scores = [90, 85, 77, 60]',
+        'total = 0',
+        'for i in range(0, 5):',
+        '    total = total + scores[i]',
+        'print(total / 4)'
+      ],
+      bugLines: [3],
+      why: '清單只有 4 個元素（編號 0~3），<code>range(0, 5)</code> 會跑到 i = 4，抓 <code>scores[4]</code> 就爆掉了。',
+      fix: '改成 <code>range(0, len(scores))</code>，永遠跟著清單長度走。',
+      hint: '數一下清單裡有幾個數字，再看迴圈跑幾次。',
+      kind: '陣列越界 / off-by-one'
+    },
+    {
+      title: 'login.py — 檢查密碼',
+      code: [
+        'password = input("請輸入密碼：")',
+        'if password = "1234":',
+        '    print("歡迎回來")',
+        'else:',
+        '    print("密碼錯誤")'
+      ],
+      bugLines: [2],
+      why: '<code>=</code> 是「賦值」，<code>==</code> 才是「比較」。這行等於想把字串塞進 password，不是在比較。',
+      fix: '改成 <code>if password == "1234":</code>',
+      hint: '「等於」在程式裡有兩種寫法，意思完全不同。',
+      kind: '= 與 == 混用'
+    },
+    {
+      title: 'countdown.py — 倒數計時',
+      code: [
+        'n = 10',
+        'while n > 0:',
+        '    print(n)',
+        '    n = n + 1',
+        'print("發射！")'
+      ],
+      bugLines: [4],
+      why: 'n 每次都變大，<code>n > 0</code> 永遠成立 → 無限迴圈，程式會卡死。',
+      fix: '改成 <code>n = n - 1</code>。',
+      hint: '想像 n 的值一步一步變成什麼，迴圈什麼時候才會停。',
+      kind: '無限迴圈'
+    },
+    {
+      title: 'wordcount.py — 算所有單字總長度',
+      code: [
+        'words = ["cat", "dog", "fish"]',
+        'for w in words:',
+        '    count = 0',
+        '    count = count + len(w)',
+        'print(count)'
+      ],
+      bugLines: [3],
+      why: '歸零的動作被寫在迴圈裡面，每一圈都重新變成 0，最後只剩最後一個單字的長度。',
+      fix: '把 <code>count = 0</code> 移到迴圈外面（第 2 行之前）。',
+      hint: '注意縮排：哪些行在迴圈「裡面」？',
+      kind: '變數初始化位置錯誤'
+    },
+    {
+      title: 'swap.py — 交換兩個變數',
+      code: [
+        'a = 3',
+        'b = 5',
+        'a = b',
+        'b = a',
+        'print(a, b)'
+      ],
+      bugLines: [3, 4],
+      why: '第 3 行先把 a 蓋成 5，原本的 3 就消失了，第 4 行再抄回來只會得到 5, 5。',
+      fix: '先存起來：<code>tmp = a; a = b; b = tmp</code>（Python 也可以 <code>a, b = b, a</code>）。',
+      hint: '把每一行執行完 a、b 各是多少寫在旁邊試試。',
+      kind: '覆蓋資料 / 缺暫存變數'
+    },
+    {
+      title: 'float.py — 浮點數比較',
+      code: [
+        'x = 0.1 + 0.2',
+        'if x == 0.3:',
+        '    print("相等")',
+        'else:',
+        '    print("居然不相等")'
+      ],
+      bugLines: [2],
+      why: '電腦用二進位存小數，0.1 + 0.2 實際是 0.30000000000000004，直接用 <code>==</code> 比會失敗。',
+      fix: '改成比差距：<code>if abs(x - 0.3) &lt; 1e-9:</code>',
+      hint: '這段其實沒有語法錯，但輸出會跟你想的不一樣。',
+      kind: '浮點數精度'
+    },
+    {
+      title: 'pizza.py — 分披薩',
+      code: [
+        'students = 7',
+        'pizza = 3',
+        'each = pizza // students',
+        'print("每人分到", each, "片")'
+      ],
+      bugLines: [3],
+      why: '<code>//</code> 是整數除法，3 // 7 直接變成 0，每個人都分到 0 片。',
+      fix: '用 <code>/</code> 得到 0.428…，或換算成「每人幾分之幾」。',
+      hint: '3 除以 7 的結果，用這個運算子算出來是多少？',
+      kind: '整數除法'
+    },
+    {
+      title: 'age.py — 計算明年年齡',
+      code: [
+        'age = input("你幾歲？")',
+        'next_year = age + 1',
+        'print("明年你", next_year, "歲")'
+      ],
+      bugLines: [2],
+      why: '<code>input()</code> 拿回來的是字串，字串不能直接加數字。',
+      fix: '先轉型：<code>age = int(input("你幾歲？"))</code>',
+      hint: '使用者打進來的東西，在程式裡是什麼型別？',
+      kind: '型別錯誤'
+    },
+    {
+      title: 'filter.py — 刪掉偶數',
+      code: [
+        'nums = [1, 2, 3, 4, 5, 6]',
+        'for n in nums:',
+        '    if n % 2 == 0:',
+        '        nums.remove(n)',
+        'print(nums)'
+      ],
+      bugLines: [4],
+      why: '邊走邊刪：刪掉一個元素後面全部往前移，迴圈的位置卻繼續往後，會跳過元素。',
+      fix: '另外建新清單：<code>nums = [n for n in nums if n % 2 != 0]</code>',
+      hint: '一邊走一邊改手上的清單，會發生什麼事？',
+      kind: '迭代中修改容器'
+    },
+    {
+      title: 'square.py — 平方函式',
+      code: [
+        'def square(n):',
+        '    answer = n * n',
+        '',
+        'print(square(4))'
+      ],
+      bugLines: [2],
+      why: '算完了卻沒有把答案交出去，函式預設回傳 None，所以會印出 None。',
+      fix: '加上 <code>return answer</code>。',
+      hint: '函式算完之後，怎麼把結果給外面？',
+      kind: '忘記 return'
+    },
+    {
+      title: 'grade.py — 判斷成績區間',
+      code: [
+        'score = 85',
+        'if score > 60 and < 90:',
+        '    print("及格，但還不是高分")'
+      ],
+      bugLines: [2],
+      why: '<code>and</code> 兩邊都必須是完整的條件，<code>&lt; 90</code> 少了左邊的 score。',
+      fix: '改成 <code>if score > 60 and score &lt; 90:</code>（Python 也能寫 <code>60 &lt; score &lt; 90</code>）。',
+      hint: '把 and 左右兩半分開唸一次，右半邊唸得通嗎？',
+      kind: '條件式語法錯誤'
+    },
+    {
+      title: 'first.py — 取第一個使用者',
+      code: [
+        'users = []',
+        'first = users[0]',
+        'if first != None:',
+        '    print(first)'
+      ],
+      bugLines: [2],
+      why: '清單是空的，還沒檢查就直接取 <code>[0]</code>，程式在第 2 行就當掉了，第 3 行的檢查根本來不及。',
+      fix: '先檢查再取：<code>if len(users) > 0:</code>',
+      hint: '檢查的順序對嗎？哪一行會先被執行？',
+      kind: '未檢查就取值'
+    },
+    {
+      title: 'fact.py — 階乘',
+      code: [
+        'def fact(n):',
+        '    return n * fact(n - 1)',
+        '',
+        'print(fact(5))'
+      ],
+      bugLines: [2],
+      why: '遞迴沒有終止條件，會一直往下叫自己，直到堆疊爆掉。',
+      fix: '補上終止條件：<code>if n &lt;= 1: return 1</code>',
+      hint: '這個函式會自己呼叫自己，什麼時候才停下來？',
+      kind: '遞迴缺終止條件'
+    },
+    {
+      title: 'cart.py — 購物車總價',
+      code: [
+        'total_price = 0',
+        'items = [100, 250, 80]',
+        'for p in items:',
+        '    total_prices = total_price + p',
+        'print(total_price)'
+      ],
+      bugLines: [4],
+      why: '變數名多打一個 s（<code>total_prices</code>），累加其實加到一個新變數上，原本的永遠是 0。',
+      fix: '改成 <code>total_price = total_price + p</code>。',
+      hint: '仔細比對每個變數的拼字。',
+      kind: '變數名稱打錯'
+    }
+  ];
+
+  var ROUND = 8;          /* 每局題數 */
+  var PER_Q = 20;         /* 每題秒數 */
+  var LIVES = 3;
+
+  /* ---------- 極簡語法上色 ---------- */
+  var TOKEN = /(#[^\n]*)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|\b(\d+\.?\d*(?:e-?\d+)?)\b|\b(def|for|while|if|elif|else|in|range|return|not|and|or|None|True|False|import|from|lambda|break|continue|pass)\b|\b(print|input|len|int|str|float|abs|remove|append)\b/g;
+
+  function highlight(line) {
+    var out = '', last = 0, m;
+    TOKEN.lastIndex = 0;
+    while ((m = TOKEN.exec(line)) !== null) {
+      out += CSE.ui.esc(line.slice(last, m.index));
+      var cls = m[1] ? 'tk-com' : m[2] ? 'tk-str' : m[3] ? 'tk-num' : m[4] ? 'tk-key' : 'tk-fn';
+      out += '<span class="' + cls + '">' + CSE.ui.esc(m[0]) + '</span>';
+      last = m.index + m[0].length;
+    }
+    out += CSE.ui.esc(line.slice(last));
+    return out;
+  }
+
+  CSE.registerGame({
+    id: 'bughunt',
+    name: 'Bug 獵人',
+    tag: '程式設計 · DEBUG',
+    icon: '!',
+    accent: 'var(--amber)',
+    blurb: '工程師一半的時間在抓 bug。每段程式裡藏一個錯誤，點出是哪一行。不會寫程式也看得懂。',
+    how: [
+      '畫面顯示一小段程式，裡面藏著一個錯誤。',
+      '直接點你覺得有問題的那一行。',
+      '點對加分，點錯扣一條命（共 3 條）；每題限時 20 秒。',
+      '答完都會解釋為什麼錯、怎麼修 — 這才是重點。'
+    ],
+    controls: '點擊程式碼的任一行；也可按鍵盤數字鍵選行',
+    duration: 165,
+    medals: { bronze: 450, silver: 900, gold: 1400 },
+    titles: ['體驗組', '見習除錯員', 'Bug 獵人', '首席 Debugger'],
+    knowledge: {
+      title: '為什麼叫 bug？',
+      lines: [
+        '1947 年 Grace Hopper 的團隊在電腦裡找到一隻飛蛾，「debug」這個說法因此廣為流傳。',
+        '業界估計工程師有 30–50% 的時間在讀程式和找錯，不是在寫新功能。',
+        '你剛剛做的事叫 code review（程式碼審查），是真實工作流程的一環。',
+        '資工系的「程式設計」「軟體工程」就在練這件事：寫得對，更要看得出哪裡不對。'
+      ]
+    },
+
+    mount: function (stage, api) {
+      var queue = CSE.util.shuffle(SNIPPETS).slice(0, ROUND);
+      var qi = -1;
+      var lives = LIVES;
+      var right = 0, wrong = 0, hintUsed = 0;
+      var locked = true;
+      var qLeft = 0, hintOn = false;
+      var lineEls = [];
+
+      var titleEl = api.el('div', { class: 'code-title', text: '' });
+      var codeBox = api.el('div', { class: 'code' }, [titleEl]);
+      var livesEl = api.el('span', { class: 'lives', text: '♥♥♥' });
+      var qLeftEl = api.el('b', { text: String(PER_Q) });
+      var kindEl = api.el('span', { class: 'faint', text: '' });
+      var fb = api.el('div', { class: 'bh-fb', text: '點一行你覺得有問題的程式碼。' });
+
+      var btnHint = api.el('button', {
+        type: 'button', class: 'btn btn--sm', text: '提示（−40）',
+        onclick: function () {
+          if (hintOn || locked) return;
+          hintOn = true; hintUsed++;
+          api.addScore(-40);
+          api.sfx.play('click');
+          fb.className = 'bh-fb';
+          fb.innerHTML = '<b>提示：</b>' + queue[qi].hint;
+        }
+      });
+
+      var nextBtn = api.el('button', {
+        type: 'button', class: 'btn btn--sm btn--primary hidden', text: '下一題',
+        onclick: function () { api.sfx.play('click'); nextQ(); }
+      });
+
+      stage.appendChild(api.el('div', { class: 'bh-wrap' }, [
+        api.el('div', { class: 'bh-meta' }, [
+          api.el('div', {}, [livesEl, ' ', kindEl]),
+          api.el('div', { class: 'row' }, [
+            api.el('span', { class: 'faint' }, ['本題剩 ', qLeftEl, ' 秒']),
+            btnHint, nextBtn
+          ])
+        ]),
+        codeBox,
+        fb
+      ]));
+
+      function paintLives() {
+        livesEl.textContent = '♥'.repeat(Math.max(0, lives)) + '♡'.repeat(Math.max(0, LIVES - lives));
+      }
+
+      function renderSnippet(s) {
+        while (codeBox.children.length > 1) codeBox.removeChild(codeBox.lastChild);
+        titleEl.textContent = s.title;
+        lineEls = [];
+        s.code.forEach(function (text, i) {
+          var ln = i + 1;
+          var blank = text.trim() === '';
+          var row = api.el('div', {
+            class: 'cline' + (blank ? ' dead' : ''),
+            role: blank ? null : 'button',
+            tabindex: blank ? null : '0'
+          }, [
+            api.el('span', { class: 'ln', text: String(ln) }),
+            api.el('span', { html: highlight(text) || ' ' })
+          ]);
+          if (!blank) {
+            row.addEventListener('click', function () { answer(ln, row); });
+            row.addEventListener('keydown', function (e) {
+              if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); answer(ln, row); }
+            });
+          }
+          lineEls[ln] = row;
+          codeBox.appendChild(row);
+        });
+      }
+
+      function answer(ln, row) {
+        if (locked) return;
+        var s = queue[qi];
+        var correct = s.bugLines.indexOf(ln) >= 0;
+        locked = true;
+        nextBtn.classList.remove('hidden');
+
+        if (correct) {
+          right++;
+          var speed = Math.max(0, Math.round(qLeft * 7));
+          var gain = 100 + speed;
+          api.addScore(gain);
+          api.sfx.play('great');
+          row.classList.add('right');
+          fb.className = 'bh-fb right';
+          fb.innerHTML = '<b>✓ 答對了（+' + gain + '）· ' + CSE.ui.esc(s.kind) + '</b><br>' +
+            s.why + '<br><span class="faint">修法：</span>' + s.fix;
+        } else {
+          wrong++;
+          lives--;
+          paintLives();
+          api.sfx.play('bad');
+          row.classList.add('wrong');
+          s.bugLines.forEach(function (b) { if (lineEls[b]) lineEls[b].classList.add('reveal'); });
+          fb.className = 'bh-fb wrong';
+          fb.innerHTML = '<b>✗ 錯誤在第 ' + s.bugLines.join(' / ') + ' 行 · ' + CSE.ui.esc(s.kind) + '</b><br>' +
+            s.why + '<br><span class="faint">修法：</span>' + s.fix;
+        }
+        if (lives <= 0) { api.after(2400, function () { gameOver('lives'); }); }
+      }
+
+      function timeUp() {
+        if (locked) return;
+        var s = queue[qi];
+        wrong++;
+        lives--;
+        paintLives();
+        locked = true;
+        nextBtn.classList.remove('hidden');
+        api.sfx.play('bad');
+        s.bugLines.forEach(function (b) { if (lineEls[b]) lineEls[b].classList.add('reveal'); });
+        fb.className = 'bh-fb wrong';
+        fb.innerHTML = '<b>⏱ 時間到 — 錯誤在第 ' + s.bugLines.join(' / ') + ' 行</b><br>' +
+          s.why + '<br><span class="faint">修法：</span>' + s.fix;
+        if (lives <= 0) api.after(2400, function () { gameOver('lives'); });
+      }
+
+      function nextQ() {
+        if (lives <= 0) { gameOver('lives'); return; }   /* 搶在延遲結束前按「下一題」 */
+        qi++;
+        if (qi >= queue.length) { gameOver('cleared'); return; }
+        var s = queue[qi];
+        hintOn = false;
+        locked = false;
+        qLeft = PER_Q;
+        qLeftEl.textContent = String(PER_Q);
+        nextBtn.classList.add('hidden');
+        kindEl.textContent = '第 ' + (qi + 1) + ' / ' + queue.length + ' 題';
+        api.setStat('答對', right);
+        fb.className = 'bh-fb';
+        fb.textContent = '點一行你覺得有問題的程式碼。';
+        renderSnippet(s);
+      }
+
+      function gameOver(reason) {
+        api.finish({
+          reason: reason === 'cleared' ? 'cleared' : 'timeout',
+          stats: [
+            { k: '答對', v: right + ' 題' },
+            { k: '答錯', v: wrong + ' 題' },
+            { k: '用提示', v: hintUsed + ' 次' },
+            { k: '剩餘生命', v: Math.max(0, lives) }
+          ]
+        });
+      }
+
+      /* 鍵盤選行 */
+      api.on(document, 'keydown', function (e) {
+        if (locked) {
+          if (e.key === 'Enter' && !nextBtn.classList.contains('hidden')) { e.preventDefault(); nextQ(); }
+          return;
+        }
+        var n = parseInt(e.key, 10);
+        if (!isNaN(n) && lineEls[n]) { e.preventDefault(); answer(n, lineEls[n]); }
+      });
+
+      api.onResult(function () {
+        return {
+          stats: [
+            { k: '答對', v: right + ' 題' },
+            { k: '答錯', v: wrong + ' 題' },
+            { k: '用提示', v: hintUsed + ' 次' }
+          ]
+        };
+      });
+
+      paintLives();
+      nextQ();
+
+      /* 每題獨立倒數 */
+      return {
+        onFrame: function (dt) {
+          if (locked) return;
+          qLeft -= dt;
+          if (qLeft <= 0) { qLeft = 0; qLeftEl.textContent = '0'; timeUp(); return; }
+          qLeftEl.textContent = String(Math.ceil(qLeft));
+        }
+      };
+    }
+  });
+})();
+
+</script>
+<script>
+/* ===== assets/js/games/sort.js ===== */
+/* ============================================================
+   遊戲 4：排序大師 — 用最少的交換次數把長條由小到大排好
+   教的是：排序、置換環（最少交換次數 = n − 環數）
+   ============================================================ */
+(function () {
+  'use strict';
+  var CSE = window.CSE;
+
+  var ROUNDS = [5, 6, 7];
+
+  /* 最少交換次數（任意兩兩交換）= n − 置換環數，需要元素互不相同 */
+  function minSwaps(arr) {
+    var sorted = arr.slice().sort(function (a, b) { return a - b; });
+    var pos = {};
+    sorted.forEach(function (v, i) { pos[v] = i; });
+    var seen = new Array(arr.length);
+    var swaps = 0;
+    for (var i = 0; i < arr.length; i++) {
+      if (seen[i]) continue;
+      var j = i, len = 0;
+      while (!seen[j]) { seen[j] = true; j = pos[arr[j]]; len++; }
+      swaps += len - 1;
+    }
+    return swaps;
+  }
+
+  function isSorted(a) {
+    for (var i = 1; i < a.length; i++) if (a[i - 1] > a[i]) return false;
+    return true;
+  }
+
+  /* 產生互不相同、尚未排好、且至少要 2 次交換的題目 */
+  function makeArray(n) {
+    for (var attempt = 0; attempt < 200; attempt++) {
+      var pool = [];
+      while (pool.length < n) {
+        var v = CSE.util.randInt(5, 99);
+        if (pool.indexOf(v) < 0) pool.push(v);
+      }
+      var arr = CSE.util.shuffle(pool);
+      if (!isSorted(arr) && minSwaps(arr) >= 2) return arr;
+    }
+    return [42, 17, 93, 8, 55].slice(0, n);
+  }
+
+  CSE.registerGame({
+    id: 'sort',
+    name: '排序大師',
+    tag: '演算法 · SORTING',
+    icon: '↕',
+    accent: 'var(--cyan)',
+    blurb: '把長條由小到大排好 — 聽起來簡單，但要用「最少的交換次數」就是演算法的問題了。',
+    how: [
+      '點一根長條選起來，再點另一根就會交換兩者。',
+      '目標：由左到右從小排到大。',
+      '每關都有「理論最少交換次數」，超過會扣分，剛好達標有大獎。',
+      '共三關，長條會越來越多。'
+    ],
+    controls: '點兩根長條交換；再點同一根可取消選取',
+    duration: 150,
+    medals: { bronze: 400, silver: 750, gold: 1150 },
+    titles: ['體驗組', '排序學徒', '交換達人', '演算法大師'],
+    knowledge: {
+      title: '為什麼「最少交換次數」算得出來？',
+      lines: [
+        '把「誰該去哪裡」畫成箭頭，會形成一圈一圈的環。長度 k 的環需要 k−1 次交換。',
+        '所以最少交換次數 = 元素個數 − 環的數量。這是離散數學裡的置換（permutation）理論。',
+        '真正的排序演算法比的是「比較次數」：泡泡排序 O(n²)、快速排序平均 O(n log n)。',
+        '一百萬筆資料，兩者差距大約是 50000 倍 — 這就是資工系「演算法」在乎的事。'
+      ]
+    },
+
+    mount: function (stage, api) {
+      var round = 0;
+      var arr = [], sortedRef = [], par = 0, swaps = 0, sel = -1;
+      var bars = [];
+      var roundStart = 0, busy = false;
+      var totalSwaps = 0, perfect = 0;
+
+      var barsBox = api.el('div', { class: 'bars' });
+      var parEl = api.el('b', { text: '0' });
+      var swEl = api.el('b', { text: '0' });
+      var info = api.el('div', { class: 'sm-info' }, [
+        api.el('div', { class: 'statlist' }, [
+          api.el('div', {}, ['目標最少交換', parEl]),
+          api.el('div', {}, ['你已交換', swEl])
+        ])
+      ]);
+      var btnReset = api.el('button', {
+        type: 'button', class: 'btn btn--sm', text: '這關重排（−50）',
+        onclick: function () {
+          if (busy) return;
+          api.addScore(-50);
+          api.sfx.play('bad');
+          loadRound(ROUNDS[round]);
+        }
+      });
+
+      stage.appendChild(api.el('div', { class: 'sm-wrap' }, [
+        barsBox,
+        info,
+        api.el('div', { class: 'row', style: { justifyContent: 'center' } }, [btnReset])
+      ]));
+
+      /* 用像素而不是百分比：.bars 是 flex 伸縮來的高度，
+         在 flex 容器裡百分比高度不保證解析得出來（實測會縮成內容高度）。 */
+      function barPx(v) {
+        var box = barsBox.clientHeight || 240;
+        var max = Math.max.apply(null, arr) || 1;
+        return Math.round(box * (0.24 + (v / max) * 0.72));
+      }
+
+      function paintBar(i) {
+        var b = bars[i];
+        b.textContent = String(arr[i]);
+        b.style.height = barPx(arr[i]) + 'px';
+        b.classList.toggle('sel', sel === i);
+        b.classList.toggle('ok', arr[i] === sortedRef[i]);
+        b.setAttribute('aria-label', '第 ' + (i + 1) + ' 根，數值 ' + arr[i]);
+      }
+      function paintAll() { for (var i = 0; i < arr.length; i++) paintBar(i); }
+
+      function click(i) {
+        if (busy) return;
+        if (sel === i) { sel = -1; api.sfx.play('click'); paintAll(); return; }
+        if (sel < 0) { sel = i; api.sfx.play('click'); paintAll(); return; }
+        var a = sel; sel = -1;
+        var t = arr[a]; arr[a] = arr[i]; arr[i] = t;
+        swaps++; totalSwaps++;
+        swEl.textContent = String(swaps);
+        api.sfx.play('type');
+        paintAll();
+        if (isSorted(arr)) roundDone();
+        else if (swaps > par) api.hint('已經超過最少次數 ' + (swaps - par) + ' 次，但還是可以排完。', 'bad');
+        else api.hint('還剩 ' + (par - swaps) + ' 次交換額度', '');
+      }
+
+      function roundDone() {
+        busy = true;
+        var over = Math.max(0, swaps - par);
+        var spent = (performance.now() - roundStart) / 1000;
+        var speed = Math.max(0, Math.round((30 - spent) * 4));
+        var gain = Math.max(40, 230 - over * 35) + speed;
+        if (over === 0) { gain += 120; perfect++; }
+        api.addScore(gain);
+        api.sfx.play('great');
+        api.hint(over === 0
+          ? '完美！剛好 ' + par + ' 次交換　+' + gain + ' 分（含完美獎勵）'
+          : '排好了！用了 ' + swaps + ' 次（最少 ' + par + ' 次）　+' + gain + ' 分', 'good');
+        round++;
+        if (round >= ROUNDS.length) {
+          var bonus = Math.round(api.timeLeft() * 5);
+          api.addScore(bonus);
+          api.after(900, function () {
+            api.finish({
+              reason: 'cleared',
+              stats: [
+                { k: '完美關卡', v: perfect + ' / ' + ROUNDS.length },
+                { k: '總交換', v: totalSwaps + ' 次' },
+                { k: '剩餘時間加分', v: '+' + bonus }
+              ]
+            });
+          });
+          return;
+        }
+        api.after(1100, function () { loadRound(ROUNDS[round]); });
+      }
+
+      function loadRound(n) {
+        busy = false;
+        sel = -1;
+        swaps = 0;
+        arr = makeArray(n);
+        sortedRef = arr.slice().sort(function (a, b) { return a - b; });
+        par = minSwaps(arr);
+        parEl.textContent = String(par);
+        swEl.textContent = '0';
+        api.setStat('關卡', (round + 1) + '/' + ROUNDS.length);
+        api.hint('點兩根長條交換它們的位置');
+
+        CSE.ui.clear(barsBox);
+        bars = [];
+        for (var i = 0; i < n; i++) {
+          var b = api.el('button', { type: 'button', class: 'bar' });
+          (function (idx) { b.addEventListener('click', function () { click(idx); }); })(i);
+          bars.push(b);
+          barsBox.appendChild(b);
+        }
+        paintAll();
+        roundStart = performance.now();
+      }
+
+      /* 視窗大小改變（轉向、全螢幕）時重算高度 */
+      api.on(window, 'resize', function () { if (bars.length) paintAll(); });
+
+      api.onResult(function () {
+        return {
+          stats: [
+            { k: '完成關卡', v: round + ' / ' + ROUNDS.length },
+            { k: '完美關卡', v: perfect },
+            { k: '總交換', v: totalSwaps + ' 次' }
+          ]
+        };
+      });
+
+      loadRound(ROUNDS[0]);
+    }
+  });
+})();
+
+</script>
+<script>
+/* ===== assets/js/games/typing.js ===== */
+/* ============================================================
+   遊戲 5：終端機打字 — 把指令正確打出來
+   教的是：常用命令列指令在做什麼（順便練鍵盤）
+   ============================================================ */
+(function () {
+  'use strict';
+  var CSE = window.CSE;
+
+  var CMDS = [
+    ['ls -la', '列出目前資料夾裡所有檔案，包含隱藏檔與詳細資訊'],
+    ['cd ..', '回到上一層資料夾'],
+    ['pwd', '印出「我現在在哪個資料夾」'],
+    ['mkdir project', '建立一個叫 project 的新資料夾'],
+    ['rm -rf build', '強制刪除 build 資料夾（這個指令很危險，業界的恐怖故事來源）'],
+    ['cp a.txt b.txt', '把 a.txt 複製成 b.txt'],
+    ['mv old.js new.js', '把檔案改名或搬家'],
+    ['cat README.md', '把檔案內容印在畫面上'],
+    ['grep -r "TODO" .', '在所有檔案裡搜尋含 TODO 的那幾行'],
+    ['chmod +x run.sh', '讓 run.sh 變成可執行檔'],
+    ['git status', '看看哪些檔案改過但還沒存成版本'],
+    ['git add .', '把所有修改標記成「準備提交」'],
+    ['git commit -m "fix bug"', '把這次修改存成一個版本紀錄'],
+    ['git push origin main', '把本機的版本推上遠端倉庫'],
+    ['git pull', '把別人推上去的修改抓下來'],
+    ['git log --oneline', '用一行一筆的方式看版本歷史'],
+    ['git checkout -b feature', '開一條新分支來開發新功能'],
+    ['npm install', '依照設定檔把專案需要的套件全部裝好'],
+    ['npm run dev', '啟動開發用的伺服器'],
+    ['python3 main.py', '用 Python 執行 main.py'],
+    ['pip install numpy', '安裝 Python 的數值運算套件'],
+    ['docker ps', '列出正在執行的容器'],
+    ['ssh user@server', '遠端登入另一台電腦'],
+    ['ping 8.8.8.8', '測試網路是否通、延遲多少毫秒'],
+    ['curl -I example.com', '只抓網頁的 HTTP 標頭回來看'],
+    ['kill -9 1234', '強制結束編號 1234 的程式'],
+    ['top', '看哪個程式吃掉你的 CPU'],
+    ['ps aux | grep node', '找出所有跟 node 有關的程序'],
+    ['sudo apt update', '更新系統的套件清單（sudo = 用管理員身分）'],
+    ['echo $PATH', '印出系統尋找指令的路徑清單']
+  ];
+
+  CSE.registerGame({
+    id: 'typing',
+    name: '終端機打字',
+    tag: '系統 · TERMINAL',
+    icon: '>_',
+    accent: 'var(--lime)',
+    blurb: '工程師的日常是黑底白字的視窗。把指令一字不差打出來，順便搞懂每個指令在做什麼。',
+    how: [
+      '畫面中間出現一個指令，照著打在輸入框裡。',
+      '打對的字變綠色，打錯會變紅色 — 要退格改掉才能繼續。',
+      '完全正確就自動跳下一個指令，不用按 Enter。',
+      '下方會解釋這個指令在做什麼。限時 50 秒。'
+    ],
+    controls: '鍵盤輸入（請先切換成英數輸入法）',
+    duration: 50,
+    medals: { bronze: 700, silver: 1400, gold: 2300 },
+    titles: ['體驗組', '鍵盤新手', '終端機熟手', '鍵盤俠'],
+    knowledge: {
+      title: '為什麼工程師還在用命令列？',
+      lines: [
+        '因為指令可以被「記下來、重複執行、自動化」 — 滑鼠點過的動作沒辦法。',
+        '一行 grep 就能在幾萬個檔案裡找字串，比任何搜尋介面都快。',
+        'git 是版本控制工具，業界幾乎人人在用；它記得你程式的每一次修改。',
+        '資工系的「作業系統」「系統程式」就在教這些指令底下發生了什麼事。'
+      ]
+    },
+
+    mount: function (stage, api) {
+      var pool = CSE.util.shuffle(CMDS);
+      var pi = 0;
+      var target = '', desc = '';
+      var typedOK = 0, errors = 0, done = 0, prevLen = 0;
+      var startAt = performance.now();
+
+      var targetEl = api.el('div', { class: 'ty-target' });
+      var descEl = api.el('div', { class: 'ty-desc' });
+      var input = api.el('input', {
+        type: 'text', class: 'ty-input', autocomplete: 'off', autocapitalize: 'off',
+        autocorrect: 'off', spellcheck: 'false', 'aria-label': '指令輸入框',
+        placeholder: '在這裡打字…'
+      });
+      var wpmEl = api.el('b', { text: '0' });
+      var accEl = api.el('b', { text: '100%' });
+      var live = api.el('div', { class: 'statlist ty-live' }, [
+        api.el('div', {}, ['WPM', wpmEl]),
+        api.el('div', {}, ['正確率', accEl]),
+        api.el('div', {}, ['完成', api.el('b', { id: 'tyDone', text: '0' })])
+      ]);
+      var doneEl = live.querySelector('#tyDone');
+
+      stage.appendChild(api.el('div', { class: 'ty-wrap' }, [
+        api.el('div', { class: 'faint center', style: { fontSize: '12px', letterSpacing: '.2em' }, text: 'user@cse:~$' }),
+        targetEl,
+        input,
+        descEl,
+        live
+      ]));
+
+      function paint() {
+        var v = input.value;
+        CSE.ui.clear(targetEl);
+        var firstBad = -1;
+        for (var i = 0; i < target.length; i++) {
+          var ch = target.charAt(i);
+          var cls = 'ch' + (ch === ' ' ? ' sp' : '');
+          if (i < v.length) {
+            if (v.charAt(i) === ch) cls += ' done';
+            else { cls += ' err'; if (firstBad < 0) firstBad = i; }
+          } else if (i === v.length) {
+            cls += ' cur';
+          }
+          targetEl.appendChild(api.el('span', { class: cls, text: ch === ' ' ? '␣' : ch }));
+        }
+        if (v.length > target.length) {
+          targetEl.appendChild(api.el('span', { class: 'ch err', text: '×'.repeat(v.length - target.length) }));
+          if (firstBad < 0) firstBad = target.length;
+        }
+        if (firstBad >= 0) api.hint('有打錯的字，按退格鍵改掉', 'bad');
+        else api.hint('');
+      }
+
+      function stats() {
+        var mins = Math.max(0.05, (performance.now() - startAt) / 60000);
+        wpmEl.textContent = String(Math.round((typedOK / 5) / mins));
+        var tot = typedOK + errors;
+        accEl.textContent = (tot ? Math.round((typedOK / tot) * 100) : 100) + '%';
+        doneEl.textContent = String(done);
+      }
+
+      function nextCmd() {
+        if (pi >= pool.length) pool = CSE.util.shuffle(CMDS), pi = 0;
+        var item = pool[pi++];
+        target = item[0];
+        desc = item[1];
+        input.value = '';
+        prevLen = 0;
+        descEl.innerHTML = '<b>' + CSE.ui.esc(target.split(' ')[0]) + '</b>　' + CSE.ui.esc(desc);
+        paint();
+        api.setStat('完成', done);
+      }
+
+      input.addEventListener('input', function () {
+        var v = input.value;
+        /* 只在「新增一個字」時判斷對錯，避免退格重複計算 */
+        if (v.length === prevLen + 1) {
+          var i = v.length - 1;
+          if (i < target.length && v.charAt(i) === target.charAt(i)) {
+            typedOK++;
+            api.addScore(8);
+            api.sfx.play('type');
+          } else {
+            errors++;
+            api.sfx.play('bad');
+          }
+        }
+        prevLen = v.length;
+        paint();
+        stats();
+        if (v === target) {
+          done++;
+          api.addScore(60);
+          api.sfx.play('ok');
+          nextCmd();
+          stats();
+        }
+      });
+
+      /* 防作弊：不能貼上 */
+      input.addEventListener('paste', function (e) {
+        e.preventDefault();
+        CSE.toast('這個遊戲不能貼上喔', 'bad');
+      });
+      /* 中文輸入法會讓字元進不來，提醒一次 */
+      var warned = false;
+      input.addEventListener('compositionstart', function () {
+        if (warned) return;
+        warned = true;
+        CSE.toast('請切換成英數輸入法（Shift 或 Ctrl+Space）', 'bad', 3200);
+      });
+      /* 點畫面任何地方都把焦點送回輸入框（不用 blur 自動搶回，
+         否則手機鍵盤會一直彈出來，也會搶走上方按鈕的焦點） */
+      api.on(stage, 'click', function (e) {
+        if (e.target.closest && e.target.closest('button, a')) return;
+        input.focus();
+      });
+      /* 空白鍵不要把頁面往下捲 */
+      api.on(window, 'keydown', function (e) {
+        if (e.key === ' ' && document.activeElement !== input) e.preventDefault();
+      });
+
+      api.onResult(function () {
+        var mins = Math.max(0.05, (performance.now() - startAt) / 60000);
+        var tot = typedOK + errors;
+        return {
+          stats: [
+            { k: '完成指令', v: done + ' 個' },
+            { k: 'WPM', v: Math.round((typedOK / 5) / mins) },
+            { k: '正確率', v: (tot ? Math.round((typedOK / tot) * 100) : 100) + '%' },
+            { k: '打錯', v: errors + ' 次' }
+          ]
+        };
+      });
+
+      nextCmd();
+      api.after(60, function () { input.focus(); });
+
+      return {
+        destroy: function () { try { input.blur(); } catch (e) { /* ignore */ } }
+      };
+    }
+  });
+})();
+
+</script>
+<script>
+/* ===== assets/js/games/packet.js ===== */
+/* ============================================================
+   遊戲 6：封包路由 — 幫封包挑一條延遲最低的路
+   教的是：網路拓撲、最短路徑（Dijkstra）、ping 的延遲是什麼
+   ============================================================ */
+(function () {
+  'use strict';
+  var CSE = window.CSE;
+
+  var LEVELS = [
+    { cols: 3, rows: 2 },
+    { cols: 4, rows: 2 },
+    { cols: 4, rows: 3 },
+    { cols: 5, rows: 3 },
+    { cols: 5, rows: 3 }
+  ];
+
+  var W = 700, MARGIN = 58, ROW_H = 104;
+  var LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+  function buildGraph(cols, rows) {
+    for (var attempt = 0; attempt < 80; attempt++) {
+      var n = cols * rows;
+      var H = MARGIN * 2 + (rows - 1) * ROW_H;
+      var nodes = [];
+      for (var r = 0; r < rows; r++) {
+        for (var c = 0; c < cols; c++) {
+          nodes.push({
+            id: nodes.length,
+            name: LETTERS.charAt(nodes.length % 26),
+            x: MARGIN + (cols === 1 ? 0 : c * (W - MARGIN * 2) / (cols - 1)) + CSE.util.randInt(-12, 12),
+            y: MARGIN + (rows === 1 ? 0 : r * ROW_H) + CSE.util.randInt(-12, 12),
+            c: c, r: r
+          });
+        }
+      }
+      var idx = function (c, r) { return r * cols + c; };
+      var edges = [];
+      function addEdge(a, b) {
+        edges.push({ a: a, b: b, w: CSE.util.randInt(1, 9) });
+      }
+      for (var r2 = 0; r2 < rows; r2++) {
+        for (var c2 = 0; c2 < cols; c2++) {
+          if (c2 + 1 < cols && Math.random() > 0.15) addEdge(idx(c2, r2), idx(c2 + 1, r2));
+          if (r2 + 1 < rows && Math.random() > 0.25) addEdge(idx(c2, r2), idx(c2, r2 + 1));
+          if (c2 + 1 < cols && r2 + 1 < rows && Math.random() > 0.55) addEdge(idx(c2, r2), idx(c2 + 1, r2 + 1));
+          if (c2 + 1 < cols && r2 - 1 >= 0 && Math.random() > 0.65) addEdge(idx(c2, r2), idx(c2 + 1, r2 - 1));
+        }
+      }
+
+      var adj = nodes.map(function () { return []; });
+      edges.forEach(function (e, i) {
+        adj[e.a].push({ to: e.b, w: e.w, e: i });
+        adj[e.b].push({ to: e.a, w: e.w, e: i });
+      });
+
+      /* 連通性檢查 */
+      var seen = [0], stack = [0];
+      var visited = new Array(n); visited[0] = true;
+      while (stack.length) {
+        var u = stack.pop();
+        adj[u].forEach(function (x) {
+          if (!visited[x.to]) { visited[x.to] = true; stack.push(x.to); seen.push(x.to); }
+        });
+      }
+      if (seen.length !== n) continue;
+
+      /* 起點在最左欄、終點在最右欄，且不能相鄰（否則一步就到） */
+      var src = idx(0, CSE.util.randInt(0, rows - 1));
+      var dst = idx(cols - 1, CSE.util.randInt(0, rows - 1));
+      if (adj[src].some(function (x) { return x.to === dst; })) continue;
+
+      var best = dijkstra(nodes.length, adj, src, dst);
+      if (!best || best.path.length < 3) continue;
+
+      return { nodes: nodes, edges: edges, adj: adj, src: src, dst: dst, best: best, w: W, h: H };
+    }
+    return null;
+  }
+
+  function dijkstra(n, adj, src, dst) {
+    var INF = Infinity;
+    var dist = new Array(n), prev = new Array(n), used = new Array(n);
+    for (var i = 0; i < n; i++) { dist[i] = INF; prev[i] = -1; used[i] = false; }
+    dist[src] = 0;
+    for (var k = 0; k < n; k++) {
+      var u = -1, bd = INF;
+      for (var j = 0; j < n; j++) if (!used[j] && dist[j] < bd) { bd = dist[j]; u = j; }
+      if (u < 0) break;
+      used[u] = true;
+      if (u === dst) break;
+      for (var a = 0; a < adj[u].length; a++) {
+        var e = adj[u][a];
+        if (dist[u] + e.w < dist[e.to]) { dist[e.to] = dist[u] + e.w; prev[e.to] = u; }
+      }
+    }
+    if (dist[dst] === INF) return null;
+    var path = [], cur = dst;
+    while (cur !== -1) { path.unshift(cur); cur = prev[cur]; }
+    return { cost: dist[dst], path: path };
+  }
+
+  CSE.registerGame({
+    id: 'packet',
+    name: '封包路由',
+    tag: '計算機網路 · ROUTING',
+    icon: '⇄',
+    accent: 'var(--pink)',
+    blurb: '你按下 Enter 之後，資料要經過好幾台路由器。線上的數字是延遲，幫封包找出最快的路。',
+    how: [
+      '綠色是起點、紫色是目標，線上的數字是那一段的延遲（毫秒）。',
+      '從起點開始，一台一台點相鄰的路由器接出路徑。',
+      '點路徑上最後一台可以回退一步。',
+      '走到目標後按「送出封包」。走到理論最短路徑有大獎，共 5 關。'
+    ],
+    controls: '點節點接路徑；點最後一個節點可回退',
+    duration: 150,
+    medals: { bronze: 700, silver: 1300, gold: 2000 },
+    titles: ['體驗組', '見習網管', '路由達人', '網路架構師'],
+    knowledge: {
+      title: '你的封包真的在找最短路',
+      lines: [
+        '網路上的路由器會互相交換「我到哪裡要多久」，再用 Dijkstra 這類演算法算最短路徑。',
+        'ping 顯示的毫秒數，就是封包來回一趟累加起來的延遲。',
+        'traceroute 這個指令可以把封包實際經過的每一站印出來，你可以回家試試。',
+        '同樣的最短路徑演算法也用在 Google Maps 導航、遊戲 AI 尋路上。'
+      ]
+    },
+
+    mount: function (stage, api) {
+      var li = 0;
+      var G = null, path = [], locked = false, levelStart = 0;
+      var perfect = 0, totalDiff = 0;
+      var anim = null;
+
+      var canvas = api.el('div', { class: 'pk-canvas' });
+      var costEl = api.el('b', { text: '0' });
+      var bestEl = api.el('b', { text: '?' });
+      var btnSend = api.el('button', { type: 'button', class: 'btn btn--primary', text: '送出封包', disabled: true, onclick: send });
+      var btnClear = api.el('button', { type: 'button', class: 'btn btn--sm', text: '重選路徑', onclick: function () {
+        if (locked || !G) return;
+        path = [G.src];
+        api.sfx.play('click');
+        render();
+      } });
+
+      stage.appendChild(api.el('div', { class: 'pk-wrap' }, [
+        canvas,
+        api.el('div', { class: 'statlist pk-info' }, [
+          api.el('div', {}, ['目前延遲', costEl]),
+          api.el('div', {}, ['最短可能', bestEl])
+        ]),
+        api.el('div', { class: 'row', style: { justifyContent: 'center' } }, [btnSend, btnClear])
+      ]));
+
+      function pathCost() {
+        var sum = 0;
+        for (var i = 1; i < path.length; i++) {
+          var link = G.adj[path[i - 1]].filter(function (x) { return x.to === path[i]; })[0];
+          if (link) sum += link.w;
+        }
+        return sum;
+      }
+
+      function edgeInPath(e) {
+        for (var i = 1; i < path.length; i++) {
+          if ((path[i - 1] === e.a && path[i] === e.b) || (path[i - 1] === e.b && path[i] === e.a)) return true;
+        }
+        return false;
+      }
+      function edgeInBest(e) {
+        var bp = G.best.path;
+        for (var i = 1; i < bp.length; i++) {
+          if ((bp[i - 1] === e.a && bp[i] === e.b) || (bp[i - 1] === e.b && bp[i] === e.a)) return true;
+        }
+        return false;
+      }
+
+      var svgRef = null, pktRef = null;
+
+      function render(showBest) {
+        var last = path[path.length - 1];
+        var reach = {};
+        if (!locked) {
+          G.adj[last].forEach(function (x) { if (path.indexOf(x.to) < 0) reach[x.to] = true; });
+        }
+
+        var svg = api.svg('svg', { viewBox: '0 0 ' + G.w + ' ' + Math.round(G.h), role: 'img', 'aria-label': '網路拓撲圖' });
+
+        G.edges.forEach(function (e) {
+          var A = G.nodes[e.a], B = G.nodes[e.b];
+          var cls = 'edge' + (edgeInPath(e) ? ' used' : (showBest && edgeInBest(e) ? ' best' : ''));
+          svg.appendChild(api.svg('line', { class: cls, x1: A.x, y1: A.y, x2: B.x, y2: B.y }));
+        });
+        G.edges.forEach(function (e) {
+          var A = G.nodes[e.a], B = G.nodes[e.b];
+          var mx = (A.x + B.x) / 2, my = (A.y + B.y) / 2;
+          svg.appendChild(api.svg('rect', { class: 'ew-bg', x: mx - 10, y: my - 9, width: 20, height: 18, rx: 4 }));
+          svg.appendChild(api.svg('text', { class: 'ew', x: mx, y: my, text: String(e.w) }));
+        });
+
+        G.nodes.forEach(function (nd) {
+          var cls = 'node';
+          if (nd.id === G.src) cls += ' src';
+          else if (nd.id === G.dst) cls += ' dst';
+          if (path.indexOf(nd.id) >= 0) cls += ' path';
+          if (reach[nd.id]) cls += ' reach';
+          var g = api.svg('g', { class: cls, tabindex: locked ? null : '0', role: 'button',
+            'aria-label': '路由器 ' + nd.name });
+          g.appendChild(api.svg('circle', { cx: nd.x, cy: nd.y, r: 22 }));
+          g.appendChild(api.svg('text', { x: nd.x, y: nd.y, text: nd.name }));
+          if (nd.id === G.src) g.appendChild(api.svg('text', { class: 'ew', x: nd.x, y: nd.y - 34, text: '起點' }));
+          if (nd.id === G.dst) g.appendChild(api.svg('text', { class: 'ew', x: nd.x, y: nd.y - 34, text: '目標' }));
+          if (!locked) {
+            g.addEventListener('click', function () { tap(nd.id); });
+            g.addEventListener('keydown', function (ev) {
+              if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); tap(nd.id); }
+            });
+          }
+          svg.appendChild(g);
+        });
+
+        pktRef = api.svg('circle', { class: 'pkt', r: 7, cx: -50, cy: -50 });
+        svg.appendChild(pktRef);
+
+        CSE.ui.clear(canvas);
+        canvas.appendChild(svg);
+        svgRef = svg;
+
+        var c = pathCost();
+        costEl.textContent = String(c);
+        bestEl.textContent = showBest ? String(G.best.cost) : '?';
+        btnSend.disabled = locked || path[path.length - 1] !== G.dst;
+
+        /* 死路提醒：沒有任何可以往前走的鄰居，又還沒到目標 */
+        if (!locked && last !== G.dst && !Object.keys(reach).length) {
+          api.hint('走進死路了 — 點路徑上任何一台可以退回去，或按「重選路徑」。', 'bad');
+        }
+      }
+
+      function tap(id) {
+        if (locked) return;
+        var last = path[path.length - 1];
+        /* 點路徑上的節點 = 退回那一步（點最後一台就是退一步） */
+        var at = path.indexOf(id);
+        if (at >= 0) {
+          if (path.length === 1) return;
+          path.length = (at === path.length - 1) ? at : at + 1;
+          if (!path.length) path = [G.src];
+          api.sfx.play('click');
+          render();
+          return;
+        }
+        var ok = G.adj[last].some(function (x) { return x.to === id; });
+        if (!ok) {
+          api.hint('路由器 ' + G.nodes[last].name + ' 和 ' + G.nodes[id].name + ' 之間沒有直接連線', 'bad');
+          api.sfx.play('bad');
+          return;
+        }
+        path.push(id);
+        api.sfx.play('click');
+        api.hint(path[path.length - 1] === G.dst ? '到目標了！可以送出封包' : '', 'good');
+        render();
+      }
+
+      function send() {
+        if (locked || path[path.length - 1] !== G.dst) return;
+        locked = true;
+        btnSend.disabled = true;
+        var cost = pathCost();
+        var diff = cost - G.best.cost;
+        totalDiff += diff;
+
+        /* 封包動畫 */
+        var pts = path.map(function (i) { return G.nodes[i]; });
+        anim = { pts: pts, seg: 0, t: 0 };
+
+        api.after(Math.min(1400, 320 * (pts.length - 1) + 120), function () {
+          anim = null;
+          var spent = (performance.now() - levelStart) / 1000;
+          var speed = Math.max(0, Math.round((22 - spent) * 5));
+          var gain;
+          if (diff === 0) { gain = 300 + speed + 100; perfect++; }
+          else gain = Math.max(50, 300 - diff * 45) + Math.round(speed / 2);
+          api.addScore(gain);
+          api.sfx.play(diff === 0 ? 'great' : 'ok');
+          api.hint(diff === 0
+            ? '完美！延遲 ' + cost + ' ms 就是理論最短　+' + gain + ' 分'
+            : '延遲 ' + cost + ' ms，最短是 ' + G.best.cost + ' ms（綠色虛線）　+' + gain + ' 分',
+            diff === 0 ? 'good' : 'bad');
+          render(true);
+
+          li++;
+          if (li >= LEVELS.length) {
+            var bonus = Math.round(api.timeLeft() * 5);
+            api.addScore(bonus);
+            api.after(2000, function () {
+              api.finish({
+                reason: 'cleared',
+                stats: [
+                  { k: '完美路徑', v: perfect + ' / ' + LEVELS.length },
+                  { k: '多繞', v: totalDiff + ' ms' },
+                  { k: '剩餘時間加分', v: '+' + bonus }
+                ]
+              });
+            });
+          } else {
+            api.after(2200, loadLevel);
+          }
+        });
+      }
+
+      function loadLevel() {
+        var spec = LEVELS[li];
+        G = buildGraph(spec.cols, spec.rows);
+        if (!G) {   /* 極端情況產不出圖，退回最簡單的設定 */
+          G = buildGraph(3, 2);
+          if (!G) { api.hint('地圖產生失敗，請按重來', 'bad'); return; }
+        }
+        path = [G.src];
+        locked = false;
+        levelStart = performance.now();
+        api.setStat('關卡', (li + 1) + '/' + LEVELS.length);
+        api.hint('從綠色起點開始，一台一台點過去');
+        render(false);
+      }
+
+      api.onResult(function () {
+        return {
+          stats: [
+            { k: '完成關卡', v: li + ' / ' + LEVELS.length },
+            { k: '完美路徑', v: perfect },
+            { k: '總共多繞', v: totalDiff + ' ms' }
+          ]
+        };
+      });
+
+      loadLevel();
+
+      return {
+        onFrame: function (dt) {
+          if (!anim || !pktRef) return;
+          anim.t += dt * 3.2;
+          while (anim.t >= 1 && anim.seg < anim.pts.length - 2) { anim.t -= 1; anim.seg++; }
+          var a = anim.pts[anim.seg], b = anim.pts[Math.min(anim.seg + 1, anim.pts.length - 1)];
+          var k = Math.min(1, anim.t);
+          pktRef.setAttribute('cx', a.x + (b.x - a.x) * k);
+          pktRef.setAttribute('cy', a.y + (b.y - a.y) * k);
+        }
+      };
+    }
+  });
+})();
+
+</script>
+<script>
+/* ===== assets/js/games/myth.js ===== */
+/* ============================================================
+   遊戲 7：資工系大誤解 — 快問快答，破解對資工系的迷思
+   這款才是真正「認識資工系」的主菜，放在首頁第一張卡
+   ============================================================ */
+(function () {
+  'use strict';
+  var CSE = window.CSE;
+
+  /* ans: true = 這句話是對的；false = 這句話是錯的 */
+  var Q = [
+    {
+      q: '資工系主要是在學電腦硬體維修和重灌系統',
+      ans: false,
+      say: '維修和重灌不是資工系的課。核心是程式設計、資料結構、演算法、作業系統、計算機網路這些「怎麼讓機器解決問題」的學問。'
+    },
+    {
+      q: '沒學過寫程式的人也可以念資工系',
+      ans: true,
+      say: '大一的程式設計就是從零開始教。有基礎當然輕鬆一點，但系上的課程設計本來就假設你沒寫過。'
+    },
+    {
+      q: '資工系幾乎不用碰數學',
+      ans: false,
+      say: '離散數學、線性代數、機率統計通常都是必修。演算法的正確性證明、機器學習的原理，底層都是數學。'
+    },
+    {
+      q: '「資料結構」是在教怎麼整理電腦裡的資料夾',
+      ans: false,
+      say: '它教的是陣列、鏈結串列、堆疊、佇列、樹、雜湊表這些「資料在記憶體裡怎麼擺」。擺法不同，同一個程式可以快上千倍。'
+    },
+    {
+      q: '資料結構與演算法幾乎是所有資工系的必修課',
+      ans: true,
+      say: '這兩門是資工系的共同語言，也是絕大多數軟體工程職缺面試一定會考的內容。'
+    },
+    {
+      q: '資工系畢業只能當程式設計師',
+      ans: false,
+      say: '出路包含資安、資料科學、AI、晶片與嵌入式、遊戲與圖學、產品經理、研究、創業。技術是鑰匙，不是終點。'
+    },
+    {
+      q: '版本控制工具 Git 在軟體業界幾乎是標準配備',
+      ans: true,
+      say: 'Git 記錄程式的每一次修改，讓多人能同時改同一個專案。幾乎所有軟體團隊都在用，很多系上課程也會要求。'
+    },
+    {
+      q: '寫程式大多是一個人關在房間裡做的事',
+      ans: false,
+      say: '真實專案是團隊運動：分工、開會、程式碼審查、交接文件。溝通能力常常比寫得快更重要。'
+    },
+    {
+      q: '一台電腦裡的 1 KB，在電腦科學裡常被當成 1024 bytes',
+      ans: true,
+      say: '因為電腦用二進位，1024 = 2¹⁰ 比 1000 更自然。（嚴格講 1000 bytes 叫 kB、1024 bytes 叫 KiB，但習慣上常混用。）'
+    },
+    {
+      q: 'HTTP 狀態碼 404 代表「找不到這個資源」',
+      ans: true,
+      say: '404 Not Found。順便記一下：200 成功、301 永久搬家、403 沒權限、500 伺服器自己爆了。'
+    },
+    {
+      q: '「作業系統」這門課是在教怎麼安裝 Windows',
+      ans: false,
+      say: '它教的是行程排程、記憶體管理、檔案系統、同步與死鎖 — 也就是 Windows / Linux / macOS 底下在忙什麼。'
+    },
+    {
+      q: '只要學會一種程式語言，學第二種會快很多',
+      ans: true,
+      say: '語法是表面，真正難的是邏輯、資料結構和問題拆解。這些會跟著你走，所以第二、第三種語言通常幾週就能上手。'
+    },
+    {
+      q: '因為 AI 會寫程式了，所以不用再學程式設計',
+      ans: false,
+      say: 'AI 會產生程式碼，但誰來判斷它寫得對不對、安不安全、效能夠不夠？看得懂、改得動、知道哪裡會錯，反而更值錢。'
+    },
+    {
+      q: '資訊安全就是當駭客攻擊別人',
+      ans: false,
+      say: '資安大部分時間在「防守」：找出自家系統的漏洞、設計安全架構、處理事故。攻擊技術是用來測試自己的系統，而且必須有授權。'
+    },
+    {
+      q: '「演算法」是一堆數學公式，背起來就會了',
+      ans: false,
+      say: '演算法是解題策略。重點是理解「為什麼這樣做比較快」，然後在新問題上自己想得出來 — 背不起來的。'
+    },
+    {
+      q: '電腦裡所有的資料，最底層都是用 0 和 1 存的',
+      ans: true,
+      say: '文字、圖片、音樂、影片，最後都是一串 0 和 1。差別只在「用什麼規則去解讀它」，這叫編碼。'
+    },
+    {
+      q: '一個程式跑得快不快，只跟電腦好不好有關',
+      ans: false,
+      say: '演算法的影響常常遠大於硬體。O(n²) 換成 O(n log n)，在一百萬筆資料上大約差五萬倍 — 換電腦換不出來。'
+    },
+    {
+      q: '資工系的課幾乎都有實作作業，不只是考試',
+      ans: true,
+      say: '程式設計、資料結構、作業系統、網路、資料庫、專題，大多都要動手做出會跑的東西，期末專題更是整學期的硬仗。'
+    },
+    {
+      q: '念資工系一定要很會玩電腦遊戲',
+      ans: false,
+      say: '完全沒關係。做遊戲和玩遊戲是兩件事 — 做遊戲要碰的是圖學、物理模擬、引擎架構。'
+    },
+    {
+      q: '「Debug」這個說法，和早期電腦裡找到一隻蛾的故事有關',
+      ans: true,
+      say: '1947 年 Grace Hopper 團隊在 Mark II 電腦裡找到一隻飛蛾並記錄下來，讓「抓蟲 = 修錯」這個說法廣為流傳。'
+    }
+  ];
+
+  var ROUND = 10, PER_Q = 10;
+
+  CSE.registerGame({
+    id: 'myth',
+    name: '資工系大誤解',
+    tag: '認識資工系 · MYTH',
+    icon: '?!',
+    accent: 'var(--pink)',
+    blurb: '「資工系是不是在修電腦？」十題快問快答，三秒內判斷對錯，順手破解對資工系的誤會。',
+    how: [
+      '畫面出現一句關於資工系的話。',
+      '判斷它是「對」還是「錯」，直接按大按鈕。',
+      '每題 10 秒，越快答對分數越高，連對有加成。',
+      '每題都有解說 — 答錯沒關係，看懂才是重點。'
+    ],
+    controls: '點按鈕；鍵盤左右方向鍵或 O / X 也可以',
+    duration: 0,
+    medals: { bronze: 700, silver: 1300, gold: 1900 },
+    titles: ['路過的訪客', '略懂略懂', '資工系通', '系學會榮譽會員'],
+    knowledge: {
+      title: '所以資工系到底在幹嘛？',
+      lines: [
+        '一句話：學「如何用計算解決問題」，從 0 和 1 一路到 AI。',
+        '必修大致是：程式設計 → 資料結構 → 演算法 → 計算機組織 → 作業系統 → 網路 → 資料庫。',
+        '不需要先會寫程式，但需要願意花時間把一個東西想清楚。',
+        '想了解更多可以到「關於資工系」看課程地圖，或直接問攤位上的學長姐。'
+      ]
+    },
+
+    mount: function (stage, api) {
+      var queue = CSE.util.shuffle(Q).slice(0, ROUND);
+      var qi = -1, right = 0, wrong = 0, streak = 0, bestStreak = 0;
+      var locked = true, qLeft = 0;
+
+      var qEl = api.el('div', { class: 'my-q' });
+      var barIn = api.el('i', { style: { width: '0%' } });
+      var fb = api.el('div', { class: 'my-fb', text: '看完這句話，判斷它是對還是錯。' });
+      var btnYes = api.el('button', {
+        type: 'button', class: 'btn my-yes', onclick: function () { answer(true); }
+      }, [api.el('span', { text: '○ 對' }), api.el('small', { text: 'TRUE' })]);
+      var btnNo = api.el('button', {
+        type: 'button', class: 'btn my-no', onclick: function () { answer(false); }
+      }, [api.el('span', { text: '✕ 錯' }), api.el('small', { text: 'FALSE' })]);
+      var nextBtn = api.el('button', {
+        type: 'button', class: 'btn btn--primary hidden', text: '下一題',
+        onclick: function () { api.sfx.play('click'); nextQ(); }
+      });
+      var counter = api.el('div', { class: 'faint center', style: { fontSize: '12px' }, text: '' });
+
+      stage.appendChild(api.el('div', { class: 'my-wrap' }, [
+        counter,
+        api.el('div', { class: 'my-bar' }, barIn),
+        qEl,
+        api.el('div', { class: 'my-btns' }, [btnYes, btnNo]),
+        fb,
+        api.el('div', { class: 'row', style: { justifyContent: 'center' } }, [nextBtn])
+      ]));
+
+      function answer(said) {
+        if (locked) return;
+        locked = true;
+        var item = queue[qi];
+        var ok = (said === item.ans);
+        btnYes.disabled = true;
+        btnNo.disabled = true;
+        nextBtn.classList.remove('hidden');
+
+        if (ok) {
+          right++; streak++;
+          bestStreak = Math.max(bestStreak, streak);
+          var speed = Math.max(0, Math.round(qLeft * 9));
+          var gain = 100 + speed + 15 * Math.min(streak - 1, 6);
+          api.addScore(gain);
+          api.sfx.play(streak >= 3 ? 'great' : 'ok');
+          fb.className = 'my-fb right';
+          fb.innerHTML = '<span class="verdict">✓ 答對了（+' + gain + '）' +
+            (streak > 1 ? '　' + streak + ' 連對' : '') + '</span>' + CSE.ui.esc(item.say);
+        } else {
+          wrong++; streak = 0;
+          api.sfx.play('bad');
+          fb.className = 'my-fb wrong';
+          fb.innerHTML = '<span class="verdict">✕ 這句話其實是「' + (item.ans ? '對' : '錯') + '」的</span>' +
+            CSE.ui.esc(item.say);
+        }
+        api.setStat('連對', streak);
+      }
+
+      function timeUp() {
+        if (locked) return;
+        locked = true;
+        wrong++; streak = 0;
+        btnYes.disabled = true;
+        btnNo.disabled = true;
+        nextBtn.classList.remove('hidden');
+        api.sfx.play('bad');
+        var item = queue[qi];
+        fb.className = 'my-fb wrong';
+        fb.innerHTML = '<span class="verdict">⏱ 時間到 — 答案是「' + (item.ans ? '對' : '錯') + '」</span>' +
+          CSE.ui.esc(item.say);
+        api.setStat('連對', 0);
+      }
+
+      function nextQ() {
+        qi++;
+        if (qi >= queue.length) {
+          api.finish({
+            reason: 'cleared',
+            stats: [
+              { k: '答對', v: right + ' / ' + queue.length },
+              { k: '最高連對', v: bestStreak },
+              { k: '正確率', v: Math.round(right / queue.length * 100) + '%' }
+            ]
+          });
+          return;
+        }
+        locked = false;
+        qLeft = PER_Q;
+        btnYes.disabled = false;
+        btnNo.disabled = false;
+        nextBtn.classList.add('hidden');
+        counter.textContent = '第 ' + (qi + 1) + ' / ' + queue.length + ' 題';
+        qEl.textContent = '「' + queue[qi].q + '」';
+        fb.className = 'my-fb';
+        fb.textContent = '看完這句話，判斷它是對還是錯。';
+        api.hint('');
+      }
+
+      api.on(document, 'keydown', function (e) {
+        if (locked) {
+          if (e.key === 'Enter' && !nextBtn.classList.contains('hidden')) { e.preventDefault(); nextQ(); }
+          return;
+        }
+        var k = e.key.toLowerCase();
+        if (k === 'arrowleft' || k === 'o' || k === '1') { e.preventDefault(); answer(true); }
+        if (k === 'arrowright' || k === 'x' || k === '2') { e.preventDefault(); answer(false); }
+      });
+
+      api.onResult(function () {
+        return {
+          stats: [
+            { k: '答對', v: right + ' 題' },
+            { k: '答錯', v: wrong + ' 題' },
+            { k: '最高連對', v: bestStreak }
+          ]
+        };
+      });
+
+      api.setStat('連對', 0);
+      nextQ();
+
+      return {
+        onFrame: function (dt) {
+          if (locked) return;
+          qLeft -= dt;
+          barIn.style.width = Math.max(0, Math.min(100, (1 - qLeft / PER_Q) * 100)) + '%';
+          if (qLeft <= 0) { qLeft = 0; timeUp(); }
+        }
+      };
+    }
+  });
+})();
+
+</script>
+<script>
+/* ===== assets/js/app.js ===== */
+/* ============================================================
+   app.js — 路由 / 首頁 / 排行榜 / 關於 / 設定 / 背景特效 / 攤位模式
+   ============================================================ */
+(function () {
+  'use strict';
+  var CSE = window.CSE;
+  var ui = CSE.ui, el = ui.el;
+  var cfg = CSE.config;
+
+  var view = document.getElementById('view');
+  var navEl = document.getElementById('nav');
+  var totalChip = document.getElementById('totalChip');
+
+  /* 首頁卡片順序：先用「資工系大誤解」當開場，再往技術深處走 */
+  var ORDER = ['myth', 'binary', 'bughunt', 'logic', 'sort', 'packet', 'typing'];
+  function orderedGames() {
+    var out = [];
+    ORDER.forEach(function (id) { if (CSE.gameById[id]) out.push(CSE.gameById[id]); });
+    CSE.games.forEach(function (g) { if (out.indexOf(g) < 0) out.push(g); });
+    return out;
+  }
+
+  /* 每個頁面自己的清理工作（打字機、計時器…） */
+  var pageCleanups = [];
+  function onLeave(fn) { pageCleanups.push(fn); }
+  function cleanPage() {
+    var list = pageCleanups; pageCleanups = [];
+    list.forEach(function (f) { try { f(); } catch (e) { /* ignore */ } });
+  }
+
+  /* ---------------- 背景矩陣雨 ---------------- */
+  var rain = (function () {
+    var cv = document.getElementById('bgfx');
+    var ctx = cv.getContext ? cv.getContext('2d') : null;
+    var cols = [], W = 0, H = 0, raf = 0, on = false, acc = 0;
+    var GLYPHS = '01{}[]()<>/\\=+-*&|!?;:ABCDEF01'.split('');
+
+    function resize() {
+      if (!ctx) return;
+      var dpr = Math.min(2, window.devicePixelRatio || 1);
+      W = cv.clientWidth; H = cv.clientHeight;
+      cv.width = Math.floor(W * dpr);
+      cv.height = Math.floor(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.font = '13px monospace';
+      var n = Math.ceil(W / 18);
+      cols = [];
+      for (var i = 0; i < n; i++) cols.push(Math.random() * -H);
+    }
+
+    function step() {
+      if (!on) return;
+      raf = requestAnimationFrame(step);
+      acc++;
+      if (acc % 2) return;                     /* 降到約 30fps，省電 */
+      ctx.fillStyle = 'rgba(6,10,15,0.10)';
+      ctx.fillRect(0, 0, W, H);
+      for (var i = 0; i < cols.length; i++) {
+        var y = cols[i];
+        var x = i * 18 + 3;
+        ctx.fillStyle = 'rgba(57,255,136,0.82)';
+        ctx.fillText(GLYPHS[(Math.random() * GLYPHS.length) | 0], x, y);
+        ctx.fillStyle = 'rgba(56,217,255,0.22)';
+        ctx.fillText(GLYPHS[(Math.random() * GLYPHS.length) | 0], x, y - 17);
+        cols[i] = y > H + Math.random() * 400 ? 0 : y + 17;
+      }
+    }
+
+    return {
+      start: function () {
+        if (!ctx || on || !CSE.settings.get('motion')) return;
+        on = true; resize(); step();
+      },
+      stop: function () {
+        on = false;
+        cancelAnimationFrame(raf);
+        if (ctx) ctx.clearRect(0, 0, W, H);
+      },
+      resize: function () { if (on) resize(); }
+    };
+  })();
+
+  window.addEventListener('resize', function () { rain.resize(); });
+
+  /* ---------------- 打字機 ---------------- */
+  function typewriter(target, lines, done) {
+    if (!CSE.settings.get('motion')) {
+      lines.forEach(function (t) { target.appendChild(el('div', { html: t })); });
+      if (done) done();
+      return function () {};
+    }
+    var li = 0, ci = 0, cur = null, timer = 0, stopped = false;
+    var plain = lines.map(function (t) { return t.replace(/<[^>]*>/g, ''); });
+    function tick() {
+      if (stopped) return;
+      if (li >= lines.length) { if (done) done(); return; }
+      if (!cur) { cur = el('div', {}); target.appendChild(cur); }
+      ci++;
+      cur.textContent = plain[li].slice(0, ci);
+      if (ci >= plain[li].length) {
+        cur.innerHTML = lines[li];     /* 打完這行才換成帶標記的版本 */
+        li++; ci = 0; cur = null;
+        timer = setTimeout(tick, 220);
+      } else {
+        timer = setTimeout(tick, 16);
+      }
+    }
+    tick();
+    return function () { stopped = true; clearTimeout(timer); };
+  }
+
+  /* ---------------- 首頁 ---------------- */
+  function screenHome() {
+    rain.start();
+    var total = CSE.scores.total();
+    var played = CSE.games.filter(function (g) { return CSE.scores.plays(g.id) > 0; }).length;
+    var badges = CSE.scores.badges().filter(function (b) { return b.got; }).length;
+
+    var termBody = el('div', { class: 'term-body' });
+    var hero = el('div', { class: 'hero' }, el('div', { class: 'term' }, [
+      el('div', { class: 'term-bar' }, [
+        el('i', { class: 'term-dot r' }), el('i', { class: 'term-dot y' }), el('i', { class: 'term-dot g' }),
+        el('span', { text: 'cse-arcade — bash — 80×24' })
+      ]),
+      termBody
+    ]));
+
+    var typedBox = el('div', { class: 'faint', style: { fontSize: '13px', marginBottom: '10px' } });
+    termBody.appendChild(typedBox);
+    var stop = typewriter(typedBox, [
+      '<span class="prompt">whoami</span>',
+      '<span style="color:var(--green)">' + ui.esc(cfg.school + ' ' + cfg.dept) + '</span>',
+      '<span class="prompt">./start-arcade.sh</span>'
+    ], function () {
+      termBody.appendChild(el('h1', { text: cfg.title }));
+      termBody.appendChild(el('p', { class: 'hero-sub', text: cfg.tagline }));
+      termBody.appendChild(el('div', { class: 'hero-stats' }, [
+        el('div', { class: 'hero-stat' }, [el('b', { text: CSE.util.nf(total) }), el('span', { text: '你的總分' })]),
+        el('div', { class: 'hero-stat' }, [el('b', { text: played + ' / ' + CSE.games.length }), el('span', { text: '玩過的遊戲' })]),
+        el('div', { class: 'hero-stat' }, [el('b', { text: String(badges) }), el('span', { text: '拿到的徽章' })])
+      ]));
+    });
+    onLeave(stop);
+
+    var cards = el('div', { class: 'grid-games' });
+    orderedGames().forEach(function (g) {
+      var best = CSE.scores.best(g.id);
+      var medal = CSE.scores.medalOf(g.id, best);
+      var card = el('button', { type: 'button', class: 'gcard', style: { '--accent': g.accent || 'var(--green)' } }, [
+        el('div', { class: 'gcard-top' }, [
+          el('div', { class: 'gcard-icon', html: g.icon || '#' }),
+          el('div', {}, [
+            el('div', { class: 'gcard-name', text: g.name }),
+            el('div', { class: 'gcard-tag', text: g.tag || '' })
+          ])
+        ]),
+        el('div', { class: 'gcard-blurb', text: g.blurb }),
+        el('div', { class: 'gcard-foot' }, [
+          el('span', { class: 'gcard-best', html: best ? ('最佳 <b>' + CSE.util.nf(best) + '</b>') : '還沒玩過' }),
+          el('span', { class: 'medal', text: medal ? CSE.scores.medalIcon(medal) : (g.duration ? g.duration + ' 秒' : '10 題') })
+        ])
+      ]);
+      card.style.setProperty('--accent', g.accent || 'var(--green)');
+      card.addEventListener('click', function () {
+        CSE.sfx.unlock();
+        CSE.sfx.play('click');
+        location.hash = '#/g/' + g.id;
+      });
+      cards.appendChild(card);
+    });
+
+    var blocks = [hero];
+
+    if (cfg.prize && cfg.prize.enabled) {
+      var reached = total >= cfg.prize.threshold;
+      blocks.push(el('div', { class: 'notice' }, [
+        el('span', { class: 'ic', text: reached ? '🎁' : '◆' }),
+        el('div', {}, [
+          el('b', { text: reached ? '你已經達到兌換門檻了！' : cfg.prize.text }),
+          el('div', { class: 'faint', style: { fontSize: '12px' } },
+            reached ? '把這個畫面拿給攤位人員看就可以兌換。'
+                    : '目前 ' + CSE.util.nf(total) + ' / ' + CSE.util.nf(cfg.prize.threshold) +
+                      ' 分　（總分 = 七款遊戲各自的最佳分數加總）')
+        ])
+      ]));
+    }
+
+    blocks.push(cards);
+
+    /* 徽章 */
+    var bg = el('div', { class: 'badges' }, CSE.scores.badges().map(function (b) {
+      return el('div', { class: 'badge' + (b.got ? '' : ' off') }, [
+        el('span', { class: 'bi', text: b.icon }),
+        el('div', {}, [el('b', { text: b.name }), el('span', { text: b.note })])
+      ]);
+    }));
+    blocks.push(el('div', { class: 'panel' }, [
+      ui.corners(),
+      el('div', { class: 'kicker', text: 'ACHIEVEMENTS' }),
+      el('h2', { text: '關卡護照' }),
+      el('p', { class: 'muted', style: { fontSize: '13px' }, text: '每款遊戲達到分數門檻就能拿到銅、銀、金牌。七款全破看看會發生什麼事。' }),
+      bg
+    ]));
+
+    ui.clear(view);
+    ui.append(view, blocks);
+  }
+
+  /* ---------------- 遊戲頁 ---------------- */
+  function screenGame(id) {
+    rain.stop();
+    var def = CSE.gameById[id];
+    if (!def) { CSE.toast('找不到這個遊戲', 'bad'); location.hash = '#/'; return; }
+    ui.clear(view);
+    var mount = el('div', {});
+    view.appendChild(mount);
+    CSE.host.start(def, mount);
+  }
+
+  /* ---------------- 排行榜 ---------------- */
+  function screenBoard(params) {
+    rain.stop();
+    var games = orderedGames();
+    var active = params.g && CSE.gameById[params.g] ? params.g : games[0].id;
+
+    var tabs = el('div', { class: 'lb-tabs' });
+    var tableBox = el('div', {});
+
+    function paint() {
+      var g = CSE.gameById[active];
+      var rows = CSE.scores.top(active, 10);
+      ui.clear(tableBox);
+      tableBox.appendChild(el('div', { class: 'row spread', style: { marginBottom: '10px' } }, [
+        el('div', {}, [
+          el('div', { class: 'kicker', text: g.tag || '' }),
+          el('h2', { text: g.name + ' 排行榜' })
+        ]),
+        el('a', { class: 'btn btn--sm', href: '#/g/' + g.id, text: '挑戰這款' })
+      ]));
+      if (!rows.length) {
+        tableBox.appendChild(el('div', { class: 'empty', text: '還沒有人登錄成績，來當第一個。' }));
+      } else {
+        tableBox.appendChild(el('table', { class: 'data' }, [
+          el('thead', {}, el('tr', {}, [
+            el('th', { text: '#' }), el('th', { text: '暱稱' }),
+            el('th', { style: { textAlign: 'right' }, text: '分數' }),
+            el('th', { style: { textAlign: 'right' }, text: '時間' })
+          ])),
+          el('tbody', {}, rows.map(function (r, i) {
+            var d = new Date(r.t);
+            return el('tr', {}, [
+              el('td', { class: 'rk', text: String(i + 1) }),
+              el('td', { text: r.n }),
+              el('td', { class: 'n', text: CSE.util.nf(r.s) }),
+              el('td', { class: 'faint', style: { textAlign: 'right', fontSize: '12px' },
+                text: CSE.util.pad(d.getHours(), 2) + ':' + CSE.util.pad(d.getMinutes(), 2) })
+            ]);
+          }))
+        ]));
+      }
+      Array.prototype.forEach.call(tabs.children, function (b) {
+        b.setAttribute('aria-current', b.dataset.id === active ? 'page' : 'false');
+        b.className = 'btn btn--sm' + (b.dataset.id === active ? ' btn--primary' : '');
+      });
+    }
+
+    games.forEach(function (g) {
+      var b = el('button', { type: 'button', class: 'btn btn--sm', text: g.name, dataset: { id: g.id } });
+      b.addEventListener('click', function () {
+        active = g.id;
+        CSE.sfx.play('click');
+        paint();
+      });
+      tabs.appendChild(b);
+    });
+
+    var sum = CSE.scores.summary();
+    var overview = el('div', { class: 'panel', style: { marginTop: 'var(--gap)' } }, [
+      ui.corners(),
+      el('div', { class: 'kicker', text: 'BOOTH STATS' }),
+      el('h2', { text: '攤位統計' }),
+      el('p', { class: 'muted', style: { fontSize: '13px' },
+        text: '這些數字只存在這台裝置上。活動結束可以到「攤位設定」匯出 CSV。' }),
+      el('table', { class: 'data' }, [
+        el('thead', {}, el('tr', {}, [
+          el('th', { text: '遊戲' }),
+          el('th', { style: { textAlign: 'right' }, text: '遊玩次數' }),
+          el('th', { style: { textAlign: 'right' }, text: '登錄筆數' }),
+          el('th', { style: { textAlign: 'right' }, text: '最高分' })
+        ])),
+        el('tbody', {}, sum.map(function (s) {
+          return el('tr', {}, [
+            el('td', { text: s.name }),
+            el('td', { class: 'n', text: String(s.plays) }),
+            el('td', { class: 'n', text: String(s.entries) }),
+            el('td', { class: 'n', text: CSE.util.nf(s.best) })
+          ]);
+        }))
+      ])
+    ]);
+
+    ui.clear(view);
+    ui.append(view, [
+      el('div', { class: 'panel' }, [ui.corners(), tabs, tableBox]),
+      overview
+    ]);
+    paint();
+  }
+
+  /* ---------------- 關於資工系 ---------------- */
+  function screenAbout() {
+    rain.stop();
+    var a = cfg.about;
+    ui.clear(view);
+    ui.append(view, [
+      el('div', { class: 'panel' }, [
+        ui.corners(),
+        el('div', { class: 'kicker', text: 'ABOUT' }),
+        el('h1', { text: cfg.dept + '　在學什麼？' }),
+        el('p', { class: 'muted', style: { maxWidth: '68ch' }, text: a.intro })
+      ]),
+      el('div', { class: 'about-grid', style: { marginTop: 'var(--gap)' } }, [
+        el('div', { class: 'panel' }, [
+          ui.corners(),
+          el('h2', { text: '◆ 核心課程' }),
+          el('ul', {}, a.courses.map(function (c) {
+            return el('li', {}, [el('b', { style: { color: 'var(--green)' }, text: c[0] }), '　' + c[1]]);
+          }))
+        ]),
+        el('div', { class: 'panel' }, [
+          ui.corners(),
+          el('h2', { text: '◆ 畢業之後' }),
+          el('ul', {}, a.careers.map(function (c) {
+            return el('li', {}, [el('b', { style: { color: 'var(--cyan)' }, text: c[0] }), '　' + c[1]]);
+          }))
+        ])
+      ]),
+      el('div', { class: 'panel', style: { marginTop: 'var(--gap)' } }, [
+        ui.corners(),
+        el('h2', { text: '◆ 想先知道的四件事' }),
+        el('ul', {}, a.myths.map(function (m) { return el('li', { text: m }); })),
+        el('div', { class: 'divider' }),
+        el('div', { class: 'row' }, [
+          el('a', { class: 'btn btn--primary', href: '#/g/myth', text: '來玩「資工系大誤解」' }),
+          cfg.links.ig ? el('a', { class: 'btn', href: cfg.links.ig, target: '_blank', rel: 'noopener', text: 'Instagram' }) : null,
+          cfg.links.web ? el('a', { class: 'btn', href: cfg.links.web, target: '_blank', rel: 'noopener', text: '系網站' }) : null
+        ])
+      ])
+    ]);
+  }
+
+  /* ---------------- 攤位設定 ---------------- */
+  function screenSettings() {
+    rain.stop();
+    function toggleRow(key, title, note) {
+      var btn = el('button', {
+        type: 'button', class: 'toggle', 'aria-pressed': CSE.settings.get(key) ? 'true' : 'false',
+        'aria-label': title
+      });
+      btn.addEventListener('click', function () {
+        var v = CSE.settings.toggle(key);
+        btn.setAttribute('aria-pressed', v ? 'true' : 'false');
+        CSE.sfx.play('click');
+        /* 背景動畫的開關由 CSE.settings.onchange 統一處理 */
+      });
+      return el('div', { class: 'setrow' }, [
+        el('div', { class: 't' }, [el('b', { text: title }), el('span', { text: note })]),
+        btn
+      ]);
+    }
+
+    var idleInput = el('input', {
+      type: 'number', min: '20', max: '600', value: String(CSE.settings.get('idle')),
+      style: { width: '96px' }
+    });
+    idleInput.addEventListener('change', function () {
+      var v = CSE.util.clamp(parseInt(idleInput.value, 10) || 75, 20, 600);
+      idleInput.value = String(v);
+      CSE.settings.set('idle', v);
+      CSE.toast('閒置時間設為 ' + v + ' 秒', 'ok');
+    });
+
+    ui.clear(view);
+    ui.append(view, [
+      el('div', { class: 'panel' }, [
+        ui.corners(),
+        el('div', { class: 'kicker', text: 'BOOTH SETUP' }),
+        el('h1', { text: '攤位設定' }),
+        el('p', { class: 'muted', style: { fontSize: '13px' },
+          text: '這頁是給擺攤的人用的。所有資料只存在這台裝置的瀏覽器裡，不會上傳。' }),
+        CSE.store.ok ? null : el('div', { class: 'notice' }, [
+          el('span', { class: 'ic', text: '!' }),
+          el('div', { text: '這個瀏覽器不允許存資料（可能是無痕模式或檔案協定限制），分數在重新整理後會消失。建議改用本機伺服器開啟。' })
+        ]),
+        toggleRow('sound', '音效', '攤位很吵的話可以關掉'),
+        toggleRow('motion', '背景動畫', '關掉可以讓舊筆電跑更順'),
+        toggleRow('scanline', 'CRT 掃描線', '復古濾鏡，看不習慣可以關'),
+        toggleRow('kiosk', '攤位模式（閒置自動回首頁）', '沒人操作一段時間後自動回到首頁，適合無人看顧的平板'),
+        el('div', { class: 'setrow' }, [
+          el('div', { class: 't' }, [
+            el('b', { text: '閒置秒數' }),
+            el('span', { text: '攤位模式下，多久沒人碰就回首頁' })
+          ]),
+          idleInput
+        ])
+      ]),
+      el('div', { class: 'panel', style: { marginTop: 'var(--gap)' } }, [
+        ui.corners(),
+        el('h2', { text: '◆ 資料' }),
+        el('p', { class: 'muted', style: { fontSize: '13px' },
+          text: '活動結束前記得先匯出，不然清掉就沒了。CSV 可以直接用 Excel 開。' }),
+        el('div', { class: 'row' }, [
+          el('button', {
+            type: 'button', class: 'btn btn--primary', text: '匯出排行榜 CSV',
+            onclick: function () {
+              var d = new Date();
+              var name = 'cse-arcade-' + d.getFullYear() + CSE.util.pad(d.getMonth() + 1, 2) +
+                CSE.util.pad(d.getDate(), 2) + '-' + CSE.util.pad(d.getHours(), 2) + CSE.util.pad(d.getMinutes(), 2) + '.csv';
+              if (CSE.download(name, CSE.scores.exportCsv(), 'text/csv')) CSE.toast('已匯出 ' + name, 'ok');
+            }
+          }),
+          el('button', {
+            type: 'button', class: 'btn', text: '全螢幕',
+            onclick: function () { toggleFullscreen(); }
+          }),
+          el('button', {
+            type: 'button', class: 'btn btn--danger', text: '清除所有分數與設定',
+            onclick: function () {
+              CSE.confirm('確定要清除嗎？',
+                '所有排行榜、個人最佳與徽章都會消失，而且無法復原。建議先匯出 CSV。',
+                function () {
+                  CSE.scores.resetAll();
+                  CSE.settings.apply();
+                  CSE.toast('已清除所有資料', 'ok');
+                  refreshChrome();
+                  location.hash = '#/';
+                }, '清除');
+            }
+          })
+        ])
+      ]),
+      el('div', { class: 'panel', style: { marginTop: 'var(--gap)' } }, [
+        ui.corners(),
+        el('h2', { text: '◆ 擺攤小提醒' }),
+        el('ul', {}, [
+          '把瀏覽器按 F11 或用上方 ⛶ 進入全螢幕，訪客就不會誤觸網址列。',
+          '攤位模式打開後，沒人玩會自動回首頁，排隊的人一來就能直接開始。',
+          '多台裝置的排行榜是各自獨立的；要合併就各自匯出 CSV 再合併。',
+          '完全離線可用，不需要網路。'
+        ].map(function (t) { return el('li', { class: 'muted', style: { fontSize: '13px', marginBottom: '6px' }, text: t }); }))
+      ])
+    ]);
+  }
+
+  /* ---------------- 全螢幕 ---------------- */
+  function toggleFullscreen() {
+    try {
+      if (!document.fullscreenElement) {
+        var p = document.documentElement.requestFullscreen &&
+          document.documentElement.requestFullscreen();
+        if (p && p.catch) p.catch(function () { CSE.toast('瀏覽器不允許全螢幕，請按 F11', 'bad'); });
+      } else {
+        document.exitFullscreen();
+      }
+    } catch (e) { CSE.toast('請改按鍵盤 F11 切換全螢幕', 'bad'); }
+  }
+
+  /* ---------------- 頂列狀態 ---------------- */
+  function refreshChrome() {
+    totalChip.querySelector('b').textContent = CSE.util.nf(CSE.scores.total());
+  }
+
+  function buildNav() {
+    ui.clear(navEl);
+    navEl.appendChild(el('a', { href: '#/', text: '首頁', dataset: { route: '#/' } }));
+    orderedGames().slice(0, 7).forEach(function (g) {
+      navEl.appendChild(el('a', { href: '#/g/' + g.id, text: g.name, dataset: { route: '#/g/' + g.id } }));
+    });
+    navEl.appendChild(el('a', { href: '#/board', text: '排行榜', dataset: { route: '#/board' } }));
+    navEl.appendChild(el('a', { href: '#/about', text: '關於資工系', dataset: { route: '#/about' } }));
+  }
+
+  function markNav(route) {
+    Array.prototype.forEach.call(navEl.children, function (a) {
+      if (a.dataset.route === route) a.setAttribute('aria-current', 'page');
+      else a.removeAttribute('aria-current');
+    });
+  }
+
+  /* ---------------- 路由 ---------------- */
+  function parseHash() {
+    var h = location.hash.replace(/^#/, '') || '/';
+    var qi = h.indexOf('?');
+    var params = {};
+    if (qi >= 0) {
+      h.slice(qi + 1).split('&').forEach(function (kv) {
+        var p = kv.split('=');
+        params[decodeURIComponent(p[0])] = decodeURIComponent(p[1] || '');
+      });
+      h = h.slice(0, qi);
+    }
+    return { path: h, params: params };
+  }
+
+  function route() {
+    cleanPage();
+    CSE.host.stop();
+    var r = parseHash();
+    var parts = r.path.split('/').filter(Boolean);
+
+    refreshChrome();
+    window.scrollTo(0, 0);
+
+    if (parts[0] === 'g' && parts[1]) { markNav('#/g/' + parts[1]); screenGame(parts[1]); }
+    else if (parts[0] === 'board') { markNav('#/board'); screenBoard(r.params); }
+    else if (parts[0] === 'about') { markNav('#/about'); screenAbout(); }
+    else if (parts[0] === 'settings') { markNav('#/settings'); screenSettings(); }
+    else { markNav('#/'); screenHome(); }
+
+    view.focus({ preventScroll: true });
+  }
+
+  /* ---------------- 攤位模式：閒置回首頁 ---------------- */
+  var idleTimer = 0;
+  var attractEl = null;
+
+  function showAttract() {
+    if (attractEl) return;
+    attractEl = el('div', { class: 'attract', role: 'button', tabindex: '0',
+      'aria-label': '點擊開始' }, el('div', {}, [
+      el('div', { class: 'big', text: '點一下開始' }),
+      el('div', { class: 'sm', text: cfg.title + '　·　' + cfg.tagline })
+    ]));
+    function go() {
+      if (attractEl && attractEl.parentNode) attractEl.parentNode.removeChild(attractEl);
+      attractEl = null;
+      CSE.sfx.unlock();
+      resetIdle();
+    }
+    attractEl.addEventListener('click', go);
+    attractEl.addEventListener('keydown', go);
+    document.body.appendChild(attractEl);
+  }
+
+  function resetIdle() {
+    clearTimeout(idleTimer);
+    if (!CSE.settings.get('kiosk')) return;
+    var secs = CSE.settings.get('idle') || 75;
+    idleTimer = setTimeout(function () {
+      if (CSE.host.busy) { resetIdle(); return; }   /* 正在玩就不要打斷 */
+      if (location.hash !== '#/' && location.hash !== '' && location.hash !== '#') location.hash = '#/';
+      showAttract();
+    }, secs * 1000);
+  }
+
+  ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(function (t) {
+    window.addEventListener(t, function () {
+      if (attractEl) return;
+      resetIdle();
+    }, { passive: true });
+  });
+
+  CSE.settings.onchange = function (k) {
+    if (k === 'kiosk' || k === 'idle') resetIdle();
+    if (k === 'motion') {
+      if (CSE.settings.get('motion') && location.hash.indexOf('/g/') < 0) rain.start();
+      else rain.stop();
+    }
+  };
+
+  /* ---------------- 啟動 ---------------- */
+  function boot() {
+    /* 版面文字 */
+    document.title = cfg.title + ' · ' + cfg.booth;
+    document.getElementById('brandTitle').textContent = cfg.title;
+    document.getElementById('brandSub').textContent = cfg.booth;
+    document.getElementById('footText').textContent = cfg.school + ' ' + cfg.dept + '　·　' + cfg.booth;
+
+    CSE.settings.apply();
+    buildNav();
+    refreshChrome();
+
+    document.getElementById('btnSound').addEventListener('click', function () {
+      var v = CSE.settings.toggle('sound');
+      CSE.sfx.unlock();
+      if (v) CSE.sfx.play('ok');
+      CSE.toast(v ? '音效開啟' : '音效關閉');
+    });
+    document.getElementById('btnFull').addEventListener('click', toggleFullscreen);
+
+    /* 第一次互動解鎖音訊（瀏覽器政策） */
+    window.addEventListener('pointerdown', function once() {
+      CSE.sfx.unlock();
+      window.removeEventListener('pointerdown', once);
+    }, { once: true });
+
+    CSE.host.onFinish = function () { refreshChrome(); };
+
+    window.addEventListener('hashchange', route);
+    route();
+    resetIdle();
+
+    if (CSE.games.length !== 7) {
+      console.warn('[CSE] 載入了 ' + CSE.games.length + ' 款遊戲（預期 7 款），請檢查 index.html 的 script 標籤');
+    }
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+</body>
+</html>
