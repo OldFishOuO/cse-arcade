@@ -24,8 +24,10 @@ if errorlevel 1 (
 )
 
 echo.
-git diff --quiet && git diff --cached --quiet
-if not errorlevel 1 (
+rem Detect any change, including brand-new untracked files
+set "DIRTY="
+for /f "delims=" %%i in ('git status --porcelain') do set "DIRTY=1"
+if not defined DIRTY (
   echo  Nothing changed - already up to date.
   echo.
   pause
