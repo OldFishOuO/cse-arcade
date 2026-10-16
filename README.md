@@ -84,8 +84,8 @@ python -m http.server 8765
 ```js
 CSE.config = {
   title:   'CSE ARCADE',        // 攤位代號
-  school:  '○○大學',            // ← 改這裡
-  dept:    '資訊工程系',         // ← 改這裡
+  school:  '逢甲大學',           // ← 改這裡
+  dept:    '資訊工程學系',        // ← 改這裡
   booth:   '資工系遊戲攤',
   tagline: '七款小遊戲，10 分鐘看懂資工系在學什麼',
 
