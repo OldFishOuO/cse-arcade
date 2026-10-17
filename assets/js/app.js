@@ -293,7 +293,8 @@
             el('td', { text: s.name }),
             el('td', { class: 'n', text: String(s.plays) }),
             el('td', { class: 'n', text: String(s.entries) }),
-            el('td', { class: 'n', text: CSE.util.nf(s.best) })
+            /* 沒人登錄暱稱時顯示破折號，避免看起來像「玩了但得 0 分」 */
+            el('td', { class: 'n', text: s.entries ? CSE.util.nf(s.best) : '—' })
           ]);
         }))
       ])
@@ -308,6 +309,27 @@
   }
 
   /* ---------------- 關於資工系 ---------------- */
+
+  /* config.links 裡有填的才長出按鈕；要加新平台就在這個表加一行 */
+  var LINK_LABELS = [
+    ['web', '系網站'],
+    ['ig', 'Instagram'],
+    ['fb', 'Facebook'],
+    ['threads', 'Threads'],
+    ['line', 'LINE 社群']
+  ];
+  function linkButtons() {
+    var links = cfg.links || {};
+    return LINK_LABELS.filter(function (pair) {
+      return typeof links[pair[0]] === 'string' && links[pair[0]].trim();
+    }).map(function (pair) {
+      return el('a', {
+        class: 'btn', href: links[pair[0]].trim(),
+        target: '_blank', rel: 'noopener noreferrer', text: pair[1]
+      });
+    });
+  }
+
   function screenAbout() {
     rain.stop();
     var a = cfg.about;
@@ -341,10 +363,8 @@
         el('ul', {}, a.myths.map(function (m) { return el('li', { text: m }); })),
         el('div', { class: 'divider' }),
         el('div', { class: 'row' }, [
-          el('a', { class: 'btn btn--primary', href: '#/g/myth', text: '來玩「資工系大誤解」' }),
-          cfg.links.ig ? el('a', { class: 'btn', href: cfg.links.ig, target: '_blank', rel: 'noopener', text: 'Instagram' }) : null,
-          cfg.links.web ? el('a', { class: 'btn', href: cfg.links.web, target: '_blank', rel: 'noopener', text: '系網站' }) : null
-        ])
+          el('a', { class: 'btn btn--primary', href: '#/g/myth', text: '來玩「資工系大誤解」' })
+        ].concat(linkButtons()))
       ])
     ]);
   }
@@ -523,6 +543,7 @@
   /* ---------------- 攤位模式：閒置回首頁 ---------------- */
   var idleTimer = 0;
   var attractEl = null;
+  var lastInput = Date.now();
 
   function showAttract() {
     if (attractEl) return;
@@ -547,7 +568,14 @@
     if (!CSE.settings.get('kiosk')) return;
     var secs = CSE.settings.get('idle') || 75;
     idleTimer = setTimeout(function () {
-      if (CSE.host.busy) { resetIdle(); return; }   /* 正在玩就不要打斷 */
+      /* 正在玩就不要打斷 —— 但如果連「正在玩」都已經很久沒人碰，
+         代表玩家中途走掉了（例如關卡制遊戲沒有倒數，會一直停在那裡）。
+         這種情況還是要回首頁，否則下一位訪客會看到別人玩到一半的畫面。 */
+      if (CSE.host.busy && (Date.now() - lastInput) < secs * 2000) {
+        resetIdle();
+        return;
+      }
+      CSE.host.stop();
       if (location.hash !== '#/' && location.hash !== '' && location.hash !== '#') location.hash = '#/';
       showAttract();
     }, secs * 1000);
@@ -555,6 +583,7 @@
 
   ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(function (t) {
     window.addEventListener(t, function () {
+      lastInput = Date.now();
       if (attractEl) return;
       resetIdle();
     }, { passive: true });

@@ -76,6 +76,7 @@
         onclick: function () {
           skipped++;
           streak = 0;
+          api.setStat('連擊', 0);     /* 不補這行的話畫面會停在舊的連擊數 */
           api.addScore(-20);
           api.sfx.play('bad');
           api.hint('跳過了，連擊歸零。', 'bad');

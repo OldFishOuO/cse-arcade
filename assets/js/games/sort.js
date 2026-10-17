@@ -58,7 +58,7 @@
     ],
     controls: '點兩根長條交換；再點同一根可取消選取',
     duration: 150,
-    medals: { bronze: 400, silver: 750, gold: 1150 },
+    medals: { bronze: 700, silver: 1250, gold: 1850 },
     titles: ['體驗組', '排序學徒', '交換達人', '演算法大師'],
     knowledge: {
       title: '為什麼「最少交換次數」算得出來？',

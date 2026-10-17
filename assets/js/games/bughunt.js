@@ -434,8 +434,10 @@
       nextQ();
 
       /* 每題獨立倒數 */
+      /* 用 onTick（真實時鐘）而不是 onFrame（rAF）：
+         視窗被蓋住時 rAF 可能完全不跑，每題倒數會卡住。 */
       return {
-        onFrame: function (dt) {
+        onTick: function (dt) {
           if (locked) return;
           qLeft -= dt;
           if (qLeft <= 0) { qLeft = 0; qLeftEl.textContent = '0'; timeUp(); return; }

@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="zh-Hant" data-motion="on" data-scanline="on">
 <head>
-<!-- 自動打包的單檔版（build a0214735）。要改內容請改 assets/ 底下的原始碼，再重新執行 build-single-file.py，不要直接改這個檔。 -->
+<!-- 自動打包的單檔版（build 53458619）。要改內容請改 assets/ 底下的原始碼，再重新執行 build-single-file.py，不要直接改這個檔。 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
@@ -810,23 +810,28 @@ CSE.config = {
 
   /* ---------- 3. 連結 ----------
      填了才會在「關於資工系」頁面長出按鈕，留空就不顯示。
-     ↓ 把系上 / 系學會的網址貼進引號裡                      */
+     下面這幾個是 2026-10 從系網 iecs.fcu.edu.tw 抄下來的，
+     如果系學會有自己的帳號，直接換掉就好。                 */
   links: {
-    ig:   '',          // 例：'https://www.instagram.com/你們的帳號/'
-    web:  '',          // 例：系網站首頁
-    line: ''           // 例：LINE 社群邀請連結
+    web:     'https://iecs.fcu.edu.tw/',                      // 系網站
+    ig:      'https://www.instagram.com/fcuiecs',             // 系上 Instagram
+    fb:      'https://www.facebook.com/share/1BiGhe2WZp/',    // 系上 Facebook
+    threads: 'https://www.threads.com/@fcuiecs',              // 系上 Threads
+    line:    ''                                               // 系學會 LINE 社群，有的話填這裡
   },
 
   /* ---------- 4.「關於資工系」整頁的內容 ---------- */
   about: {
 
     /* 開頭那段介紹文 */
-    intro: '資訊工程學系（Computer Science and Engineering）不是在學電腦維修，' +
-           '而是在學「如何讓機器幫人解決問題」：從底層的 0 與 1，' +
-           '一路到演算法、作業系統、網路、AI 與軟體工程。' +
-           '逢甲資工在大二之後還分成電腦系統、軟體工程、網際網路工程三個專業學程，' +
+    intro: '資訊工程學系不是在學電腦維修，而是在學「如何讓機器幫人解決問題」：' +
+           '從底層的 0 與 1，一路到演算法、作業系統、網路、AI 與軟體工程。' +
+           '逢甲資工成立於 1969 年，是我國資訊教育界的先驅之一，' +
+           '設有學士班、碩士班與博士班，畢業系友上萬人。' +
+           '課程參考 IEEE 與 ACM 規範，規劃了電腦系統、軟體工程、網際網路工程三個專業學程，' +
            '可以依照興趣選擇要往哪個方向深入。',
-           // ↑ 三個學程的說法請再和系上確認一次，若有調整直接改這行
+           // 1969 年、三班制、系友萬餘人：取自系網 iecs.fcu.edu.tw（2026-10）
+           // 三個專業學程：多個升學資訊網站都這樣寫，建議再跟系辦確認一次
 
     /* 核心課程：格式是 ['課名', '一句話說明'] */
     courses: [
@@ -1552,11 +1557,20 @@ CSE.config = {
       finish: function (result) { endGame(result || {}); }
     };
 
-    /* ---------- 計時（requestAnimationFrame + delta 夾限）
-       好處：切到別的分頁時 rAF 不會觸發 → 計時自動暫停，
-       回來時 delta 被夾在 0.1 秒內，不會瞬間扣光時間。 ---------- */
-    var lastT = 0;
-    var tickAcc = 0;
+    /* ---------- 計時 ----------
+       用「真實時鐘」而不是 requestAnimationFrame 的幀差。
+
+       原因：視窗被別的程式蓋住、最小化、或系統省電時，
+       瀏覽器可能完全不產生畫面，rAF 一幀都不跑，
+       但 document.hidden 仍然是 false（頁面自認看得見）。
+       如果計時靠 rAF，這種情況下時鐘會停住、整局永遠不會結束。
+
+       所以倒數改由 setInterval + Date.now() 推動；
+       rAF 只留給動畫（api 的 onFrame），停了也只是畫面不動而已。
+
+       切到別的分頁要暫停是刻意保留的行為，
+       但改成明確監聽 visibilitychange，而不是依賴 rAF 的副作用。 ---------- */
+    var TICK_MS = 200;
 
     function paintTime() {
       if (!def.duration) return;
@@ -1565,11 +1579,15 @@ CSE.config = {
       timeBox.classList.toggle('warn', s <= 10 && S.running);
     }
 
-    function frameLoop(t) {
+    /* 真實時鐘推動的倒數 + 給遊戲用的 onTick */
+    function clockTick() {
       if (S.ended || !S.running) return;
-      S.rafId = requestAnimationFrame(frameLoop);
-      var dt = Math.min(0.1, (t - lastT) / 1000);
-      lastT = t;
+      var now = Date.now();
+      var dt = (now - S.lastTick) / 1000;
+      S.lastTick = now;
+      if (dt <= 0) return;
+      dt = Math.min(dt, 1.0);            /* 卡頓時一次最多算 1 秒，不要瞬間扣光 */
+
       if (def.duration) {
         var before = Math.ceil(S.left);
         S.left -= dt;
@@ -1585,8 +1603,31 @@ CSE.config = {
           if (after <= 5) CSE.sfx.play('tick');
         }
       }
-      tickAcc += dt;
-      if (S.onFrame) S.onFrame(dt);
+      if (S.tickFn) {
+        try { S.tickFn(dt); } catch (e) { console.error('[CSE] onTick 失敗', e); }
+      }
+    }
+
+    /* 切走 / 切回：暫停與續跑 */
+    function onVisibility() {
+      if (document.hidden) {
+        S.paused = true;
+      } else if (S.paused) {
+        S.paused = false;
+        S.lastTick = Date.now();         /* 丟掉離開期間的時間 */
+      }
+    }
+    document.addEventListener('visibilitychange', onVisibility);
+
+    /* rAF 只負責動畫，跑不動也不影響遊戲進行 */
+    function frameLoop() {
+      if (S.ended || !S.running) return;
+      S.rafId = requestAnimationFrame(frameLoop);
+      if (!S.onFrame || S.paused) return;
+      var now = Date.now();
+      var dt = Math.min(0.1, (now - S.lastFrame) / 1000);
+      S.lastFrame = now;
+      if (dt > 0) S.onFrame(dt);
     }
 
     /* ---------- 準備畫面 ---------- */
@@ -1621,7 +1662,7 @@ CSE.config = {
       runCleanups();
       S.score = 0; S.left = def.duration || 0;
       S.ended = false; S.running = true; S.onFrame = null;
-      S.resultFn = null;
+      S.resultFn = null; S.tickFn = null; S.paused = document.hidden;
       api.setScore(0);
       api.setStat(null);
       api.hint('');
@@ -1641,9 +1682,12 @@ CSE.config = {
         return;
       }
       if (r && typeof r.onFrame === 'function') S.onFrame = r.onFrame;
+      if (r && typeof r.onTick === 'function') S.tickFn = r.onTick;
       if (r && typeof r.destroy === 'function') S.cleanups.push(r.destroy);
 
-      lastT = performance.now();
+      S.lastTick = S.lastFrame = Date.now();
+      clearInterval(S.tickId);
+      S.tickId = setInterval(function () { if (!S.paused) clockTick(); }, TICK_MS);
       cancelAnimationFrame(S.rafId);
       S.rafId = requestAnimationFrame(frameLoop);
     }
@@ -1655,6 +1699,7 @@ CSE.config = {
       S.running = false;
       Host.busy = false;
       cancelAnimationFrame(S.rafId);
+      clearInterval(S.tickId);
 
       /* 結果畫面蓋上後，底下的遊戲元件不能再被點擊或用 Tab 聚焦 */
       try { body.setAttribute('inert', ''); } catch (e) { /* ignore */ }
@@ -1764,6 +1809,8 @@ CSE.config = {
       S.running = false;
       Host.busy = false;
       cancelAnimationFrame(S.rafId);
+      clearInterval(S.tickId);
+      document.removeEventListener('visibilitychange', onVisibility);
       runCleanups();
       ui.clear(mountEl);
     }
@@ -1861,6 +1908,7 @@ CSE.config = {
         onclick: function () {
           skipped++;
           streak = 0;
+          api.setStat('連擊', 0);     /* 不補這行的話畫面會停在舊的連擊數 */
           api.addScore(-20);
           api.sfx.play('bad');
           api.hint('跳過了，連擊歸零。', 'bad');
@@ -2912,8 +2960,10 @@ CSE.config = {
       nextQ();
 
       /* 每題獨立倒數 */
+      /* 用 onTick（真實時鐘）而不是 onFrame（rAF）：
+         視窗被蓋住時 rAF 可能完全不跑，每題倒數會卡住。 */
       return {
-        onFrame: function (dt) {
+        onTick: function (dt) {
           if (locked) return;
           qLeft -= dt;
           if (qLeft <= 0) { qLeft = 0; qLeftEl.textContent = '0'; timeUp(); return; }
@@ -2987,7 +3037,7 @@ CSE.config = {
     ],
     controls: '點兩根長條交換；再點同一根可取消選取',
     duration: 150,
-    medals: { bronze: 400, silver: 750, gold: 1150 },
+    medals: { bronze: 700, silver: 1250, gold: 1850 },
     titles: ['體驗組', '排序學徒', '交換達人', '演算法大師'],
     knowledge: {
       title: '為什麼「最少交換次數」算得出來？',
@@ -3975,8 +4025,10 @@ CSE.config = {
       api.setStat('連對', 0);
       nextQ();
 
+      /* 用 onTick（真實時鐘）而不是 onFrame（rAF）：
+         視窗被蓋住時 rAF 可能完全不跑，每題倒數會卡住。 */
       return {
-        onFrame: function (dt) {
+        onTick: function (dt) {
           if (locked) return;
           qLeft -= dt;
           barIn.style.width = Math.max(0, Math.min(100, (1 - qLeft / PER_Q) * 100)) + '%';
@@ -4285,7 +4337,8 @@ CSE.config = {
             el('td', { text: s.name }),
             el('td', { class: 'n', text: String(s.plays) }),
             el('td', { class: 'n', text: String(s.entries) }),
-            el('td', { class: 'n', text: CSE.util.nf(s.best) })
+            /* 沒人登錄暱稱時顯示破折號，避免看起來像「玩了但得 0 分」 */
+            el('td', { class: 'n', text: s.entries ? CSE.util.nf(s.best) : '—' })
           ]);
         }))
       ])
@@ -4300,6 +4353,27 @@ CSE.config = {
   }
 
   /* ---------------- 關於資工系 ---------------- */
+
+  /* config.links 裡有填的才長出按鈕；要加新平台就在這個表加一行 */
+  var LINK_LABELS = [
+    ['web', '系網站'],
+    ['ig', 'Instagram'],
+    ['fb', 'Facebook'],
+    ['threads', 'Threads'],
+    ['line', 'LINE 社群']
+  ];
+  function linkButtons() {
+    var links = cfg.links || {};
+    return LINK_LABELS.filter(function (pair) {
+      return typeof links[pair[0]] === 'string' && links[pair[0]].trim();
+    }).map(function (pair) {
+      return el('a', {
+        class: 'btn', href: links[pair[0]].trim(),
+        target: '_blank', rel: 'noopener noreferrer', text: pair[1]
+      });
+    });
+  }
+
   function screenAbout() {
     rain.stop();
     var a = cfg.about;
@@ -4333,10 +4407,8 @@ CSE.config = {
         el('ul', {}, a.myths.map(function (m) { return el('li', { text: m }); })),
         el('div', { class: 'divider' }),
         el('div', { class: 'row' }, [
-          el('a', { class: 'btn btn--primary', href: '#/g/myth', text: '來玩「資工系大誤解」' }),
-          cfg.links.ig ? el('a', { class: 'btn', href: cfg.links.ig, target: '_blank', rel: 'noopener', text: 'Instagram' }) : null,
-          cfg.links.web ? el('a', { class: 'btn', href: cfg.links.web, target: '_blank', rel: 'noopener', text: '系網站' }) : null
-        ])
+          el('a', { class: 'btn btn--primary', href: '#/g/myth', text: '來玩「資工系大誤解」' })
+        ].concat(linkButtons()))
       ])
     ]);
   }
@@ -4515,6 +4587,7 @@ CSE.config = {
   /* ---------------- 攤位模式：閒置回首頁 ---------------- */
   var idleTimer = 0;
   var attractEl = null;
+  var lastInput = Date.now();
 
   function showAttract() {
     if (attractEl) return;
@@ -4539,7 +4612,14 @@ CSE.config = {
     if (!CSE.settings.get('kiosk')) return;
     var secs = CSE.settings.get('idle') || 75;
     idleTimer = setTimeout(function () {
-      if (CSE.host.busy) { resetIdle(); return; }   /* 正在玩就不要打斷 */
+      /* 正在玩就不要打斷 —— 但如果連「正在玩」都已經很久沒人碰，
+         代表玩家中途走掉了（例如關卡制遊戲沒有倒數，會一直停在那裡）。
+         這種情況還是要回首頁，否則下一位訪客會看到別人玩到一半的畫面。 */
+      if (CSE.host.busy && (Date.now() - lastInput) < secs * 2000) {
+        resetIdle();
+        return;
+      }
+      CSE.host.stop();
       if (location.hash !== '#/' && location.hash !== '' && location.hash !== '#') location.hash = '#/';
       showAttract();
     }, secs * 1000);
@@ -4547,6 +4627,7 @@ CSE.config = {
 
   ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(function (t) {
     window.addEventListener(t, function () {
+      lastInput = Date.now();
       if (attractEl) return;
       resetIdle();
     }, { passive: true });

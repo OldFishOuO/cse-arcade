@@ -260,8 +260,10 @@
       api.setStat('連對', 0);
       nextQ();
 
+      /* 用 onTick（真實時鐘）而不是 onFrame（rAF）：
+         視窗被蓋住時 rAF 可能完全不跑，每題倒數會卡住。 */
       return {
-        onFrame: function (dt) {
+        onTick: function (dt) {
           if (locked) return;
           qLeft -= dt;
           barIn.style.width = Math.max(0, Math.min(100, (1 - qLeft / PER_Q) * 100)) + '%';

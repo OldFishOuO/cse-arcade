@@ -157,11 +157,20 @@
       finish: function (result) { endGame(result || {}); }
     };
 
-    /* ---------- 計時（requestAnimationFrame + delta 夾限）
-       好處：切到別的分頁時 rAF 不會觸發 → 計時自動暫停，
-       回來時 delta 被夾在 0.1 秒內，不會瞬間扣光時間。 ---------- */
-    var lastT = 0;
-    var tickAcc = 0;
+    /* ---------- 計時 ----------
+       用「真實時鐘」而不是 requestAnimationFrame 的幀差。
+
+       原因：視窗被別的程式蓋住、最小化、或系統省電時，
+       瀏覽器可能完全不產生畫面，rAF 一幀都不跑，
+       但 document.hidden 仍然是 false（頁面自認看得見）。
+       如果計時靠 rAF，這種情況下時鐘會停住、整局永遠不會結束。
+
+       所以倒數改由 setInterval + Date.now() 推動；
+       rAF 只留給動畫（api 的 onFrame），停了也只是畫面不動而已。
+
+       切到別的分頁要暫停是刻意保留的行為，
+       但改成明確監聽 visibilitychange，而不是依賴 rAF 的副作用。 ---------- */
+    var TICK_MS = 200;
 
     function paintTime() {
       if (!def.duration) return;
@@ -170,11 +179,15 @@
       timeBox.classList.toggle('warn', s <= 10 && S.running);
     }
 
-    function frameLoop(t) {
+    /* 真實時鐘推動的倒數 + 給遊戲用的 onTick */
+    function clockTick() {
       if (S.ended || !S.running) return;
-      S.rafId = requestAnimationFrame(frameLoop);
-      var dt = Math.min(0.1, (t - lastT) / 1000);
-      lastT = t;
+      var now = Date.now();
+      var dt = (now - S.lastTick) / 1000;
+      S.lastTick = now;
+      if (dt <= 0) return;
+      dt = Math.min(dt, 1.0);            /* 卡頓時一次最多算 1 秒，不要瞬間扣光 */
+
       if (def.duration) {
         var before = Math.ceil(S.left);
         S.left -= dt;
@@ -190,8 +203,31 @@
           if (after <= 5) CSE.sfx.play('tick');
         }
       }
-      tickAcc += dt;
-      if (S.onFrame) S.onFrame(dt);
+      if (S.tickFn) {
+        try { S.tickFn(dt); } catch (e) { console.error('[CSE] onTick 失敗', e); }
+      }
+    }
+
+    /* 切走 / 切回：暫停與續跑 */
+    function onVisibility() {
+      if (document.hidden) {
+        S.paused = true;
+      } else if (S.paused) {
+        S.paused = false;
+        S.lastTick = Date.now();         /* 丟掉離開期間的時間 */
+      }
+    }
+    document.addEventListener('visibilitychange', onVisibility);
+
+    /* rAF 只負責動畫，跑不動也不影響遊戲進行 */
+    function frameLoop() {
+      if (S.ended || !S.running) return;
+      S.rafId = requestAnimationFrame(frameLoop);
+      if (!S.onFrame || S.paused) return;
+      var now = Date.now();
+      var dt = Math.min(0.1, (now - S.lastFrame) / 1000);
+      S.lastFrame = now;
+      if (dt > 0) S.onFrame(dt);
     }
 
     /* ---------- 準備畫面 ---------- */
@@ -226,7 +262,7 @@
       runCleanups();
       S.score = 0; S.left = def.duration || 0;
       S.ended = false; S.running = true; S.onFrame = null;
-      S.resultFn = null;
+      S.resultFn = null; S.tickFn = null; S.paused = document.hidden;
       api.setScore(0);
       api.setStat(null);
       api.hint('');
@@ -246,9 +282,12 @@
         return;
       }
       if (r && typeof r.onFrame === 'function') S.onFrame = r.onFrame;
+      if (r && typeof r.onTick === 'function') S.tickFn = r.onTick;
       if (r && typeof r.destroy === 'function') S.cleanups.push(r.destroy);
 
-      lastT = performance.now();
+      S.lastTick = S.lastFrame = Date.now();
+      clearInterval(S.tickId);
+      S.tickId = setInterval(function () { if (!S.paused) clockTick(); }, TICK_MS);
       cancelAnimationFrame(S.rafId);
       S.rafId = requestAnimationFrame(frameLoop);
     }
@@ -260,6 +299,7 @@
       S.running = false;
       Host.busy = false;
       cancelAnimationFrame(S.rafId);
+      clearInterval(S.tickId);
 
       /* 結果畫面蓋上後，底下的遊戲元件不能再被點擊或用 Tab 聚焦 */
       try { body.setAttribute('inert', ''); } catch (e) { /* ignore */ }
@@ -369,6 +409,8 @@
       S.running = false;
       Host.busy = false;
       cancelAnimationFrame(S.rafId);
+      clearInterval(S.tickId);
+      document.removeEventListener('visibilitychange', onVisibility);
       runCleanups();
       ui.clear(mountEl);
     }
