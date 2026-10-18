@@ -16,7 +16,7 @@
 
 產出：
   index.html                  （就地更新版本章）
-  cse-arcade-standalone.html  （單檔版，可直接雙擊）
+  iecs-arcade-standalone.html  （單檔版，可直接雙擊）
 """
 
 import hashlib
@@ -26,7 +26,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 SRC = ROOT / "index.html"
-OUT = ROOT / "cse-arcade-standalone.html"   # 刻意用英文檔名：USB、Email、不同語系電腦都不會亂碼
+OUT = ROOT / "iecs-arcade-standalone.html"   # 刻意用英文檔名：USB、Email、不同語系電腦都不會亂碼
 
 # 比對 index.html 裡指向 assets/ 的 src= 或 href=
 ASSET_REF = re.compile(r'(?P<attr>src|href)="(?P<path>assets/[^"?]+)(?:\?[^"]*)?"')

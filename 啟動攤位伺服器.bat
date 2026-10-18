@@ -1,6 +1,6 @@
 @echo off
 rem ============================================================
-rem  CSE ARCADE - start a local server and open the site
+rem  IECS ARCADE - start a local server and open the site
 rem  (Chinese notes are in README.md)
 rem ============================================================
 cd /d "%~dp0"
@@ -14,7 +14,7 @@ if "%PY%"=="" (where py >nul 2>nul && set PY=py)
 if "%PY%"=="" (
   echo.
   echo  [!] Python not found.
-  echo      Just double-click  cse-arcade-single-file.html  instead.
+  echo      Just double-click  iecs-arcade-standalone.html  instead.
   echo      It works with no server at all.
   echo.
   pause
@@ -22,7 +22,7 @@ if "%PY%"=="" (
 )
 
 echo.
-echo  CSE ARCADE
+echo  IECS ARCADE
 echo  Serving on http://localhost:%PORT%
 echo  Keep this window OPEN while the booth is running.
 echo  Press Ctrl+C or close this window to stop.

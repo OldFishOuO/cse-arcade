@@ -120,7 +120,7 @@
     var hero = el('div', { class: 'hero' }, el('div', { class: 'term' }, [
       el('div', { class: 'term-bar' }, [
         el('i', { class: 'term-dot r' }), el('i', { class: 'term-dot y' }), el('i', { class: 'term-dot g' }),
-        el('span', { text: 'cse-arcade — bash — 80×24' })
+        el('span', { text: 'iecs-arcade — bash — 80×24' })
       ]),
       termBody
     ]));
@@ -143,10 +143,18 @@
     onLeave(stop);
 
     var cards = el('div', { class: 'grid-games' });
-    orderedGames().forEach(function (g) {
+    /* 都沒玩過的人，第一張卡標成「推薦先玩」，給一個明確的起點 */
+    var firstTime = CSE.scores.totalPlays() === 0;
+    orderedGames().forEach(function (g, gi) {
       var best = CSE.scores.best(g.id);
       var medal = CSE.scores.medalOf(g.id, best);
-      var card = el('button', { type: 'button', class: 'gcard', style: { '--accent': g.accent || 'var(--green)' } }, [
+      var pick = firstTime && gi === 0;
+      var card = el('button', {
+        type: 'button',
+        class: 'gcard' + (pick ? ' gcard--pick' : ''),
+        style: { '--accent': g.accent || 'var(--green)' }
+      }, [
+        pick ? el('span', { class: 'gcard-pick', text: '推薦先玩' }) : null,
         el('div', { class: 'gcard-top' }, [
           el('div', { class: 'gcard-icon', html: g.icon || '#' }),
           el('div', {}, [
@@ -180,7 +188,8 @@
           el('div', { class: 'faint', style: { fontSize: '12px' } },
             reached ? '把這個畫面拿給攤位人員看就可以兌換。'
                     : '目前 ' + CSE.util.nf(total) + ' / ' + CSE.util.nf(cfg.prize.threshold) +
-                      ' 分　（總分 = 七款遊戲各自的最佳分數加總）')
+                      ' 分，還差 ' + CSE.util.nf(cfg.prize.threshold - total) + ' 分' +
+                      '　·　總分 = 七款各自的最佳分數加總，七款都玩過最快')
         ])
       ]));
     }
@@ -435,7 +444,7 @@
             type: 'button', class: 'btn btn--primary', text: '匯出排行榜 CSV',
             onclick: function () {
               var d = new Date();
-              var name = 'cse-arcade-' + d.getFullYear() + CSE.util.pad(d.getMonth() + 1, 2) +
+              var name = 'iecs-arcade-' + d.getFullYear() + CSE.util.pad(d.getMonth() + 1, 2) +
                 CSE.util.pad(d.getDate(), 2) + '-' + CSE.util.pad(d.getHours(), 2) + CSE.util.pad(d.getMinutes(), 2) + '.csv';
               if (CSE.download(name, CSE.scores.exportCsv(), 'text/csv')) CSE.toast('已匯出 ' + name, 'ok');
             }

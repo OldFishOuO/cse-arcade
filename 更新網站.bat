@@ -1,6 +1,6 @@
 @echo off
 rem ============================================================
-rem  CSE ARCADE - rebuild, commit and publish to GitHub Pages
+rem  IECS ARCADE - rebuild, commit and publish to GitHub Pages
 rem  (See 修改指南.md for the Chinese guide)
 rem ============================================================
 cd /d "%~dp0"
@@ -15,7 +15,7 @@ if "%PY%"=="" (
 )
 
 echo.
-echo  [1/3] Rebuilding cse-arcade-standalone.html ...
+echo  [1/3] Rebuilding iecs-arcade-standalone.html ...
 %PY% build-single-file.py
 if errorlevel 1 (
   echo  [!] Build failed. Nothing was published.

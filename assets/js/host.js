@@ -151,6 +151,14 @@
          這樣遊戲不必自己攔截時間到的時機。 */
       onResult: function (fn) { S.resultFn = fn; },
 
+      /* 暫停倒數：遊戲開場需要先讓玩家選東西（例如選程式語言）時用。
+         選完呼叫 holdTimer(false) 再開始計時，不會吃掉玩家的時間。 */
+      holdTimer: function (on) {
+        S.held = !!on;
+        if (!S.held) S.lastTick = Date.now();
+        timeBox.classList.toggle('warn', false);
+      },
+
       restart: function () { begin(); },
 
       /* 結束一局 */
@@ -223,7 +231,7 @@
     function frameLoop() {
       if (S.ended || !S.running) return;
       S.rafId = requestAnimationFrame(frameLoop);
-      if (!S.onFrame || S.paused) return;
+      if (!S.onFrame || S.paused || S.held) return;
       var now = Date.now();
       var dt = Math.min(0.1, (now - S.lastFrame) / 1000);
       S.lastFrame = now;
@@ -262,7 +270,8 @@
       runCleanups();
       S.score = 0; S.left = def.duration || 0;
       S.ended = false; S.running = true; S.onFrame = null;
-      S.resultFn = null; S.tickFn = null; S.paused = document.hidden;
+      S.resultFn = null; S.tickFn = null; S.held = false;
+      S.paused = document.hidden;
       api.setScore(0);
       api.setStat(null);
       api.hint('');
@@ -287,7 +296,7 @@
 
       S.lastTick = S.lastFrame = Date.now();
       clearInterval(S.tickId);
-      S.tickId = setInterval(function () { if (!S.paused) clockTick(); }, TICK_MS);
+      S.tickId = setInterval(function () { if (!S.paused && !S.held) clockTick(); }, TICK_MS);
       cancelAnimationFrame(S.rafId);
       S.rafId = requestAnimationFrame(frameLoop);
     }

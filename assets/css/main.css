@@ -219,6 +219,21 @@ a:hover{ text-decoration:underline; }
 /* inert 的後備：舊瀏覽器至少擋掉滑鼠 */
 [inert]{ pointer-events:none; user-select:none; }
 
+/* ---------- 手機：連點不要縮放畫面 ----------
+   二進位快打那種要連續快點的遊戲，瀏覽器會把連點當成
+   「雙擊放大」，畫面整個跳掉。touch-action:manipulation
+   只關掉雙擊縮放，兩指撥動的縮放仍然留著（無障礙需求）。 */
+button, a, .bit, .bar, .cline, .node, .sw, .toggle, .gcard, .attract,
+.my-btns .btn, .lg-canvas svg, .pk-canvas svg{
+  touch-action:manipulation;
+}
+/* 整個遊戲區都不要雙擊縮放 —— 玩家連點空白處也會觸發 */
+.gf-stage, .gf-top{ touch-action:manipulation; }
+/* 遊戲控制項不要被長按選取、也不要跳出 iOS 的放大鏡 */
+.bit, .bar, .my-btns .btn, .gcard, .lvdot, .statbox, .bin-target, .my-q{
+  user-select:none; -webkit-user-select:none; -webkit-touch-callout:none;
+}
+
 .kicker{
   font-size:11.5px; letter-spacing:.24em; text-transform:uppercase;
   color:var(--accent); margin:0 0 6px;
@@ -261,12 +276,42 @@ p{ margin:0 0 10px; }
 }
 .term-dot{ width:10px; height:10px; border-radius:50%; background:#2a3b49; }
 .term-dot.r{ background:#ff5f6d; } .term-dot.y{ background:#ffc14d; } .term-dot.g{ background:#39ff88; }
-.term-body{ padding:clamp(16px,3vw,28px); }
-.term-body h1{ color:#fff; text-shadow:0 0 28px rgba(57,255,136,.3); }
-.hero-sub{ color:var(--fg-dim); max-width:62ch; }
-.hero-stats{ display:flex; gap:22px; flex-wrap:wrap; margin-top:16px; }
-.hero-stat b{ display:block; font-size:22px; color:var(--green); line-height:1.1; }
-.hero-stat span{ font-size:11.5px; color:var(--fg-faint); letter-spacing:.1em; }
+.term-body{ padding:clamp(18px,3.4vw,34px); }
+
+/* 主標題：這是整個畫面第一眼要看到的東西 */
+.term-body h1{
+  font-size:clamp(34px,7.5vw,68px);
+  letter-spacing:.06em;
+  line-height:1.05;
+  margin:6px 0 4px;
+  color:#eaffe9;
+  text-shadow:
+    0 0 2px rgba(255,255,255,.9),
+    0 0 14px rgba(57,255,136,.85),
+    0 0 42px rgba(57,255,136,.45),
+    0 0 90px rgba(57,255,136,.22);
+}
+/* 標題下的螢光底線，把視線往下帶到遊戲卡 */
+.term-body h1 + .hero-sub::before{
+  content:""; display:block;
+  width:78px; height:3px; margin:0 0 12px;
+  background:linear-gradient(90deg, var(--green), transparent);
+  box-shadow:0 0 12px var(--green);
+}
+.hero-sub{
+  color:#b9cdda; max-width:62ch;
+  font-size:clamp(14px,1.9vw,17px);
+}
+.hero-stats{
+  display:flex; gap:clamp(14px,3vw,30px); flex-wrap:wrap; margin-top:20px;
+  padding-top:16px; border-top:1px solid var(--line);
+}
+.hero-stat b{
+  display:block; font-size:clamp(24px,3.6vw,30px); color:var(--green);
+  line-height:1.05; text-shadow:0 0 18px rgba(57,255,136,.4);
+  font-variant-numeric:tabular-nums;
+}
+.hero-stat span{ font-size:11.5px; color:var(--fg-faint); letter-spacing:.12em; }
 
 .grid-games{
   display:grid; gap:var(--gap);
@@ -298,9 +343,25 @@ p{ margin:0 0 10px; }
   border:1px solid color-mix(in srgb, var(--accent) 40%, transparent);
   color:var(--accent); font-size:17px; font-weight:700; letter-spacing:-.04em;
 }
-.gcard-name{ font-size:16.5px; font-weight:700; color:#fff; line-height:1.2; }
+.gcard-name{
+  font-size:18.5px; font-weight:700; color:#fff; line-height:1.2;
+  text-shadow:0 0 18px color-mix(in srgb, var(--accent) 55%, transparent);
+}
 .gcard-tag{ font-size:11px; color:var(--fg-faint); letter-spacing:.07em; }
-.gcard-blurb{ font-size:13px; color:var(--fg-dim); min-height:3.2em; }
+.gcard-blurb{ font-size:13.5px; color:#9fb4c4; min-height:3.2em; }
+
+/* 「推薦先玩」標記：第一次來的人需要一個明確的起點 */
+.gcard-pick{
+  position:absolute; top:0; right:0;
+  padding:3px 10px 4px; border-radius:0 var(--radius-lg) 0 10px;
+  background:var(--accent); color:#06120b;
+  font-size:10.5px; font-weight:700; letter-spacing:.1em;
+}
+.gcard--pick{
+  border-color:color-mix(in srgb, var(--accent) 55%, var(--line));
+  box-shadow:0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent),
+             0 10px 30px -18px var(--accent);
+}
 .gcard-foot{
   display:flex; align-items:center; justify-content:space-between; gap:8px;
   font-size:11.5px; color:var(--fg-faint);
@@ -478,6 +539,44 @@ input[type="text"]:focus{ border-color:var(--accent); outline:none; }
 
 /* ===================== 遊戲 3：抓 Bug ===================== */
 .bh-wrap{ display:flex; flex-direction:column; gap:12px; flex:1; }
+
+/* 開場的語言選擇 */
+.lang-pick{
+  margin:auto 0; text-align:center;
+  display:flex; flex-direction:column; gap:6px;
+}
+.lang-grid{
+  display:grid; gap:clamp(10px,2vw,16px); margin-top:14px;
+  grid-template-columns:repeat(auto-fit, minmax(170px, 1fr));
+}
+.langcard{
+  position:relative; display:flex; flex-direction:column; align-items:center; gap:6px;
+  padding:clamp(16px,2.6vw,24px) 14px;
+  background:linear-gradient(170deg, var(--panel), var(--bg-2));
+  border:1px solid var(--line); border-top:3px solid var(--accent);
+  border-radius:var(--radius-lg); cursor:pointer;
+  font-family:inherit; color:inherit;
+  transition:transform .14s, box-shadow .14s, border-color .14s;
+}
+.langcard:hover{
+  transform:translateY(-3px);
+  box-shadow:0 16px 34px -18px var(--accent);
+  border-color:color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+.langcard-icon{
+  width:52px; height:52px; display:grid; place-items:center; border-radius:var(--radius);
+  background:color-mix(in srgb, var(--accent) 16%, #0a1218);
+  border:1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  color:var(--accent); font-size:20px; font-weight:700;
+}
+.langcard-name{ font-size:18px; font-weight:700; color:#fff; }
+.langcard-note{ font-size:12px; color:var(--fg-dim); line-height:1.45; }
+.langcard-count{ font-size:11px; color:var(--fg-faint); letter-spacing:.06em; }
+.langcard-tag{
+  position:absolute; top:0; right:0;
+  padding:2px 9px 3px; border-radius:0 var(--radius-lg) 0 9px;
+  background:var(--accent); color:#06120b; font-size:10px; font-weight:700;
+}
 .bh-meta{ display:flex; gap:10px; justify-content:space-between; align-items:center; flex-wrap:wrap; font-size:12.5px; }
 .lives{ letter-spacing:3px; font-size:16px; color:var(--red); }
 .code{
@@ -595,6 +694,20 @@ input[type="text"]:focus{ border-color:var(--accent); outline:none; }
 .my-btns .btn small{ font-size:11px; font-weight:400; letter-spacing:.1em; opacity:.6; }
 .my-yes{ --accent:var(--green); }
 .my-no{ --accent:var(--red); }
+/* 三秒內要做判斷的遊戲，兩顆按鈕必須一眼就分得出來 */
+.my-btns .btn{
+  color:var(--accent);
+  border-color:color-mix(in srgb, var(--accent) 60%, var(--line-2));
+  background:color-mix(in srgb, var(--accent) 10%, var(--panel-2));
+  text-shadow:0 0 16px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+.my-btns .btn:hover:not(:disabled){
+  color:#fff;
+  background:color-mix(in srgb, var(--accent) 26%, var(--panel-2));
+  border-color:var(--accent);
+  box-shadow:0 0 30px -8px var(--accent);
+}
+.my-btns .btn:disabled{ opacity:.3; }
 .my-fb{
   max-width:56ch; margin:0 auto; text-align:left; font-size:13.5px;
   padding:13px 15px; border-radius:var(--radius);

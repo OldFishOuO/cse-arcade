@@ -43,7 +43,12 @@
         else if (k === 'text') n.textContent = v;
         else if (k === 'html') n.innerHTML = v;
         else if (k === 'style' && typeof v === 'object') {
-          for (var s in v) { if (Object.prototype.hasOwnProperty.call(v, s)) n.style[s] = v[s]; }
+          for (var s in v) {
+            if (!Object.prototype.hasOwnProperty.call(v, s)) continue;
+            /* CSS 自訂屬性（--xxx）只能用 setProperty，直接指派 style['--x'] 沒有效果 */
+            if (s.charCodeAt(0) === 45 && s.charCodeAt(1) === 45) n.style.setProperty(s, v[s]);
+            else n.style[s] = v[s];
+          }
         } else if (k === 'dataset') {
           for (var d in v) { if (Object.prototype.hasOwnProperty.call(v, d)) n.dataset[d] = v[d]; }
         } else if (k.slice(0, 2) === 'on' && typeof v === 'function') {

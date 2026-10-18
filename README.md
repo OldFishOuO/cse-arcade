@@ -1,4 +1,4 @@
-# CSE ARCADE — 逢甲大學資訊工程學系 遊戲攤
+# IECS ARCADE — 逢甲大學資訊工程學系 遊戲攤
 
 七款資工系主題小遊戲組成的單頁網站，專門為**學校活動擺攤**設計：完全離線、不需安裝、不需網路、不需登入。
 
@@ -17,7 +17,7 @@
 **需要網路。** 攤位現場網路不穩的話請改用下面的單檔版。
 
 ### ① 攤位現場最保險 — 單檔版
-雙擊 **`cse-arcade-standalone.html`**。
+雙擊 **`iecs-arcade-standalone.html`**。
 
 一個檔案就是整個網站（180 KB），CSS 和 12 個 JS 全部內嵌，**零外部相依**。
 可以丟 USB、用 LINE 傳、寄 email、放在任何電腦上雙擊 —— 不會因為少了 `assets/` 資料夾而壞掉。
@@ -83,7 +83,7 @@ python -m http.server 8765
 
 ```js
 CSE.config = {
-  title:   'CSE ARCADE',        // 攤位代號
+  title:   'IECS ARCADE',        // 攤位代號
   school:  '逢甲大學',           // ← 改這裡
   dept:    '資訊工程學系',        // ← 改這裡
   booth:   '資工系遊戲攤',
@@ -91,8 +91,8 @@ CSE.config = {
 
   prize: {
     enabled: true,
-    threshold: 3000,            // ← 兌換小禮物的總分門檻
-    text: '總分達 3000 分，拿給攤位人員看就能兌換小禮物'
+    threshold: 6000,            // ← 兌換小禮物的總分門檻
+    text: '總分達 6000 分，拿給攤位人員看就能兌換小禮物'
   },
 
   links: { ig: '', web: '', line: '' },   // ← 填了才會顯示按鈕
@@ -144,7 +144,7 @@ CSE.config = {
 
 ```
 修改指南.md                 ★ 怎麼改網站上的文字，先看這個
-cse-arcade-standalone.html  ★ 單檔版（打包產物）— 攤位現場用這個
+iecs-arcade-standalone.html  ★ 單檔版（打包產物）— 攤位現場用這個
 啟動攤位伺服器.bat           ★ 雙擊：本機預覽
 更新網站.bat                 ★ 雙擊：打包 + 提交 + 發佈到線上
 build-single-file.py        把下面的原始碼打包成單檔版
@@ -164,7 +164,7 @@ assets/
 
 > **改東西的流程**：改 `assets/` 底下的原始碼 → 用方式 ② 預覽確認 →
 > 跑 `python build-single-file.py` 重新產生單檔版 → 把單檔版帶去攤位。
-> 不要直接改 `cse-arcade-standalone.html`，下次打包會被蓋掉。
+> 不要直接改 `iecs-arcade-standalone.html`，下次打包會被蓋掉。
 
 ### 想自己加第八款遊戲
 
