@@ -121,6 +121,17 @@ def stamp_seo(html: str, cfg: dict) -> str:
                      lambda m: block, html, flags=re.S)
     if not n:
         sys.exit("index.html 裡找不到 <!--SEO:START--> 區塊，請不要把它刪掉。")
+
+    # 左上角品牌文字的靜態後備值也一起同步。
+    # JS 載入後會從 config 覆寫，但原始 HTML 留著舊字就會前後不一致。
+    new = re.sub(r'(<b id="brandTitle">).*?(</b>)',
+                 lambda m: m.group(1) + esc_attr(cfg["title"]) + m.group(2), new, count=1)
+    new = re.sub(r'(<small id="brandSub">).*?(</small>)',
+                 lambda m: m.group(1) + esc_attr(cfg["booth"]) + m.group(2), new, count=1)
+    foot = "　·　".join(x for x in (" ".join(y for y in (cfg["school"], cfg["dept"]) if y),
+                                    cfg["booth"]) if x)
+    new = re.sub(r'(<span id="footText">).*?(</span>)',
+                 lambda m: m.group(1) + esc_attr(foot) + m.group(2), new, count=1)
     return new
 
 

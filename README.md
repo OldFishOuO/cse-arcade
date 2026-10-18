@@ -88,7 +88,7 @@ CSE.config = {
   title:   'IECS ARCADE',        // 網站代號
   school:  '逢甲大學',           // ← 改這裡
   dept:    '資訊工程學系',        // ← 改這裡
-  booth:   '資工系遊戲攤',
+  booth:   '資工系小遊戲',
   tagline: '七款小遊戲，10 分鐘看懂資工系在學什麼',
 
   goal: {
