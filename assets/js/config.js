@@ -35,14 +35,17 @@ CSE.config = {
      下面這幾個是 2026-10 從系網 iecs.fcu.edu.tw 抄下來的，
      如果系學會有自己的帳號，直接換掉就好。                 */
   links: {
-    // ⚠ 系學會和系上是兩個不同帳號，只差一個底線，不要貼錯：
-    //      @fcu_iecs = 系學會      @fcuiecs = 系辦
-    ig_assoc: 'https://www.instagram.com/fcu_iecs',            // 系學會 Instagram
-    web:      'https://iecs.fcu.edu.tw/',                      // 系網站
-    ig:       'https://www.instagram.com/fcuiecs',             // 系上 Instagram
-    fb:       'https://www.facebook.com/share/1BiGhe2WZp/',    // 系上 Facebook
-    threads:  'https://www.threads.com/@fcuiecs',              // 系上 Threads
-    line:     ''                                               // 系學會 LINE 社群，有的話填這裡
+    // ⚠ 系學會和系辦是兩個不同的 IG，只差一個底線：
+    //      @fcu_iecs = 系學會（這個）    @fcuiecs = 系辦
+    ig_assoc: 'https://www.instagram.com/fcu_iecs',   // 系學會 Instagram
+    web:      'https://iecs.fcu.edu.tw/',             // 系網站
+    line:     ''                                      // 系學會 LINE 社群，有的話填這裡
+
+    // 還可以填（留著不填就不會顯示）：
+    //   ig:      系上官方 IG
+    //   fb:      Facebook
+    //   threads: Threads
+    // 要加其他平台請看 修改指南.md
   },
 
   /* ---------- 4.「關於資工系」整頁的內容 ---------- */
