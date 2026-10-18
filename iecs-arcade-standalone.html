@@ -1,22 +1,22 @@
 <!doctype html>
-<html data-build="31da3d2e" lang="zh-Hant" data-motion="on" data-scanline="on">
+<html data-build="043bea43" lang="zh-Hant" data-motion="on" data-scanline="on">
 <head>
-<!-- 自動打包的單檔版（build 31da3d2e）。要改內容請改 assets/ 底下的原始碼，再重新執行 build-single-file.py，不要直接改這個檔。 -->
+<!-- 自動打包的單檔版（build 043bea43）。要改內容請改 assets/ 底下的原始碼，再重新執行 build-single-file.py，不要直接改這個檔。 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
 <!-- 下面這段由 build-single-file.py 依 config.js 自動產生，不要手改 -->
 <!--SEO:START-->
-<title>IECS ARCADE · 資工系遊戲攤</title>
+<title>IECS ARCADE · 資工系小遊戲</title>
 <meta name="description" content="七款小遊戲，10 分鐘看懂資工系在學什麼">
 <meta property="og:url" content="https://oldfishouo.github.io/iecs-arcade/">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="zh_TW">
 <meta property="og:site_name" content="逢甲大學 資訊工程學系">
-<meta property="og:title" content="IECS ARCADE · 資工系遊戲攤">
+<meta property="og:title" content="IECS ARCADE · 資工系小遊戲">
 <meta property="og:description" content="七款小遊戲，10 分鐘看懂資工系在學什麼">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="IECS ARCADE · 資工系遊戲攤">
+<meta name="twitter:title" content="IECS ARCADE · 資工系小遊戲">
 <meta name="twitter:description" content="七款小遊戲，10 分鐘看懂資工系在學什麼">
 <meta property="og:image" content="https://oldfishouo.github.io/iecs-arcade/assets/og.png">
 <meta property="og:image:width" content="1200">
@@ -974,7 +974,7 @@ html[data-motion="off"] *::after{
   <span id="footText">資工系遊戲攤</span>
   <span class="footsep">·</span><a href="#/board">排行榜</a>
   <span class="footsep">·</span><a href="#/about">關於資工系</a>
-  <span class="footsep">·</span><a href="#/settings">攤位設定</a>
+  <span class="footsep">·</span><a href="#/settings">設定</a>
 </footer>
 
 <div id="toasts" class="toasts" aria-live="polite" aria-atomic="false"></div>
@@ -983,17 +983,18 @@ html[data-motion="off"] *::after{
 <script>
 /* ===== assets/js/config.js ===== */
 /* ============================================================
-   攤位設定檔
+   網站設定檔
    ------------------------------------------------------------
    【整個網站的文字都從這裡改，不用動其他檔案】
    改完存檔 → 重新整理瀏覽器就看得到。
-   要帶去攤位的單檔版，記得再跑一次：python build-single-file.py
+   改完記得再跑一次：python build-single-file.py
+   （會同步更新單檔版、分享卡片標題與預覽圖）
    ============================================================ */
 window.CSE = window.CSE || {};
 
 CSE.config = {
 
-  /* ---------- 1. 攤位 / 系所名稱 ----------
+  /* ---------- 1. 網站 / 系所名稱 ----------
      title    → 左上角的大標、瀏覽器分頁名稱
      school   → 首頁終端機裡的「whoami」結果、頁尾
      dept     → 頁尾、「關於資工系」頁面的大標
@@ -1002,20 +1003,24 @@ CSE.config = {
   title:   'IECS ARCADE',
   school:  '逢甲大學',
   dept:    '資訊工程學系',
-  booth:   '資工系遊戲攤',
+  booth:   '資工系小遊戲',
   tagline: '七款小遊戲，10 分鐘看懂資工系在學什麼',
 
   /* 線上網址。用來產生分享卡片（LINE / IG / Discord 貼連結時的預覽）。
      改完要跑 python build-single-file.py 才會寫進 index.html。 */
   siteUrl: 'https://oldfishouo.github.io/iecs-arcade/',
 
-  /* ---------- 2. 兌換小禮物的門檻 ----------
+  /* ---------- 2. 挑戰目標 ----------
      總分 = 七款遊戲各自的「最佳分數」加總（不是每一局累加）
-     enabled 改成 false 就不會顯示這個區塊                  */
-  prize: {
+     enabled 改成 false 就不會顯示這個區塊。
+
+     reward 平常留空。擺攤那天把兌獎說明填進去，
+     首頁的挑戰目標底下就會多出那一行；活動結束清空即可。  */
+  goal: {
     enabled: true,
     threshold: 6000,
-    text: '總分達 6,000 分，拿給攤位人員看就能兌換小禮物'
+    text: '總分達 6,000 分就完成挑戰',
+    reward: ''      // 例：'達標後拿給攤位人員看，可以兌換小禮物'
   },
   /* 6000 這個數字怎麼來的（依各遊戲實際計分公式推算）：
    *
@@ -1028,7 +1033,7 @@ CSE.config = {
    *   只玩 3 款，一般水準                 3,900   ← 不夠
    *
    * 設計目的：「七款都玩過」或「少數幾款拿高分」兩條路都走得通，
-   * 但只玩兩三款又隨便玩就不行 — 這樣訪客才會多停留幾款遊戲。
+   * 但只玩兩三款又隨便玩就不行 — 這樣玩的人才會多試幾款遊戲。
    * 覺得太難就往下調（5000 大約是「七款都玩且不要太混」）。
    * 改這裡記得把上面 text 裡的數字一起改。
    */
@@ -1574,7 +1579,7 @@ CSE.config = {
       return out;
     },
 
-    /* ---- 攤位結束後的資料匯出 ---- */
+    /* ---- 資料匯出 ---- */
     exportCsv: function () {
       var rows = [['game_id', 'game_name', 'rank', 'nickname', 'score', 'time_iso']];
       var self = this;
@@ -4523,7 +4528,7 @@ CSE.config = {
         '一句話：學「如何用計算解決問題」，從 0 和 1 一路到 AI。',
         '必修大致是：程式設計 → 資料結構 → 演算法 → 計算機組織 → 作業系統 → 網路 → 資料庫。',
         '不需要先會寫程式，但需要願意花時間把一個東西想清楚。',
-        '想了解更多可以到「關於資工系」看課程地圖，或直接問攤位上的學長姐。'
+        '想了解更多可以到「關於資工系」看課程地圖。'
       ]
     },
 
@@ -4666,7 +4671,7 @@ CSE.config = {
 <script>
 /* ===== assets/js/app.js ===== */
 /* ============================================================
-   app.js — 路由 / 首頁 / 排行榜 / 關於 / 設定 / 背景特效 / 攤位模式
+   app.js — 路由 / 首頁 / 排行榜 / 關於 / 設定 / 背景特效 / 展示模式
    ============================================================ */
 (function () {
   'use strict';
@@ -4846,18 +4851,26 @@ CSE.config = {
 
     var blocks = [hero];
 
-    if (cfg.prize && cfg.prize.enabled) {
-      var reached = total >= cfg.prize.threshold;
+    /* 挑戰目標（舊版叫 prize，為了舊設定檔還能用，兩個名字都接受） */
+    var goal = cfg.goal || cfg.prize;
+    if (goal && goal.enabled) {
+      var reached = total >= goal.threshold;
+      var lines = [el('b', { text: reached ? '🎉 挑戰完成！' : goal.text })];
+      lines.push(el('div', { class: 'faint', style: { fontSize: '12px' } },
+        reached
+          ? '你的總分 ' + CSE.util.nf(total) + ' 分，已經超過 ' + CSE.util.nf(goal.threshold) + ' 分。'
+          : '目前 ' + CSE.util.nf(total) + ' / ' + CSE.util.nf(goal.threshold) +
+            ' 分，還差 ' + CSE.util.nf(goal.threshold - total) + ' 分' +
+            '　·　總分 = 七款各自的最佳分數加總，七款都玩過最快'));
+      if (goal.reward && String(goal.reward).trim()) {
+        lines.push(el('div', {
+          style: { fontSize: '12.5px', marginTop: '4px', color: 'var(--amber)' },
+          text: '🎁 ' + goal.reward
+        }));
+      }
       blocks.push(el('div', { class: 'notice' }, [
-        el('span', { class: 'ic', text: reached ? '🎁' : '◆' }),
-        el('div', {}, [
-          el('b', { text: reached ? '你已經達到兌換門檻了！' : cfg.prize.text }),
-          el('div', { class: 'faint', style: { fontSize: '12px' } },
-            reached ? '把這個畫面拿給攤位人員看就可以兌換。'
-                    : '目前 ' + CSE.util.nf(total) + ' / ' + CSE.util.nf(cfg.prize.threshold) +
-                      ' 分，還差 ' + CSE.util.nf(cfg.prize.threshold - total) + ' 分' +
-                      '　·　總分 = 七款各自的最佳分數加總，七款都玩過最快')
-        ])
+        el('span', { class: 'ic', text: reached ? '🎉' : '◆' }),
+        el('div', {}, lines)
       ]));
     }
 
@@ -4953,10 +4966,10 @@ CSE.config = {
     var sum = CSE.scores.summary();
     var overview = el('div', { class: 'panel', style: { marginTop: 'var(--gap)' } }, [
       ui.corners(),
-      el('div', { class: 'kicker', text: 'BOOTH STATS' }),
-      el('h2', { text: '攤位統計' }),
+      el('div', { class: 'kicker', text: 'YOUR STATS' }),
+      el('h2', { text: '遊戲統計' }),
       el('p', { class: 'muted', style: { fontSize: '13px' },
-        text: '這些數字只存在這台裝置上。活動結束可以到「攤位設定」匯出 CSV。' }),
+        text: '這些數字只存在這台裝置上，不會上傳。可以到「設定」匯出 CSV。' }),
       el('table', { class: 'data' }, [
         el('thead', {}, el('tr', {}, [
           el('th', { text: '遊戲' }),
@@ -5046,7 +5059,7 @@ CSE.config = {
     ]);
   }
 
-  /* ---------------- 攤位設定 ---------------- */
+  /* ---------------- 設定 ---------------- */
   function screenSettings() {
     rain.stop();
     function toggleRow(key, title, note) {
@@ -5081,31 +5094,32 @@ CSE.config = {
     ui.append(view, [
       el('div', { class: 'panel' }, [
         ui.corners(),
-        el('div', { class: 'kicker', text: 'BOOTH SETUP' }),
-        el('h1', { text: '攤位設定' }),
+        el('div', { class: 'kicker', text: 'SETTINGS' }),
+        el('h1', { text: '設定' }),
         el('p', { class: 'muted', style: { fontSize: '13px' },
-          text: '這頁是給擺攤的人用的。所有資料只存在這台裝置的瀏覽器裡，不會上傳。' }),
+          text: '你的分數和設定只存在這台裝置的瀏覽器裡，不會上傳到任何地方。' }),
         CSE.store.ok ? null : el('div', { class: 'notice' }, [
           el('span', { class: 'ic', text: '!' }),
-          el('div', { text: '這個瀏覽器不允許存資料（可能是無痕模式或檔案協定限制），分數在重新整理後會消失。建議改用本機伺服器開啟。' })
+          el('div', { text: '這個瀏覽器不允許存資料（可能是無痕模式），分數在重新整理後會消失，但遊戲照常可以玩。' })
         ]),
-        toggleRow('sound', '音效', '攤位很吵的話可以關掉'),
-        toggleRow('motion', '背景動畫', '關掉可以讓舊筆電跑更順'),
+        toggleRow('sound', '音效', '環境吵或不想發出聲音時可以關掉'),
+        toggleRow('motion', '背景動畫', '關掉可以讓舊電腦跑更順、也比較省電'),
         toggleRow('scanline', 'CRT 掃描線', '復古濾鏡，看不習慣可以關'),
-        toggleRow('kiosk', '攤位模式（閒置自動回首頁）', '沒人操作一段時間後自動回到首頁，適合無人看顧的平板'),
+        toggleRow('kiosk', '展示模式（閒置自動回首頁）', '一段時間沒人操作就回到首頁，適合多人輪流共用的裝置'),
         el('div', { class: 'setrow' }, [
           el('div', { class: 't' }, [
             el('b', { text: '閒置秒數' }),
-            el('span', { text: '攤位模式下，多久沒人碰就回首頁' })
+            el('span', { text: '展示模式下，多久沒人操作就回首頁' })
           ]),
           idleInput
         ])
       ]),
       el('div', { class: 'panel', style: { marginTop: 'var(--gap)' } }, [
         ui.corners(),
-        el('h2', { text: '◆ 資料' }),
+        el('h2', { text: '◆ 你的資料' }),
         el('p', { class: 'muted', style: { fontSize: '13px' },
-          text: '活動結束前記得先匯出，不然清掉就沒了。CSV 可以直接用 Excel 開。' }),
+          text: '排行榜可以匯出成 CSV（Excel 直接開得起來）。清除之後就救不回來了，' +
+                '要留紀錄請先匯出。' }),
         el('div', { class: 'row' }, [
           el('button', {
             type: 'button', class: 'btn btn--primary', text: '匯出排行榜 CSV',
@@ -5138,12 +5152,12 @@ CSE.config = {
       ]),
       el('div', { class: 'panel', style: { marginTop: 'var(--gap)' } }, [
         ui.corners(),
-        el('h2', { text: '◆ 擺攤小提醒' }),
+        el('h2', { text: '◆ 幾件可能想知道的事' }),
         el('ul', {}, [
-          '把瀏覽器按 F11 或用上方 ⛶ 進入全螢幕，訪客就不會誤觸網址列。',
-          '攤位模式打開後，沒人玩會自動回首頁，排隊的人一來就能直接開始。',
-          '多台裝置的排行榜是各自獨立的；要合併就各自匯出 CSV 再合併。',
-          '完全離線可用，不需要網路。'
+          '排行榜是「這台裝置」的紀錄，不會跟別人共用，也不會上傳。換一台裝置就是全新的。',
+          '按 F11 或右上角 ⛶ 進全螢幕，玩起來比較專心。',
+          '多人輪流用同一台時，打開「展示模式」，沒人操作就會自動回首頁。',
+          '整個網站不需要網路也能跑，完全沒有廣告和追蹤。'
         ].map(function (t) { return el('li', { class: 'muted', style: { fontSize: '13px', marginBottom: '6px' }, text: t }); }))
       ])
     ]);
@@ -5257,7 +5271,7 @@ CSE.config = {
     });
 
     var others = el('div', { class: 'navpanel-links' },
-      FLAT_LINKS.concat([{ href: '#/settings', label: '攤位設定' }]).map(function (l) {
+      FLAT_LINKS.concat([{ href: '#/settings', label: '設定' }]).map(function (l) {
         return el('a', {
           class: 'navlink' + (hash === l.href ? ' navlink--now' : ''),
           href: l.href, text: l.label,
@@ -5329,7 +5343,7 @@ CSE.config = {
     view.focus({ preventScroll: true });
   }
 
-  /* ---------------- 攤位模式：閒置回首頁 ---------------- */
+  /* ---------------- 展示模式：閒置回首頁 ---------------- */
   var idleTimer = 0;
   var attractEl = null;
   var lastInput = Date.now();
@@ -5354,7 +5368,7 @@ CSE.config = {
 
   /* ---------------- 自動更新偵測 ----------------
      GitHub Pages 把 index.html 也快取 10 分鐘，所以推了新版之後，
-     攤位上那台開著不動的裝置會一直停在舊版（連資產的 ?v= 都是舊的）。
+     開著不動的裝置會一直停在舊版（連資產的 ?v= 都是舊的）。
      這裡讓網頁自己去比對版本，發現有新版就重新整理一次。
      只在沒人正在玩的時候做，而且每個版本只重載一次，不會無限迴圈。 */
   function checkForUpdate() {

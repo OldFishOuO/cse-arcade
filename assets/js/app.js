@@ -1,5 +1,5 @@
 /* ============================================================
-   app.js — 路由 / 首頁 / 排行榜 / 關於 / 設定 / 背景特效 / 攤位模式
+   app.js — 路由 / 首頁 / 排行榜 / 關於 / 設定 / 背景特效 / 展示模式
    ============================================================ */
 (function () {
   'use strict';
@@ -179,18 +179,26 @@
 
     var blocks = [hero];
 
-    if (cfg.prize && cfg.prize.enabled) {
-      var reached = total >= cfg.prize.threshold;
+    /* 挑戰目標（舊版叫 prize，為了舊設定檔還能用，兩個名字都接受） */
+    var goal = cfg.goal || cfg.prize;
+    if (goal && goal.enabled) {
+      var reached = total >= goal.threshold;
+      var lines = [el('b', { text: reached ? '🎉 挑戰完成！' : goal.text })];
+      lines.push(el('div', { class: 'faint', style: { fontSize: '12px' } },
+        reached
+          ? '你的總分 ' + CSE.util.nf(total) + ' 分，已經超過 ' + CSE.util.nf(goal.threshold) + ' 分。'
+          : '目前 ' + CSE.util.nf(total) + ' / ' + CSE.util.nf(goal.threshold) +
+            ' 分，還差 ' + CSE.util.nf(goal.threshold - total) + ' 分' +
+            '　·　總分 = 七款各自的最佳分數加總，七款都玩過最快'));
+      if (goal.reward && String(goal.reward).trim()) {
+        lines.push(el('div', {
+          style: { fontSize: '12.5px', marginTop: '4px', color: 'var(--amber)' },
+          text: '🎁 ' + goal.reward
+        }));
+      }
       blocks.push(el('div', { class: 'notice' }, [
-        el('span', { class: 'ic', text: reached ? '🎁' : '◆' }),
-        el('div', {}, [
-          el('b', { text: reached ? '你已經達到兌換門檻了！' : cfg.prize.text }),
-          el('div', { class: 'faint', style: { fontSize: '12px' } },
-            reached ? '把這個畫面拿給攤位人員看就可以兌換。'
-                    : '目前 ' + CSE.util.nf(total) + ' / ' + CSE.util.nf(cfg.prize.threshold) +
-                      ' 分，還差 ' + CSE.util.nf(cfg.prize.threshold - total) + ' 分' +
-                      '　·　總分 = 七款各自的最佳分數加總，七款都玩過最快')
-        ])
+        el('span', { class: 'ic', text: reached ? '🎉' : '◆' }),
+        el('div', {}, lines)
       ]));
     }
 
@@ -286,10 +294,10 @@
     var sum = CSE.scores.summary();
     var overview = el('div', { class: 'panel', style: { marginTop: 'var(--gap)' } }, [
       ui.corners(),
-      el('div', { class: 'kicker', text: 'BOOTH STATS' }),
-      el('h2', { text: '攤位統計' }),
+      el('div', { class: 'kicker', text: 'YOUR STATS' }),
+      el('h2', { text: '遊戲統計' }),
       el('p', { class: 'muted', style: { fontSize: '13px' },
-        text: '這些數字只存在這台裝置上。活動結束可以到「攤位設定」匯出 CSV。' }),
+        text: '這些數字只存在這台裝置上，不會上傳。可以到「設定」匯出 CSV。' }),
       el('table', { class: 'data' }, [
         el('thead', {}, el('tr', {}, [
           el('th', { text: '遊戲' }),
@@ -379,7 +387,7 @@
     ]);
   }
 
-  /* ---------------- 攤位設定 ---------------- */
+  /* ---------------- 設定 ---------------- */
   function screenSettings() {
     rain.stop();
     function toggleRow(key, title, note) {
@@ -414,31 +422,32 @@
     ui.append(view, [
       el('div', { class: 'panel' }, [
         ui.corners(),
-        el('div', { class: 'kicker', text: 'BOOTH SETUP' }),
-        el('h1', { text: '攤位設定' }),
+        el('div', { class: 'kicker', text: 'SETTINGS' }),
+        el('h1', { text: '設定' }),
         el('p', { class: 'muted', style: { fontSize: '13px' },
-          text: '這頁是給擺攤的人用的。所有資料只存在這台裝置的瀏覽器裡，不會上傳。' }),
+          text: '你的分數和設定只存在這台裝置的瀏覽器裡，不會上傳到任何地方。' }),
         CSE.store.ok ? null : el('div', { class: 'notice' }, [
           el('span', { class: 'ic', text: '!' }),
-          el('div', { text: '這個瀏覽器不允許存資料（可能是無痕模式或檔案協定限制），分數在重新整理後會消失。建議改用本機伺服器開啟。' })
+          el('div', { text: '這個瀏覽器不允許存資料（可能是無痕模式），分數在重新整理後會消失，但遊戲照常可以玩。' })
         ]),
-        toggleRow('sound', '音效', '攤位很吵的話可以關掉'),
-        toggleRow('motion', '背景動畫', '關掉可以讓舊筆電跑更順'),
+        toggleRow('sound', '音效', '環境吵或不想發出聲音時可以關掉'),
+        toggleRow('motion', '背景動畫', '關掉可以讓舊電腦跑更順、也比較省電'),
         toggleRow('scanline', 'CRT 掃描線', '復古濾鏡，看不習慣可以關'),
-        toggleRow('kiosk', '攤位模式（閒置自動回首頁）', '沒人操作一段時間後自動回到首頁，適合無人看顧的平板'),
+        toggleRow('kiosk', '展示模式（閒置自動回首頁）', '一段時間沒人操作就回到首頁，適合多人輪流共用的裝置'),
         el('div', { class: 'setrow' }, [
           el('div', { class: 't' }, [
             el('b', { text: '閒置秒數' }),
-            el('span', { text: '攤位模式下，多久沒人碰就回首頁' })
+            el('span', { text: '展示模式下，多久沒人操作就回首頁' })
           ]),
           idleInput
         ])
       ]),
       el('div', { class: 'panel', style: { marginTop: 'var(--gap)' } }, [
         ui.corners(),
-        el('h2', { text: '◆ 資料' }),
+        el('h2', { text: '◆ 你的資料' }),
         el('p', { class: 'muted', style: { fontSize: '13px' },
-          text: '活動結束前記得先匯出，不然清掉就沒了。CSV 可以直接用 Excel 開。' }),
+          text: '排行榜可以匯出成 CSV（Excel 直接開得起來）。清除之後就救不回來了，' +
+                '要留紀錄請先匯出。' }),
         el('div', { class: 'row' }, [
           el('button', {
             type: 'button', class: 'btn btn--primary', text: '匯出排行榜 CSV',
@@ -471,12 +480,12 @@
       ]),
       el('div', { class: 'panel', style: { marginTop: 'var(--gap)' } }, [
         ui.corners(),
-        el('h2', { text: '◆ 擺攤小提醒' }),
+        el('h2', { text: '◆ 幾件可能想知道的事' }),
         el('ul', {}, [
-          '把瀏覽器按 F11 或用上方 ⛶ 進入全螢幕，訪客就不會誤觸網址列。',
-          '攤位模式打開後，沒人玩會自動回首頁，排隊的人一來就能直接開始。',
-          '多台裝置的排行榜是各自獨立的；要合併就各自匯出 CSV 再合併。',
-          '完全離線可用，不需要網路。'
+          '排行榜是「這台裝置」的紀錄，不會跟別人共用，也不會上傳。換一台裝置就是全新的。',
+          '按 F11 或右上角 ⛶ 進全螢幕，玩起來比較專心。',
+          '多人輪流用同一台時，打開「展示模式」，沒人操作就會自動回首頁。',
+          '整個網站不需要網路也能跑，完全沒有廣告和追蹤。'
         ].map(function (t) { return el('li', { class: 'muted', style: { fontSize: '13px', marginBottom: '6px' }, text: t }); }))
       ])
     ]);
@@ -590,7 +599,7 @@
     });
 
     var others = el('div', { class: 'navpanel-links' },
-      FLAT_LINKS.concat([{ href: '#/settings', label: '攤位設定' }]).map(function (l) {
+      FLAT_LINKS.concat([{ href: '#/settings', label: '設定' }]).map(function (l) {
         return el('a', {
           class: 'navlink' + (hash === l.href ? ' navlink--now' : ''),
           href: l.href, text: l.label,
@@ -662,7 +671,7 @@
     view.focus({ preventScroll: true });
   }
 
-  /* ---------------- 攤位模式：閒置回首頁 ---------------- */
+  /* ---------------- 展示模式：閒置回首頁 ---------------- */
   var idleTimer = 0;
   var attractEl = null;
   var lastInput = Date.now();
@@ -687,7 +696,7 @@
 
   /* ---------------- 自動更新偵測 ----------------
      GitHub Pages 把 index.html 也快取 10 分鐘，所以推了新版之後，
-     攤位上那台開著不動的裝置會一直停在舊版（連資產的 ?v= 都是舊的）。
+     開著不動的裝置會一直停在舊版（連資產的 ?v= 都是舊的）。
      這裡讓網頁自己去比對版本，發現有新版就重新整理一次。
      只在沒人正在玩的時候做，而且每個版本只重載一次，不會無限迴圈。 */
   function checkForUpdate() {

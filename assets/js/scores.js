@@ -131,7 +131,7 @@
       return out;
     },
 
-    /* ---- 攤位結束後的資料匯出 ---- */
+    /* ---- 資料匯出 ---- */
     exportCsv: function () {
       var rows = [['game_id', 'game_name', 'rank', 'nickname', 'score', 'time_iso']];
       var self = this;
