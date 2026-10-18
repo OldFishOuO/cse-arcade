@@ -69,7 +69,7 @@
     best: function (gameId) { return this.stat(gameId).best || 0; },
     plays: function (gameId) { return this.stat(gameId).plays || 0; },
 
-    /* 總分 = 每款遊戲的最佳分數加總（鼓勵把七款都玩過） */
+    /* 總分 = 每款遊戲的最佳分數加總（鼓勵每款都玩過） */
     total: function () {
       var self = this, sum = 0;
       CSE.games.forEach(function (g) { sum += self.best(g.id); });
@@ -124,7 +124,7 @@
       var total = self.total();
       var th = (CSE.config.prize && CSE.config.prize.threshold) || 3000;
 
-      out.push({ id: 'meta.all', icon: '🎒', name: '全系通識', note: '七款遊戲都玩過一次', got: playedAll });
+      out.push({ id: 'meta.all', icon: '🎒', name: '全系通識', note: CSE.games.length + ' 款遊戲都玩過一次', got: playedAll });
       out.push({ id: 'meta.bronze', icon: '🔧', name: '修完必修', note: '每款至少拿到銅牌', got: allBronze });
       out.push({ id: 'meta.prize', icon: '🎁', name: '兌換資格', note: '總分達 ' + CSE.util.nf(th) + ' 分', got: total >= th });
       out.push({ id: 'meta.gold', icon: '👑', name: '系主任認證', note: '每款都拿到金牌', got: allGold });

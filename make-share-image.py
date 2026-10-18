@@ -82,7 +82,7 @@ def build(cfg):
     d.rectangle([84, 344, 84 + 148, 350], fill=GREEN)
 
     d.text((84, 388), cfg["tagline"], font=f_tag, fill=(196, 214, 226))
-    d.text((84, 486), "二進位 · 邏輯閘 · 抓 Bug · 排序 · 終端機打字 · 封包路由 · 迷思破解",
+    d.text((84, 486), "二進位 · 邏輯閘 · 抓 Bug · 排序 · 打字 · 封包路由 · 河內塔 · 密碼 · 色碼",
            font=f_small, fill=(104, 130, 150))
 
     url = cfg["siteUrl"].replace("https://", "").rstrip("/")

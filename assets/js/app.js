@@ -12,7 +12,8 @@
   var totalChip = document.getElementById('totalChip');
 
   /* 首頁卡片順序：先用「資工系大誤解」當開場，再往技術深處走 */
-  var ORDER = ['myth', 'binary', 'bughunt', 'logic', 'sort', 'packet', 'typing'];
+  var ORDER = ['myth', 'binary', 'color', 'bughunt', 'cipher', 'hanoi',
+               'logic', 'sort', 'packet', 'typing'];
   function orderedGames() {
     var out = [];
     ORDER.forEach(function (id) { if (CSE.gameById[id]) out.push(CSE.gameById[id]); });
@@ -189,7 +190,7 @@
           ? '你的總分 ' + CSE.util.nf(total) + ' 分，已經超過 ' + CSE.util.nf(goal.threshold) + ' 分。'
           : '目前 ' + CSE.util.nf(total) + ' / ' + CSE.util.nf(goal.threshold) +
             ' 分，還差 ' + CSE.util.nf(goal.threshold - total) + ' 分' +
-            '　·　總分 = 七款各自的最佳分數加總，七款都玩過最快'));
+            '　·　總分 = 每款各自的最佳分數加總，全部玩過最快'));
       if (goal.reward && String(goal.reward).trim()) {
         lines.push(el('div', {
           style: { fontSize: '12.5px', marginTop: '4px', color: 'var(--amber)' },
@@ -215,7 +216,7 @@
       ui.corners(),
       el('div', { class: 'kicker', text: 'ACHIEVEMENTS' }),
       el('h2', { text: '關卡護照' }),
-      el('p', { class: 'muted', style: { fontSize: '13px' }, text: '每款遊戲達到分數門檻就能拿到銅、銀、金牌。七款全破看看會發生什麼事。' }),
+      el('p', { class: 'muted', style: { fontSize: '13px' }, text: '每款遊戲達到分數門檻就能拿到銅、銀、金牌。全部拿到金牌看看會發生什麼事。' }),
       bg
     ]));
 
@@ -510,7 +511,7 @@
   }
 
   /* ---------------- 導覽列 ----------------
-     七款遊戲全部塞進橫列會超出畫面，而桌機用滑鼠滑不動橫向捲動區，
+     所有遊戲全部塞進橫列會超出畫面，而桌機用滑鼠滑不動橫向捲動區，
      等於後面的連結碰不到。改成：少數常用連結留在列上，
      遊戲收進一個下拉面板，窄螢幕則整個收成 ☰。 */
 
@@ -608,7 +609,7 @@
       }));
 
     panel = el('div', { class: 'navpanel', role: 'menu' }, [
-      el('div', { class: 'navpanel-head', text: '七款小遊戲' }),
+      el('div', { class: 'navpanel-head', text: CSE.games.length + ' 款小遊戲' }),
       grid,
       el('div', { class: 'navpanel-head', text: '其他' }),
       others
@@ -790,8 +791,8 @@
     checkForUpdate();
     setInterval(function () { if (!CSE.host.busy) checkForUpdate(); }, 10 * 60 * 1000);
 
-    if (CSE.games.length !== 7) {
-      console.warn('[CSE] 載入了 ' + CSE.games.length + ' 款遊戲（預期 7 款），請檢查 index.html 的 script 標籤');
+    if (!CSE.games.length) {
+      console.error('[CSE] 一款遊戲都沒載入，請檢查 index.html 的 script 標籤');
     }
   }
 

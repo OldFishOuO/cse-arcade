@@ -1,23 +1,23 @@
 <!doctype html>
-<html data-build="921b98e6" lang="zh-Hant" data-motion="on" data-scanline="on">
+<html data-build="a94e4a79" lang="zh-Hant" data-motion="on" data-scanline="on">
 <head>
-<!-- 自動打包的單檔版（build 921b98e6）。要改內容請改 assets/ 底下的原始碼，再重新執行 build-single-file.py，不要直接改這個檔。 -->
+<!-- 自動打包的單檔版（build a94e4a79）。要改內容請改 assets/ 底下的原始碼，再重新執行 build-single-file.py，不要直接改這個檔。 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
 <!-- 下面這段由 build-single-file.py 依 config.js 自動產生，不要手改 -->
 <!--SEO:START-->
 <title>IECS ARCADE · 資工系小遊戲</title>
-<meta name="description" content="七款小遊戲，10 分鐘看懂資工系在學什麼">
+<meta name="description" content="十款小遊戲，10 分鐘看懂資工系在學什麼">
 <meta property="og:url" content="https://oldfishouo.github.io/iecs-arcade/">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="zh_TW">
 <meta property="og:site_name" content="逢甲大學 資訊工程學系">
 <meta property="og:title" content="IECS ARCADE · 資工系小遊戲">
-<meta property="og:description" content="七款小遊戲，10 分鐘看懂資工系在學什麼">
+<meta property="og:description" content="十款小遊戲，10 分鐘看懂資工系在學什麼">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="IECS ARCADE · 資工系小遊戲">
-<meta name="twitter:description" content="七款小遊戲，10 分鐘看懂資工系在學什麼">
+<meta name="twitter:description" content="十款小遊戲，10 分鐘看懂資工系在學什麼">
 <meta property="og:image" content="https://oldfishouo.github.io/iecs-arcade/assets/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -947,6 +947,152 @@ html[data-motion="off"] *::after{
 }
 
 </style>
+<style>
+/* ===== assets/css/games-extra.css ===== */
+/* ============================================================
+   後加的三款遊戲：河內塔 / 密碼破譯 / 十六進位調色盤
+   （主樣式在 main.css，這裡只放這三款專屬的）
+   ============================================================ */
+
+/* ===================== 河內塔 ===================== */
+.hn-wrap{ display:flex; flex-direction:column; gap:16px; flex:1; }
+.hn-board{
+  flex:1; display:grid; grid-template-columns:repeat(3,1fr);
+  gap:clamp(6px,1.6vw,16px); align-items:end; min-height:220px;
+}
+.hn-peg{
+  position:relative; display:flex; flex-direction:column;
+  justify-content:flex-end; align-items:center; gap:3px;
+  height:100%; padding:10px 6px 0; cursor:pointer;
+  background:transparent; border:1px solid transparent;
+  border-radius:var(--radius-lg); font-family:inherit;
+  transition:background .12s, border-color .12s;
+}
+.hn-peg:hover{ background:#0c1620; border-color:var(--line); }
+.hn-peg.sel{
+  background:color-mix(in srgb, var(--amber) 10%, #0c1620);
+  border-color:var(--amber);
+}
+/* 柱子本體 */
+.hn-rod{
+  position:absolute; bottom:28px; left:50%; transform:translateX(-50%);
+  width:7px; height:calc(100% - 40px); border-radius:4px;
+  background:linear-gradient(180deg, #24384a, #16222e);
+}
+.hn-stack{
+  position:relative; z-index:1; width:100%;
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+}
+.hn-disc{
+  height:clamp(20px,3.4vw,30px); border-radius:999px;
+  display:grid; place-items:center;
+  color:#06141c; font-weight:700; font-size:clamp(11px,2vw,14px);
+  box-shadow:0 2px 0 rgba(0,0,0,.35);
+  transition:width .18s, transform .14s;
+}
+.hn-disc.lift{ transform:translateY(-8px); box-shadow:0 0 22px -4px currentColor; }
+.hn-base{
+  position:relative; z-index:1; width:100%; margin-top:8px;
+  padding:6px 0; border-radius:var(--radius);
+  background:#101c26; border:1px solid var(--line-2);
+  color:var(--fg-faint); font-size:11.5px; letter-spacing:.1em; text-align:center;
+}
+.hn-peg:nth-child(3) .hn-base{
+  color:var(--green); border-color:color-mix(in srgb, var(--green) 45%, transparent);
+}
+.hn-info{ justify-content:center; }
+
+/* ===================== 密碼破譯 ===================== */
+.cp-wrap{
+  display:flex; flex-direction:column; gap:clamp(10px,2vw,16px);
+  flex:1; justify-content:center; text-align:center;
+}
+.cp-label{ font-size:11px; letter-spacing:.24em; color:var(--fg-faint); }
+.cp-cipher, .cp-plain{
+  display:flex; flex-wrap:wrap; justify-content:center; gap:3px;
+  min-height:1.6em;
+}
+.cp-ch{
+  display:inline-grid; place-items:center;
+  min-width:clamp(20px,3.6vw,30px); padding:4px 2px;
+  border-radius:3px; font-size:clamp(17px,3.4vw,26px); font-weight:700;
+  font-variant-numeric:tabular-nums;
+}
+.cp-cipher .cp-ch{ background:#0d1a24; color:var(--fg-dim); border:1px solid var(--line); }
+.cp-cipher .cp-ch.sp, .cp-plain .cp-ch.sp{ background:transparent; border-color:transparent; min-width:10px; }
+.cp-plain .cp-ch{ background:#0a1f14; color:var(--amber); border:1px solid var(--line); }
+.cp-plain .cp-ch.hit{
+  color:var(--green); border-color:var(--green);
+  box-shadow:0 0 16px -4px var(--green);
+}
+.cp-dial{ display:flex; align-items:center; justify-content:center; gap:14px; }
+.cp-arrow{ min-width:58px; font-size:19px; }
+.cp-dialnum{ font-size:15px; color:var(--fg-dim); min-width:98px; }
+.cp-dialnum b{ font-size:26px; color:var(--amber); font-variant-numeric:tabular-nums; }
+.cp-slider{
+  width:min(100%,460px); margin:0 auto; display:block;
+  accent-color:var(--amber); height:28px; cursor:pointer;
+}
+.cp-hint{ font-size:12.5px; min-height:1.4em; }
+
+/* ===================== 十六進位調色盤 ===================== */
+.cl-wrap{
+  display:flex; flex-direction:column; gap:clamp(10px,2vw,16px);
+  flex:1; justify-content:center; text-align:center;
+}
+.cl-bar{
+  height:5px; background:var(--line); border-radius:3px; overflow:hidden;
+  max-width:560px; margin:0 auto; width:100%;
+}
+.cl-bar i{ display:block; height:100%; background:var(--pink); transition:width .25s; }
+.cl-label{ font-size:clamp(15px,2.6vw,19px); color:#fff; font-weight:700; }
+.cl-q{ display:grid; place-items:center; min-height:clamp(84px,16vw,132px); }
+.cl-swatch{
+  display:block; width:100%; height:100%; border-radius:var(--radius);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);
+}
+.cl-swatch--big{
+  width:clamp(130px,26vw,220px); height:clamp(84px,15vw,128px);
+  border-radius:var(--radius-lg);
+  box-shadow:0 10px 36px -14px #000, inset 0 0 0 1px rgba(255,255,255,.16);
+}
+.cl-code{
+  font-size:clamp(30px,7vw,56px); font-weight:700; letter-spacing:.08em;
+  color:#fff; text-shadow:0 0 28px rgba(255,120,196,.4);
+}
+.cl-opts{
+  display:grid; gap:clamp(8px,1.6vw,12px);
+  grid-template-columns:repeat(2,1fr);
+  max-width:560px; margin:0 auto; width:100%;
+}
+.cl-opt{ min-height:56px; padding:8px; }
+.cl-opt--text{ font-size:clamp(15px,2.8vw,20px); font-weight:700; letter-spacing:.06em; }
+.cl-opt--sw{ padding:6px; min-height:clamp(56px,11vw,76px); }
+.cl-opt.right{
+  border-color:var(--green); box-shadow:0 0 24px -8px var(--green);
+  color:var(--green);
+}
+.cl-opt.wrong{ border-color:var(--red); color:var(--red); }
+.cl-opt:disabled{ opacity:1; }          /* 答完後要還看得見顏色 */
+.cl-opt:disabled:not(.right):not(.wrong){ opacity:.4; }
+.cl-fb{ min-height:1.6em; font-size:13.5px; color:var(--fg-dim); }
+.cl-fb.right{ color:var(--green); }
+.cl-fb.wrong{ color:var(--red); }
+.cl-break{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; min-height:2.2em; }
+.cl-chan{
+  display:flex; align-items:baseline; gap:7px;
+  padding:5px 12px; border-radius:var(--radius);
+  background:#08111a; border:1px solid var(--line); font-size:12.5px;
+}
+.cl-chan-k{ font-weight:700; }
+.cl-chan b{ color:#fff; font-size:14px; }
+
+@media (max-width:420px){
+  .cl-opts{ grid-template-columns:repeat(2,1fr); }
+  .cp-arrow{ min-width:48px; }
+}
+
+</style>
 </head>
 <body>
 <canvas id="bgfx" aria-hidden="true"></canvas>
@@ -1004,14 +1150,14 @@ CSE.config = {
   school:  '逢甲大學',
   dept:    '資訊工程學系',
   booth:   '資工系小遊戲',
-  tagline: '七款小遊戲，10 分鐘看懂資工系在學什麼',
+  tagline: '十款小遊戲，10 分鐘看懂資工系在學什麼',
 
   /* 線上網址。用來產生分享卡片（LINE / IG / Discord 貼連結時的預覽）。
      改完要跑 python build-single-file.py 才會寫進 index.html。 */
   siteUrl: 'https://oldfishouo.github.io/iecs-arcade/',
 
   /* ---------- 2. 挑戰目標 ----------
-     總分 = 七款遊戲各自的「最佳分數」加總（不是每一局累加）
+     總分 = 每款遊戲各自的「最佳分數」加總（不是每一局累加）
      enabled 改成 false 就不會顯示這個區塊。
 
      reward 平常留空。擺攤那天把兌獎說明填進去，
@@ -1026,15 +1172,17 @@ CSE.config = {
    *
    *   玩法                              約略總分
    *   ──────────────────────────────────────────
-   *   七款都玩，隨便玩玩                 4,200   ← 差一點，要再拚一下
-   *   七款都玩，一般水準                 7,500   ← 輕鬆達標
+   *   原本七款都玩，隨便玩玩             4,200
+   *   原本七款都玩，一般水準             7,500
    *   只玩最拿手的 3 款，but 玩得很好     6,400   ← 也能達標
    *   只玩最好賺的 5 款，一般水準         6,000   ← 剛好卡線
    *   只玩 3 款，一般水準                 3,900   ← 不夠
    *
-   * 設計目的：「七款都玩過」或「少數幾款拿高分」兩條路都走得通，
-   * 但只玩兩三款又隨便玩就不行 — 這樣玩的人才會多試幾款遊戲。
-   * 覺得太難就往下調（5000 大約是「七款都玩且不要太混」）。
+   * 設計目的：「多玩幾款」或「少數幾款拿高分」兩條路都走得通，
+   * 但只玩兩三款又隨便玩就不行 — 這樣玩的人才會多試幾款。
+   *
+   * 後來遊戲從 7 款加到 10 款，可選的得分來源變多，
+   * 6000 相對變得好達成一些 —— 這是刻意的，門檻維持不動。
    * 改這裡記得把上面 text 裡的數字一起改。
    */
 
@@ -1517,7 +1665,7 @@ CSE.config = {
     best: function (gameId) { return this.stat(gameId).best || 0; },
     plays: function (gameId) { return this.stat(gameId).plays || 0; },
 
-    /* 總分 = 每款遊戲的最佳分數加總（鼓勵把七款都玩過） */
+    /* 總分 = 每款遊戲的最佳分數加總（鼓勵每款都玩過） */
     total: function () {
       var self = this, sum = 0;
       CSE.games.forEach(function (g) { sum += self.best(g.id); });
@@ -1572,7 +1720,7 @@ CSE.config = {
       var total = self.total();
       var th = (CSE.config.prize && CSE.config.prize.threshold) || 3000;
 
-      out.push({ id: 'meta.all', icon: '🎒', name: '全系通識', note: '七款遊戲都玩過一次', got: playedAll });
+      out.push({ id: 'meta.all', icon: '🎒', name: '全系通識', note: CSE.games.length + ' 款遊戲都玩過一次', got: playedAll });
       out.push({ id: 'meta.bronze', icon: '🔧', name: '修完必修', note: '每款至少拿到銅牌', got: allBronze });
       out.push({ id: 'meta.prize', icon: '🎁', name: '兌換資格', note: '總分達 ' + CSE.util.nf(th) + ' 分', got: total >= th });
       out.push({ id: 'meta.gold', icon: '👑', name: '系主任認證', note: '每款都拿到金牌', got: allGold });
@@ -4669,6 +4817,679 @@ CSE.config = {
 
 </script>
 <script>
+/* ===== assets/js/games/hanoi.js ===== */
+/* ============================================================
+   遊戲 8：河內塔 — 把所有圓盤搬到最右邊的柱子
+   教的是：遞迴、指數成長、最少步數 = 2^n − 1
+   ============================================================ */
+(function () {
+  'use strict';
+  var CSE = window.CSE;
+
+  var ROUNDS = [3, 4, 5];          /* 每關的圓盤數：最少 7 / 15 / 31 步 */
+  var DISC_COLORS = [
+    'var(--green)', 'var(--cyan)', 'var(--amber)',
+    'var(--violet)', 'var(--pink)', 'var(--lime)'
+  ];
+
+  CSE.registerGame({
+    id: 'hanoi',
+    name: '河內塔',
+    tag: '演算法 · RECURSION',
+    icon: '≡',
+    accent: 'var(--lime)',
+    blurb: '把整疊圓盤搬到最右邊，大的不能壓小的。規則三秒就懂，但要用最少步數就是遞迴的經典題。',
+    how: [
+      '點一根柱子拿起最上面的圓盤，再點另一根放下。',
+      '大的圓盤不能疊在小的上面。',
+      '把所有圓盤搬到最右邊的柱子就過關。',
+      '每關都有「理論最少步數」，走得越接近分數越高。共三關。'
+    ],
+    controls: '點柱子拿起／放下；也可按鍵盤 1、2、3',
+    duration: 160,
+    medals: { bronze: 500, silver: 1000, gold: 1600 },
+    titles: ['體驗組', '搬運學徒', '遞迴好手', '河內塔大師'],
+    knowledge: {
+      title: '為什麼最少步數是 2ⁿ − 1？',
+      lines: [
+        '想搬 n 個：先把上面 n−1 個搬到中間，搬走最大的，再把 n−1 個搬過來。',
+        '這就是遞迴 —— 大問題拆成兩個一模一樣的小問題，所以 T(n) = 2·T(n−1) + 1。',
+        '3 個要 7 步、10 個要 1023 步、20 個就要一百萬步以上，這叫指數成長。',
+        '傳說中僧侶要搬 64 個圓盤，一秒一步也要五千八百億年 —— 演算法的複雜度就是這麼有感。'
+      ]
+    },
+
+    mount: function (stage, api) {
+      var round = 0;
+      var pegs = [[], [], []];        /* 每根柱子由下往上的圓盤大小 */
+      var n = 0, par = 0, moves = 0;
+      var sel = -1, busy = false, roundStart = 0;
+      var totalMoves = 0, perfect = 0, cleared = 0;
+
+      var board = api.el('div', { class: 'hn-board' });
+      var parEl = api.el('b', { text: '0' });
+      var mvEl = api.el('b', { text: '0' });
+      var info = api.el('div', { class: 'statlist hn-info' }, [
+        api.el('div', {}, ['最少步數', parEl]),
+        api.el('div', {}, ['你走了', mvEl])
+      ]);
+      var btnReset = api.el('button', {
+        type: 'button', class: 'btn btn--sm', text: '這關重來（−40）',
+        onclick: function () {
+          if (busy) return;
+          api.addScore(-40);
+          api.sfx.play('bad');
+          loadRound(ROUNDS[round]);
+        }
+      });
+
+      stage.appendChild(api.el('div', { class: 'hn-wrap' }, [
+        board,
+        info,
+        api.el('div', { class: 'row', style: { justifyContent: 'center' } }, [btnReset])
+      ]));
+
+      function render() {
+        CSE.ui.clear(board);
+        for (var p = 0; p < 3; p++) {
+          var col = api.el('button', {
+            type: 'button',
+            class: 'hn-peg' + (sel === p ? ' sel' : ''),
+            'aria-label': '第 ' + (p + 1) + ' 根柱子，' + pegs[p].length + ' 個圓盤'
+          });
+          col.appendChild(api.el('i', { class: 'hn-rod' }));
+          var stack = api.el('div', { class: 'hn-stack' });
+          /* 由上往下畫，所以把陣列反過來 */
+          for (var i = pegs[p].length - 1; i >= 0; i--) {
+            var size = pegs[p][i];
+            stack.appendChild(api.el('div', {
+              class: 'hn-disc' + (sel === p && i === pegs[p].length - 1 ? ' lift' : ''),
+              style: {
+                width: Math.round(34 + (size / n) * 62) + '%',
+                background: DISC_COLORS[(size - 1) % DISC_COLORS.length]
+              },
+              text: String(size)
+            }));
+          }
+          col.appendChild(stack);
+          col.appendChild(api.el('span', { class: 'hn-base', text: p === 2 ? '目標' : String(p + 1) }));
+          (function (idx) {
+            col.addEventListener('click', function () { tap(idx); });
+          })(p);
+          board.appendChild(col);
+        }
+      }
+
+      function tap(p) {
+        if (busy) return;
+        if (sel < 0) {
+          if (!pegs[p].length) {
+            api.hint('這根柱子是空的，先點有圓盤的柱子。', 'bad');
+            api.sfx.play('bad');
+            return;
+          }
+          sel = p;
+          api.sfx.play('click');
+          api.hint('拿起 ' + pegs[p][pegs[p].length - 1] + ' 號圓盤，點另一根柱子放下');
+          render();
+          return;
+        }
+        if (sel === p) {                 /* 再點一次 = 放回去 */
+          sel = -1;
+          api.sfx.play('click');
+          api.hint('');
+          render();
+          return;
+        }
+        var disc = pegs[sel][pegs[sel].length - 1];
+        var top = pegs[p].length ? pegs[p][pegs[p].length - 1] : Infinity;
+        if (disc > top) {
+          api.hint(disc + ' 號比 ' + top + ' 號大，不能疊上去。', 'bad');
+          api.sfx.play('bad');
+          sel = -1;
+          render();
+          return;
+        }
+        pegs[sel].pop();
+        pegs[p].push(disc);
+        sel = -1;
+        moves++; totalMoves++;
+        mvEl.textContent = String(moves);
+        api.sfx.play('type');
+        api.hint(moves > par ? '已經超過最少步數 ' + (moves - par) + ' 步' : '還剩 ' + (par - moves) + ' 步額度');
+        render();
+        if (pegs[2].length === n) roundDone();
+      }
+
+      function roundDone() {
+        busy = true;
+        cleared++;
+        var over = Math.max(0, moves - par);
+        var spent = (performance.now() - roundStart) / 1000;
+        var speed = Math.max(0, Math.round((40 - spent) * 3));
+        var gain = Math.max(50, 240 - over * 25) + speed;
+        if (over === 0) { gain += 140; perfect++; }
+        api.addScore(gain);
+        api.sfx.play('great');
+        api.hint(over === 0
+          ? '完美！剛好 ' + par + ' 步　+' + gain + ' 分（含最少步數獎勵）'
+          : '過關！用了 ' + moves + ' 步（最少 ' + par + ' 步）　+' + gain + ' 分', 'good');
+
+        round++;
+        if (round >= ROUNDS.length) {
+          var bonus = Math.round(api.timeLeft() * 5);
+          api.addScore(bonus);
+          api.after(1000, function () {
+            api.finish({
+              reason: 'cleared',
+              stats: [
+                { k: '完美關卡', v: perfect + ' / ' + ROUNDS.length },
+                { k: '總步數', v: totalMoves + ' 步' },
+                { k: '剩餘時間加分', v: '+' + bonus }
+              ]
+            });
+          });
+          return;
+        }
+        api.after(1300, function () { loadRound(ROUNDS[round]); });
+      }
+
+      function loadRound(discs) {
+        busy = false;
+        sel = -1;
+        moves = 0;
+        n = discs;
+        par = Math.pow(2, discs) - 1;
+        pegs = [[], [], []];
+        for (var i = discs; i >= 1; i--) pegs[0].push(i);   /* 大的在最下面 */
+        parEl.textContent = String(par);
+        mvEl.textContent = '0';
+        api.setStat('關卡', (round + 1) + '/' + ROUNDS.length);
+        api.hint(discs + ' 個圓盤，最少 ' + par + ' 步。點柱子拿起圓盤。');
+        roundStart = performance.now();
+        render();
+      }
+
+      api.on(document, 'keydown', function (e) {
+        if (e.key >= '1' && e.key <= '3') {
+          e.preventDefault();
+          tap(parseInt(e.key, 10) - 1);
+        }
+      });
+
+      api.onResult(function () {
+        return {
+          stats: [
+            { k: '完成關卡', v: cleared + ' / ' + ROUNDS.length },
+            { k: '完美關卡', v: perfect },
+            { k: '總步數', v: totalMoves + ' 步' }
+          ]
+        };
+      });
+
+      loadRound(ROUNDS[0]);
+    }
+  });
+})();
+
+</script>
+<script>
+/* ===== assets/js/games/cipher.js ===== */
+/* ============================================================
+   遊戲 9：密碼破譯 — 轉動位移盤，把加密訊息還原
+   教的是：凱撒密碼、暴力破解、為什麼現代加密不能這樣做
+   ============================================================ */
+(function () {
+  'use strict';
+  var CSE = window.CSE;
+
+  /* 都是常見的資工詞彙，不需要很好的英文也猜得出來 */
+  var MESSAGES = [
+    { t: 'HELLO WORLD', z: '每個程式設計師的第一支程式' },
+    { t: 'OPEN SOURCE', z: '開放原始碼' },
+    { t: 'BINARY CODE', z: '二進位碼' },
+    { t: 'STACK OVERFLOW', z: '堆疊溢位，也是工程師最愛的問答網站' },
+    { t: 'NULL POINTER', z: '空指標，C 語言的經典錯誤' },
+    { t: 'COMPUTER SCIENCE', z: '計算機科學' },
+    { t: 'INFINITE LOOP', z: '無限迴圈' },
+    { t: 'PUBLIC KEY', z: '公開金鑰，現代加密的基礎' },
+    { t: 'SOURCE CODE', z: '原始碼' },
+    { t: 'DATA STRUCTURE', z: '資料結構' },
+    { t: 'MACHINE LEARNING', z: '機器學習' },
+    { t: 'FENG CHIA IECS', z: '逢甲資工' },
+    { t: 'BUFFER OVERFLOW', z: '緩衝區溢位，經典的資安漏洞' },
+    { t: 'HASH FUNCTION', z: '雜湊函式' },
+    { t: 'DEEP LEARNING', z: '深度學習' },
+    { t: 'OPERATING SYSTEM', z: '作業系統' }
+  ];
+
+  var A = 'A'.charCodeAt(0);
+
+  function shiftText(text, k) {
+    var out = '';
+    for (var i = 0; i < text.length; i++) {
+      var c = text.charCodeAt(i);
+      if (c >= 65 && c <= 90) out += String.fromCharCode((c - A + k + 26) % 26 + A);
+      else out += text.charAt(i);
+    }
+    return out;
+  }
+
+  CSE.registerGame({
+    id: 'cipher',
+    name: '密碼破譯',
+    tag: '資訊安全 · CIPHER',
+    icon: '🔑',
+    accent: 'var(--amber)',
+    blurb: '兩千年前凱撒大帝用的加密法：每個字母往後移幾位。轉動位移盤，把訊息還原成看得懂的英文。',
+    how: [
+      '上方是被加密的訊息，每個字母都被往後移了固定位數。',
+      '用 ◀ ▶ 或拖動滑桿改變位移量，下方的解密結果會即時變化。',
+      '轉到變成看得懂的英文就自動過關 —— 不用按確認。',
+      '限時 75 秒，解開越多分數越高。看不出來可以按提示。'
+    ],
+    controls: '點 ◀ ▶ 或拉滑桿；鍵盤左右方向鍵也可以',
+    duration: 75,
+    medals: { bronze: 500, silver: 1000, gold: 1600 },
+    titles: ['體驗組', '密碼學徒', '破譯高手', '資安鬼才'],
+    knowledge: {
+      title: '為什麼凱撒密碼現在沒人用？',
+      lines: [
+        '英文只有 26 個字母，位移最多 25 種 —— 全部試一遍只要 25 次，這叫暴力破解。',
+        '你剛剛轉盤的動作，就是電腦做暴力破解時在做的事，只是它一秒能試幾十億次。',
+        '更快的方法是頻率分析：英文裡 E 最常出現，找出密文中最常見的字母就猜得到位移。',
+        '現代加密（像 AES、RSA）的金鑰空間大到用全世界的電腦跑到宇宙終結也試不完。'
+      ]
+    },
+
+    mount: function (stage, api) {
+      var pool = CSE.util.shuffle(MESSAGES);
+      var pi = 0;
+      var plain = '', key = 0, shift = 0;
+      var solved = 0, hintsUsed = 0, skipped = 0;
+      var qStart = 0, locked = false;
+
+      var cipherEl = api.el('div', { class: 'cp-cipher' });
+      var plainEl = api.el('div', { class: 'cp-plain' });
+      var dialNum = api.el('b', { text: '0' });
+      var slider = api.el('input', {
+        type: 'range', min: '0', max: '25', value: '0', step: '1',
+        class: 'cp-slider', 'aria-label': '位移量'
+      });
+      var hintEl = api.el('div', { class: 'cp-hint faint' });
+
+      function mk(label, delta) {
+        return api.el('button', {
+          type: 'button', class: 'btn cp-arrow', text: label,
+          onclick: function () { setShift(shift + delta); api.sfx.play('click'); }
+        });
+      }
+
+      var btnHint = api.el('button', {
+        type: 'button', class: 'btn btn--sm', text: '提示（−60）',
+        onclick: function () {
+          if (locked) return;
+          hintsUsed++;
+          api.addScore(-60);
+          api.sfx.play('click');
+          hintEl.textContent = '提示：' + pool[(pi - 1 + pool.length) % pool.length].z +
+            '　·　第一個字母是 ' + plain.charAt(0);
+        }
+      });
+      var btnSkip = api.el('button', {
+        type: 'button', class: 'btn btn--sm', text: '跳過（−30）',
+        onclick: function () {
+          if (locked) return;
+          skipped++;
+          api.addScore(-30);
+          api.sfx.play('bad');
+          api.hint('答案是「' + plain + '」', 'bad');
+          nextMessage();
+        }
+      });
+
+      stage.appendChild(api.el('div', { class: 'cp-wrap' }, [
+        api.el('div', { class: 'cp-label', text: '加密訊息' }),
+        cipherEl,
+        api.el('div', { class: 'cp-dial' }, [
+          mk('◀', -1),
+          api.el('div', { class: 'cp-dialnum' }, ['位移 ', dialNum]),
+          mk('▶', 1)
+        ]),
+        slider,
+        api.el('div', { class: 'cp-label', text: '解密結果' }),
+        plainEl,
+        hintEl,
+        api.el('div', { class: 'row', style: { justifyContent: 'center' } }, [btnHint, btnSkip])
+      ]));
+
+      slider.addEventListener('input', function () {
+        setShift(parseInt(slider.value, 10) || 0);
+      });
+
+      function setShift(v) {
+        if (locked) return;
+        shift = ((v % 26) + 26) % 26;
+        slider.value = String(shift);
+        dialNum.textContent = String(shift);
+        paint();
+      }
+
+      function paint() {
+        var cipher = shiftText(plain, key);
+        var decoded = shiftText(cipher, -shift);
+        CSE.ui.clear(plainEl);
+        for (var i = 0; i < decoded.length; i++) {
+          var ch = decoded.charAt(i);
+          plainEl.appendChild(api.el('span', {
+            class: 'cp-ch' + (ch === ' ' ? ' sp' : '') + (decoded === plain ? ' hit' : ''),
+            text: ch === ' ' ? ' ' : ch
+          }));
+        }
+        if (decoded === plain) win();
+      }
+
+      function win() {
+        if (locked) return;
+        locked = true;
+        solved++;
+        var spent = (performance.now() - qStart) / 1000;
+        var speed = Math.max(0, Math.round((18 - spent) * 10));
+        var gain = 160 + speed;
+        api.addScore(gain);
+        api.setStat('破解', solved);
+        api.sfx.play('great');
+        api.hint('破解成功！位移 ' + key + '　+' + gain + ' 分　·　' +
+          pool[(pi - 1 + pool.length) % pool.length].z, 'good');
+        api.after(1400, nextMessage);
+      }
+
+      function nextMessage() {
+        if (pi >= pool.length) { pool = CSE.util.shuffle(MESSAGES); pi = 0; }
+        var item = pool[pi++];
+        plain = item.t;
+        key = CSE.util.randInt(3, 23);          /* 避開 0，不然一開始就是答案 */
+        locked = false;
+        hintEl.textContent = '';
+        qStart = performance.now();
+
+        var cipher = shiftText(plain, key);
+        CSE.ui.clear(cipherEl);
+        for (var i = 0; i < cipher.length; i++) {
+          var ch = cipher.charAt(i);
+          cipherEl.appendChild(api.el('span', {
+            class: 'cp-ch' + (ch === ' ' ? ' sp' : ''),
+            text: ch === ' ' ? ' ' : ch
+          }));
+        }
+        /* 起始位移隨機，但不能剛好等於答案 */
+        var start;
+        do { start = CSE.util.randInt(0, 25); } while (start === key);
+        setShift(start);
+      }
+
+      api.on(document, 'keydown', function (e) {
+        if (e.key === 'ArrowLeft') { e.preventDefault(); setShift(shift - 1); }
+        if (e.key === 'ArrowRight') { e.preventDefault(); setShift(shift + 1); }
+      });
+
+      api.onResult(function () {
+        return {
+          stats: [
+            { k: '破解', v: solved + ' 則' },
+            { k: '跳過', v: skipped + ' 則' },
+            { k: '用提示', v: hintsUsed + ' 次' }
+          ]
+        };
+      });
+
+      api.setStat('破解', 0);
+      nextMessage();
+    }
+  });
+})();
+
+</script>
+<script>
+/* ===== assets/js/games/color.js ===== */
+/* ============================================================
+   遊戲 10：十六進位調色盤 — 看懂 #RRGGBB
+   教的是：十六進位、一個通道一個 byte、24 位元色彩
+   ============================================================ */
+(function () {
+  'use strict';
+  var CSE = window.CSE;
+
+  var HEX = '0123456789ABCDEF';
+
+  function toHex(n) {
+    n = CSE.util.clamp(Math.round(n), 0, 255);
+    return HEX.charAt(n >> 4) + HEX.charAt(n & 15);
+  }
+  function rgbHex(r, g, b) { return '#' + toHex(r) + toHex(g) + toHex(b); }
+
+  /* 產生一個「好描述」的顏色：至少一個通道明顯高或低 */
+  function randColor() {
+    var pick = function () { return CSE.util.randInt(0, 15) * 17; };   /* 00,11,22…FF 比較好讀 */
+    return [pick(), pick(), pick()];
+  }
+
+  /* 依難度產生干擾選項：越後面越接近正確答案 */
+  function distractor(c, level) {
+    var span = level < 3 ? 136 : level < 6 ? 85 : 51;
+    var out = c.slice();
+    var tries = 0;
+    do {
+      out = c.map(function (v) {
+        var d = CSE.util.randInt(1, span / 17) * 17 * (Math.random() < 0.5 ? -1 : 1);
+        return CSE.util.clamp(v + d, 0, 255);
+      });
+      tries++;
+    } while (out[0] === c[0] && out[1] === c[1] && out[2] === c[2] && tries < 20);
+    return out;
+  }
+
+  CSE.registerGame({
+    id: 'color',
+    name: '十六進位調色盤',
+    tag: '色彩編碼 · HEX',
+    icon: '#',
+    accent: 'var(--pink)',
+    blurb: '網頁上的 #FF8800 到底是什麼顏色？認出色碼與顏色的對應，順便搞懂十六進位。',
+    how: [
+      '題目會給你一個顏色，或一組 #RRGGBB 色碼。',
+      '從四個選項中挑出正確的那一個。',
+      '每題 12 秒，越快答對分數越高，連對有加成。',
+      '下方隨時看得到 R / G / B 三個通道的數值對照。'
+    ],
+    controls: '點選項；鍵盤 1–4 也可以',
+    duration: 70,
+    medals: { bronze: 600, silver: 1150, gold: 1750 },
+    titles: ['體驗組', '色碼新手', '調色達人', '前端之眼'],
+    knowledge: {
+      title: '#RRGGBB 其實就是三個 byte',
+      lines: [
+        'RR、GG、BB 各是一個 16 進位的兩位數，範圍 00–FF，也就是十進位的 0–255。',
+        '0–255 剛好是 8 個位元能表示的範圍 —— 跟「二進位快打」撥的那 8 個開關一模一樣。',
+        '三個通道各 1 byte，共 24 位元，可以組出 16,777,216 種顏色，俗稱「全彩」。',
+        '#FFFFFF 是三個通道全開（白），#000000 全關（黑），#FF0000 只開紅色通道。'
+      ]
+    },
+
+    mount: function (stage, api) {
+      var qi = 0, right = 0, wrong = 0, streak = 0, bestStreak = 0;
+      var locked = true, qLeft = 0, PER_Q = 12;
+      var answer = null, mode = 'toHex';
+
+      var qLabel = api.el('div', { class: 'cl-label' });
+      var qBox = api.el('div', { class: 'cl-q' });
+      var opts = api.el('div', { class: 'cl-opts' });
+      var fb = api.el('div', { class: 'cl-fb' });
+      var breakdown = api.el('div', { class: 'cl-break' });
+      var barIn = api.el('i', { style: { width: '0%' } });
+
+      stage.appendChild(api.el('div', { class: 'cl-wrap' }, [
+        api.el('div', { class: 'cl-bar' }, barIn),
+        qLabel,
+        qBox,
+        opts,
+        fb,
+        breakdown
+      ]));
+
+      function showBreakdown(c) {
+        CSE.ui.clear(breakdown);
+        var names = [['R', '紅', 'var(--red)'], ['G', '綠', 'var(--green)'], ['B', '藍', 'var(--cyan)']];
+        names.forEach(function (nm, i) {
+          breakdown.appendChild(api.el('div', { class: 'cl-chan' }, [
+            api.el('span', { class: 'cl-chan-k', style: { color: nm[2] }, text: nm[0] + ' ' + nm[1] }),
+            api.el('b', { text: toHex(c[i]) }),
+            api.el('span', { class: 'faint', text: '= ' + c[i] })
+          ]));
+        });
+      }
+
+      function nextQ() {
+        qi++;
+        locked = false;
+        qLeft = PER_Q;
+        answer = randColor();
+        mode = qi % 2 ? 'toHex' : 'toColor';
+
+        var wrongs = [];
+        var guard = 0;
+        while (wrongs.length < 3 && guard++ < 80) {
+          var d = distractor(answer, qi);
+          var dup = wrongs.some(function (w) { return w[0] === d[0] && w[1] === d[1] && w[2] === d[2]; });
+          if (!dup && !(d[0] === answer[0] && d[1] === answer[1] && d[2] === answer[2])) wrongs.push(d);
+        }
+        while (wrongs.length < 3) wrongs.push(randColor());
+
+        var all = CSE.util.shuffle([answer].concat(wrongs));
+
+        CSE.ui.clear(qBox);
+        CSE.ui.clear(opts);
+        CSE.ui.clear(breakdown);
+        fb.className = 'cl-fb';
+        fb.textContent = '';
+        api.hint('');
+
+        if (mode === 'toHex') {
+          qLabel.textContent = '這個顏色的色碼是？';
+          qBox.appendChild(api.el('div', {
+            class: 'cl-swatch cl-swatch--big',
+            style: { background: rgbHex(answer[0], answer[1], answer[2]) }
+          }));
+          all.forEach(function (c, i) {
+            opts.appendChild(api.el('button', {
+              type: 'button', class: 'btn cl-opt cl-opt--text',
+              text: rgbHex(c[0], c[1], c[2]),
+              onclick: function () { choose(c, this); }
+            }));
+          });
+        } else {
+          qLabel.textContent = '哪一個是這個色碼？';
+          qBox.appendChild(api.el('div', {
+            class: 'cl-code', text: rgbHex(answer[0], answer[1], answer[2])
+          }));
+          all.forEach(function (c) {
+            opts.appendChild(api.el('button', {
+              type: 'button', class: 'btn cl-opt cl-opt--sw',
+              'aria-label': rgbHex(c[0], c[1], c[2]),
+              onclick: function () { choose(c, this); }
+            }, api.el('span', {
+              class: 'cl-swatch',
+              style: { background: rgbHex(c[0], c[1], c[2]) }
+            })));
+          });
+        }
+      }
+
+      function choose(c, btn) {
+        if (locked) return;
+        locked = true;
+        var ok = (c[0] === answer[0] && c[1] === answer[1] && c[2] === answer[2]);
+        Array.prototype.forEach.call(opts.children, function (b) { b.disabled = true; });
+
+        if (ok) {
+          right++; streak++;
+          bestStreak = Math.max(bestStreak, streak);
+          var speed = Math.max(0, Math.round(qLeft * 8));
+          var gain = 90 + speed + 15 * Math.min(streak - 1, 6);
+          api.addScore(gain);
+          api.sfx.play(streak >= 3 ? 'great' : 'ok');
+          btn.classList.add('right');
+          fb.className = 'cl-fb right';
+          fb.textContent = '✓ 答對了（+' + gain + '）' + (streak > 1 ? '　' + streak + ' 連對' : '');
+        } else {
+          wrong++; streak = 0;
+          api.sfx.play('bad');
+          btn.classList.add('wrong');
+          Array.prototype.forEach.call(opts.children, function (b, i) {
+            var label = b.getAttribute('aria-label') || b.textContent;
+            if (label === rgbHex(answer[0], answer[1], answer[2])) b.classList.add('right');
+          });
+          fb.className = 'cl-fb wrong';
+          fb.textContent = '✗ 正確答案是 ' + rgbHex(answer[0], answer[1], answer[2]);
+        }
+        api.setStat('連對', streak);
+        showBreakdown(answer);
+        api.after(ok ? 900 : 1700, nextQ);
+      }
+
+      api.on(document, 'keydown', function (e) {
+        if (locked) return;
+        var n = parseInt(e.key, 10);
+        if (n >= 1 && n <= 4 && opts.children[n - 1]) {
+          e.preventDefault();
+          opts.children[n - 1].click();
+        }
+      });
+
+      api.onResult(function () {
+        var tot = right + wrong;
+        return {
+          stats: [
+            { k: '答對', v: right + ' 題' },
+            { k: '答錯', v: wrong + ' 題' },
+            { k: '正確率', v: (tot ? Math.round(right / tot * 100) : 0) + '%' },
+            { k: '最高連對', v: bestStreak }
+          ]
+        };
+      });
+
+      api.setStat('連對', 0);
+      nextQ();
+
+      return {
+        onTick: function (dt) {
+          if (locked) return;
+          qLeft -= dt;
+          barIn.style.width = Math.max(0, Math.min(100, (1 - qLeft / PER_Q) * 100)) + '%';
+          if (qLeft <= 0) {
+            qLeft = 0;
+            locked = true;
+            wrong++; streak = 0;
+            api.setStat('連對', 0);
+            api.sfx.play('bad');
+            Array.prototype.forEach.call(opts.children, function (b) {
+              b.disabled = true;
+              var label = b.getAttribute('aria-label') || b.textContent;
+              if (label === rgbHex(answer[0], answer[1], answer[2])) b.classList.add('right');
+            });
+            fb.className = 'cl-fb wrong';
+            fb.textContent = '⏱ 時間到 — 正確答案是 ' + rgbHex(answer[0], answer[1], answer[2]);
+            showBreakdown(answer);
+            api.after(1700, nextQ);
+          }
+        }
+      };
+    }
+  });
+})();
+
+</script>
+<script>
 /* ===== assets/js/app.js ===== */
 /* ============================================================
    app.js — 路由 / 首頁 / 排行榜 / 關於 / 設定 / 背景特效 / 展示模式
@@ -4684,7 +5505,8 @@ CSE.config = {
   var totalChip = document.getElementById('totalChip');
 
   /* 首頁卡片順序：先用「資工系大誤解」當開場，再往技術深處走 */
-  var ORDER = ['myth', 'binary', 'bughunt', 'logic', 'sort', 'packet', 'typing'];
+  var ORDER = ['myth', 'binary', 'color', 'bughunt', 'cipher', 'hanoi',
+               'logic', 'sort', 'packet', 'typing'];
   function orderedGames() {
     var out = [];
     ORDER.forEach(function (id) { if (CSE.gameById[id]) out.push(CSE.gameById[id]); });
@@ -4861,7 +5683,7 @@ CSE.config = {
           ? '你的總分 ' + CSE.util.nf(total) + ' 分，已經超過 ' + CSE.util.nf(goal.threshold) + ' 分。'
           : '目前 ' + CSE.util.nf(total) + ' / ' + CSE.util.nf(goal.threshold) +
             ' 分，還差 ' + CSE.util.nf(goal.threshold - total) + ' 分' +
-            '　·　總分 = 七款各自的最佳分數加總，七款都玩過最快'));
+            '　·　總分 = 每款各自的最佳分數加總，全部玩過最快'));
       if (goal.reward && String(goal.reward).trim()) {
         lines.push(el('div', {
           style: { fontSize: '12.5px', marginTop: '4px', color: 'var(--amber)' },
@@ -4887,7 +5709,7 @@ CSE.config = {
       ui.corners(),
       el('div', { class: 'kicker', text: 'ACHIEVEMENTS' }),
       el('h2', { text: '關卡護照' }),
-      el('p', { class: 'muted', style: { fontSize: '13px' }, text: '每款遊戲達到分數門檻就能拿到銅、銀、金牌。七款全破看看會發生什麼事。' }),
+      el('p', { class: 'muted', style: { fontSize: '13px' }, text: '每款遊戲達到分數門檻就能拿到銅、銀、金牌。全部拿到金牌看看會發生什麼事。' }),
       bg
     ]));
 
@@ -5182,7 +6004,7 @@ CSE.config = {
   }
 
   /* ---------------- 導覽列 ----------------
-     七款遊戲全部塞進橫列會超出畫面，而桌機用滑鼠滑不動橫向捲動區，
+     所有遊戲全部塞進橫列會超出畫面，而桌機用滑鼠滑不動橫向捲動區，
      等於後面的連結碰不到。改成：少數常用連結留在列上，
      遊戲收進一個下拉面板，窄螢幕則整個收成 ☰。 */
 
@@ -5280,7 +6102,7 @@ CSE.config = {
       }));
 
     panel = el('div', { class: 'navpanel', role: 'menu' }, [
-      el('div', { class: 'navpanel-head', text: '七款小遊戲' }),
+      el('div', { class: 'navpanel-head', text: CSE.games.length + ' 款小遊戲' }),
       grid,
       el('div', { class: 'navpanel-head', text: '其他' }),
       others
@@ -5462,8 +6284,8 @@ CSE.config = {
     checkForUpdate();
     setInterval(function () { if (!CSE.host.busy) checkForUpdate(); }, 10 * 60 * 1000);
 
-    if (CSE.games.length !== 7) {
-      console.warn('[CSE] 載入了 ' + CSE.games.length + ' 款遊戲（預期 7 款），請檢查 index.html 的 script 標籤');
+    if (!CSE.games.length) {
+      console.error('[CSE] 一款遊戲都沒載入，請檢查 index.html 的 script 標籤');
     }
   }
 
