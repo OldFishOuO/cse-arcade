@@ -185,9 +185,12 @@
         if (e.target.closest && e.target.closest('button, a')) return;
         input.focus();
       });
-      /* 空白鍵不要把頁面往下捲 */
+      /* 空白鍵不要把頁面往下捲 —— 但焦點在按鈕或其他輸入框時不能攔，
+         不然空白鍵就按不動按鈕、也打不出空白。 */
       api.on(window, 'keydown', function (e) {
-        if (e.key === ' ' && document.activeElement !== input) e.preventDefault();
+        if (e.key !== ' ') return;
+        var a = document.activeElement;
+        if (!a || a === document.body || a === document.documentElement) e.preventDefault();
       });
 
       api.onResult(function () {

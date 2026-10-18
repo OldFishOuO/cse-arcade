@@ -1,0 +1,13 @@
+{
+  "name": "iecs-arcade",
+  "version": "1.0.0",
+  "private": true,
+  "description": "逢甲大學資訊工程學系 十款資工主題小遊戲（測試用的 Node 設定，網站本身不需要任何套件）",
+  "scripts": {
+    "serve": "python -m http.server 8765",
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0"
+  }
+}

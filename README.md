@@ -237,3 +237,24 @@ CSE.registerGame({
 - 終端機打字遊戲需要**英數輸入法**。偵測到中文輸入法會跳提示，但沒辦法自動切換。
 - 手機玩打字遊戲會跳出虛擬鍵盤，體驗一般；其他六款都是純點擊，手機完全沒問題。
 - 沒有做暗色 / 亮色切換 —— 整個視覺就是終端機風格，只有暗色。
+
+---
+
+## 八、自動測試
+
+專案附一套 Playwright 測試，涵蓋十款遊戲的完整流程、路由、排行榜、
+設定、展示模式、響應式版面與分享標籤。桌機與手機各跑一輪，共 60 項。
+
+```bash
+npm install          # 只要做一次
+npx playwright install chromium
+npx playwright test
+```
+
+測試會自己起 `python -m http.server 8765`，不用先手動開伺服器。
+
+- `tests/games.spec.js` — 十款遊戲，每款都真的玩到結束或過關
+- `tests/app.spec.js` — 首頁、導覽、路由、排行榜、設定、展示模式、meta 標籤
+- `tests/regression.spec.js` — 修過的 bug 的回歸測試
+
+> 網站本身不需要 Node 或任何套件，`package.json` 只是為了跑測試。

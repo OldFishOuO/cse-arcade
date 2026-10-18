@@ -35,6 +35,36 @@
     return Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]);
   }
 
+  /* 整個色彩空間只有 4×4×4 = 64 種，直接全部列出來再挑，
+     比隨機試可靠：一定挑得到，而且保證三個干擾項彼此也分得開。 */
+  var ALL_LV = (function () {
+    var out = [];
+    for (var r = 0; r < 4; r++)
+      for (var g = 0; g < 4; g++)
+        for (var b = 0; b < 4; b++) out.push([r, g, b]);
+    return out;
+  })();
+
+  function pickDistractors(answer, minGap) {
+    var gap = minGap;
+    while (gap >= 1) {
+      var pool = CSE.util.shuffle(ALL_LV.filter(function (c) {
+        return dist(c, answer) >= gap;
+      }));
+      var picked = [];
+      for (var i = 0; i < pool.length && picked.length < 3; i++) {
+        var ok = picked.every(function (p) { return dist(p, pool[i]) >= 2; });
+        if (ok) picked.push(pool[i]);
+      }
+      if (picked.length === 3) return picked;
+      gap--;                 /* 條件太嚴就放寬一級再試，不會湊不滿 */
+    }
+    /* 理論上到不了這裡；真的到了也還是給三個「不等於答案」的顏色 */
+    return CSE.util.shuffle(ALL_LV.filter(function (c) {
+      return dist(c, answer) > 0;
+    })).slice(0, 3);
+  }
+
   CSE.registerGame({
     id: 'color',
     name: '十六進位調色盤',
@@ -110,17 +140,13 @@
         mode = qi % 2 ? 'toHex' : 'toColor';
 
         /* 干擾選項一定要跟答案差很多，用看的就分得出來。
-           前幾題差距更大，後面才稍微縮小，但永遠不會「幾乎一樣」。 */
+           前幾題差距更大，後面才稍微縮小，但永遠不會「幾乎一樣」。
+
+           直接列舉整個 4×4×4 色彩空間再挑，不用隨機試 ——
+           隨機試有可能湊不滿，之前的退路會塞進沒檢查過的顏色，
+           運氣不好就會出現兩個一模一樣的選項。 */
         var minGap = qi <= 4 ? 4 : qi <= 9 ? 3 : 2;
-        var wrongs = [];
-        var guard = 0;
-        while (wrongs.length < 3 && guard++ < 300) {
-          var cand = randLv();
-          if (dist(cand, answerLv) < minGap) continue;
-          var tooClose = wrongs.some(function (w) { return dist(w, cand) < 2; });
-          if (!tooClose) wrongs.push(cand);
-        }
-        while (wrongs.length < 3) wrongs.push(randLv());
+        var wrongs = pickDistractors(answerLv, minGap);
 
         var all = CSE.util.shuffle([answerLv].concat(wrongs));
         var ansRgb = lvToRgb(answerLv);

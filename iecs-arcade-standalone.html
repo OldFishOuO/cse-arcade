@@ -1,7 +1,7 @@
 <!doctype html>
-<html data-build="c524d80c" lang="zh-Hant" data-motion="on" data-scanline="on">
+<html data-build="82a8cdc6" lang="zh-Hant" data-motion="on" data-scanline="on">
 <head>
-<!-- 自動打包的單檔版（build c524d80c）。要改內容請改 assets/ 底下的原始碼，再重新執行 build-single-file.py，不要直接改這個檔。 -->
+<!-- 自動打包的單檔版（build 82a8cdc6）。要改內容請改 assets/ 底下的原始碼，再重新執行 build-single-file.py，不要直接改這個檔。 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
@@ -1852,15 +1852,18 @@ CSE.config = {
 
   var Host = {
     busy: false,           /* true = 正在遊戲中（閒置重置不會打斷） */
+    current: null,         /* 目前執行中的 instance（除錯與自動測試用） */
 
     stop: function () {
       if (current) { current._destroy(); current = null; }
+      Host.current = null;
       this.busy = false;
     },
 
     start: function (def, mountEl) {
       this.stop();
       current = createInstance(def, mountEl);
+      Host.current = current;
       return current;
     }
   };
@@ -1888,7 +1891,7 @@ CSE.config = {
 
     var stage = el('div', { class: 'gf-stage' });
     var hint = el('div', { class: 'gf-hint' });
-    var body = el('div', { style: { flex: '1', display: 'flex', flexDirection: 'column', minHeight: '0' } });
+    var body = el('div', { class: 'gf-body', style: { flex: '1', display: 'flex', flexDirection: 'column', minHeight: '0' } });
     stage.appendChild(hint);
     stage.appendChild(body);
 
@@ -1971,10 +1974,18 @@ CSE.config = {
         paintTime();
       },
 
-      /* 自動清理的事件監聽 */
+      /* 自動清理的事件監聽。
+         包一層「這局結束就不處理」：遊戲常把鍵盤監聽掛在 document 上，
+         而結算畫面有暱稱輸入框。如果不擋，像二進位的 1–8、河內塔的 1–3、
+         打字的空白鍵都會被 preventDefault 吃掉，玩家打不出自己的暱稱。
+         （清理本身還是在 begin / destroy 時做，這裡只是提早讓它失效。） */
       on: function (target, type, fn, opts) {
-        target.addEventListener(type, fn, opts);
-        S.cleanups.push(function () { target.removeEventListener(type, fn, opts); });
+        function guarded(e) {
+          if (S.ended) return;
+          return fn.call(this, e);
+        }
+        target.addEventListener(type, guarded, opts);
+        S.cleanups.push(function () { target.removeEventListener(type, guarded, opts); });
       },
       after: function (ms, fn) {
         var id = setTimeout(function () { if (!S.ended) fn(); }, ms);
@@ -4216,9 +4227,12 @@ CSE.config = {
         if (e.target.closest && e.target.closest('button, a')) return;
         input.focus();
       });
-      /* 空白鍵不要把頁面往下捲 */
+      /* 空白鍵不要把頁面往下捲 —— 但焦點在按鈕或其他輸入框時不能攔，
+         不然空白鍵就按不動按鈕、也打不出空白。 */
       api.on(window, 'keydown', function (e) {
-        if (e.key === ' ' && document.activeElement !== input) e.preventDefault();
+        if (e.key !== ' ') return;
+        var a = document.activeElement;
+        if (!a || a === document.body || a === document.documentElement) e.preventDefault();
       });
 
       api.onResult(function () {
@@ -5365,6 +5379,36 @@ CSE.config = {
     return Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]);
   }
 
+  /* 整個色彩空間只有 4×4×4 = 64 種，直接全部列出來再挑，
+     比隨機試可靠：一定挑得到，而且保證三個干擾項彼此也分得開。 */
+  var ALL_LV = (function () {
+    var out = [];
+    for (var r = 0; r < 4; r++)
+      for (var g = 0; g < 4; g++)
+        for (var b = 0; b < 4; b++) out.push([r, g, b]);
+    return out;
+  })();
+
+  function pickDistractors(answer, minGap) {
+    var gap = minGap;
+    while (gap >= 1) {
+      var pool = CSE.util.shuffle(ALL_LV.filter(function (c) {
+        return dist(c, answer) >= gap;
+      }));
+      var picked = [];
+      for (var i = 0; i < pool.length && picked.length < 3; i++) {
+        var ok = picked.every(function (p) { return dist(p, pool[i]) >= 2; });
+        if (ok) picked.push(pool[i]);
+      }
+      if (picked.length === 3) return picked;
+      gap--;                 /* 條件太嚴就放寬一級再試，不會湊不滿 */
+    }
+    /* 理論上到不了這裡；真的到了也還是給三個「不等於答案」的顏色 */
+    return CSE.util.shuffle(ALL_LV.filter(function (c) {
+      return dist(c, answer) > 0;
+    })).slice(0, 3);
+  }
+
   CSE.registerGame({
     id: 'color',
     name: '十六進位調色盤',
@@ -5440,17 +5484,13 @@ CSE.config = {
         mode = qi % 2 ? 'toHex' : 'toColor';
 
         /* 干擾選項一定要跟答案差很多，用看的就分得出來。
-           前幾題差距更大，後面才稍微縮小，但永遠不會「幾乎一樣」。 */
+           前幾題差距更大，後面才稍微縮小，但永遠不會「幾乎一樣」。
+
+           直接列舉整個 4×4×4 色彩空間再挑，不用隨機試 ——
+           隨機試有可能湊不滿，之前的退路會塞進沒檢查過的顏色，
+           運氣不好就會出現兩個一模一樣的選項。 */
         var minGap = qi <= 4 ? 4 : qi <= 9 ? 3 : 2;
-        var wrongs = [];
-        var guard = 0;
-        while (wrongs.length < 3 && guard++ < 300) {
-          var cand = randLv();
-          if (dist(cand, answerLv) < minGap) continue;
-          var tooClose = wrongs.some(function (w) { return dist(w, cand) < 2; });
-          if (!tooClose) wrongs.push(cand);
-        }
-        while (wrongs.length < 3) wrongs.push(randLv());
+        var wrongs = pickDistractors(answerLv, minGap);
 
         var all = CSE.util.shuffle([answerLv].concat(wrongs));
         var ansRgb = lvToRgb(answerLv);
@@ -6215,8 +6255,12 @@ CSE.config = {
     if (gamesBtn) gamesBtn.setAttribute('aria-expanded', 'true');
     if (hamBtn) hamBtn.setAttribute('aria-expanded', 'true');
     document.addEventListener('keydown', onPanelKey, true);
-    /* 延後一拍再掛，免得開啟這一次的 click 立刻把它關掉 */
-    setTimeout(function () { document.addEventListener('click', onOutside, true); }, 0);
+    /* 延後一拍再掛，免得開啟這一次的 click 立刻把它關掉。
+       要再確認面板還開著 —— 若這一拍之間就被 Esc 或路由關掉，
+       監聽會掛在一個已經關閉的面板上，而且永遠不會被解除。 */
+    setTimeout(function () {
+      if (panel) document.addEventListener('click', onOutside, true);
+    }, 0);
   }
 
   function markNav(route) {

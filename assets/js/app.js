@@ -631,8 +631,12 @@
     if (gamesBtn) gamesBtn.setAttribute('aria-expanded', 'true');
     if (hamBtn) hamBtn.setAttribute('aria-expanded', 'true');
     document.addEventListener('keydown', onPanelKey, true);
-    /* 延後一拍再掛，免得開啟這一次的 click 立刻把它關掉 */
-    setTimeout(function () { document.addEventListener('click', onOutside, true); }, 0);
+    /* 延後一拍再掛，免得開啟這一次的 click 立刻把它關掉。
+       要再確認面板還開著 —— 若這一拍之間就被 Esc 或路由關掉，
+       監聽會掛在一個已經關閉的面板上，而且永遠不會被解除。 */
+    setTimeout(function () {
+      if (panel) document.addEventListener('click', onOutside, true);
+    }, 0);
   }
 
   function markNav(route) {

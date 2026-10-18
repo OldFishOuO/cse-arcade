@@ -11,15 +11,18 @@
 
   var Host = {
     busy: false,           /* true = 正在遊戲中（閒置重置不會打斷） */
+    current: null,         /* 目前執行中的 instance（除錯與自動測試用） */
 
     stop: function () {
       if (current) { current._destroy(); current = null; }
+      Host.current = null;
       this.busy = false;
     },
 
     start: function (def, mountEl) {
       this.stop();
       current = createInstance(def, mountEl);
+      Host.current = current;
       return current;
     }
   };
@@ -47,7 +50,7 @@
 
     var stage = el('div', { class: 'gf-stage' });
     var hint = el('div', { class: 'gf-hint' });
-    var body = el('div', { style: { flex: '1', display: 'flex', flexDirection: 'column', minHeight: '0' } });
+    var body = el('div', { class: 'gf-body', style: { flex: '1', display: 'flex', flexDirection: 'column', minHeight: '0' } });
     stage.appendChild(hint);
     stage.appendChild(body);
 
@@ -130,10 +133,18 @@
         paintTime();
       },
 
-      /* 自動清理的事件監聽 */
+      /* 自動清理的事件監聽。
+         包一層「這局結束就不處理」：遊戲常把鍵盤監聽掛在 document 上，
+         而結算畫面有暱稱輸入框。如果不擋，像二進位的 1–8、河內塔的 1–3、
+         打字的空白鍵都會被 preventDefault 吃掉，玩家打不出自己的暱稱。
+         （清理本身還是在 begin / destroy 時做，這裡只是提早讓它失效。） */
       on: function (target, type, fn, opts) {
-        target.addEventListener(type, fn, opts);
-        S.cleanups.push(function () { target.removeEventListener(type, fn, opts); });
+        function guarded(e) {
+          if (S.ended) return;
+          return fn.call(this, e);
+        }
+        target.addEventListener(type, guarded, opts);
+        S.cleanups.push(function () { target.removeEventListener(type, guarded, opts); });
       },
       after: function (ms, fn) {
         var id = setTimeout(function () { if (!S.ended) fn(); }, ms);

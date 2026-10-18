@@ -11,3 +11,8 @@ __pycache__/
 
 # 測試用的暫存檔
 _test-*.html
+
+# Playwright / Node（只有跑測試才需要，不進版控）
+node_modules/
+test-results/
+playwright-report/
