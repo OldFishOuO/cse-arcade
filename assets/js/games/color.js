@@ -1,6 +1,10 @@
 /* ============================================================
    遊戲 10：十六進位調色盤 — 看懂 #RRGGBB
    教的是：十六進位、一個通道一個 byte、24 位元色彩
+
+   設計原則：這款不是要考記憶力。
+   玩家只要知道「數字越大 = 這個顏色越多」就能推出答案，
+   所以選項之間一定差很多，而且畫面上永遠看得到對照表。
    ============================================================ */
 (function () {
   'use strict';
@@ -8,31 +12,27 @@
 
   var HEX = '0123456789ABCDEF';
 
+  /* 每個通道只用這四格，顏色才夠好分辨、數字也好記 */
+  var LEVELS = [0x00, 0x55, 0xAA, 0xFF];
+  var LEVEL_WORD = ['沒有', '一點', '很多', '全開'];
+
   function toHex(n) {
     n = CSE.util.clamp(Math.round(n), 0, 255);
     return HEX.charAt(n >> 4) + HEX.charAt(n & 15);
   }
-  function rgbHex(r, g, b) { return '#' + toHex(r) + toHex(g) + toHex(b); }
+  function rgbHex(c) { return '#' + toHex(c[0]) + toHex(c[1]) + toHex(c[2]); }
 
-  /* 產生一個「好描述」的顏色：至少一個通道明顯高或低 */
-  function randColor() {
-    var pick = function () { return CSE.util.randInt(0, 15) * 17; };   /* 00,11,22…FF 比較好讀 */
-    return [pick(), pick(), pick()];
-  }
-
-  /* 依難度產生干擾選項：越後面越接近正確答案 */
-  function distractor(c, level) {
-    var span = level < 3 ? 136 : level < 6 ? 85 : 51;
-    var out = c.slice();
-    var tries = 0;
+  /* 用「格子編號」表示顏色：[0..3, 0..3, 0..3] */
+  function randLv() {
+    var lv;
     do {
-      out = c.map(function (v) {
-        var d = CSE.util.randInt(1, span / 17) * 17 * (Math.random() < 0.5 ? -1 : 1);
-        return CSE.util.clamp(v + d, 0, 255);
-      });
-      tries++;
-    } while (out[0] === c[0] && out[1] === c[1] && out[2] === c[2] && tries < 20);
-    return out;
+      lv = [CSE.util.randInt(0, 3), CSE.util.randInt(0, 3), CSE.util.randInt(0, 3)];
+    } while (lv[0] === lv[1] && lv[1] === lv[2]);   /* 避開灰階，太難分 */
+    return lv;
+  }
+  function lvToRgb(lv) { return [LEVELS[lv[0]], LEVELS[lv[1]], LEVELS[lv[2]]]; }
+  function dist(a, b) {
+    return Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]);
   }
 
   CSE.registerGame({
@@ -41,146 +41,166 @@
     tag: '色彩編碼 · HEX',
     icon: '#',
     accent: 'var(--pink)',
-    blurb: '網頁上的 #FF8800 到底是什麼顏色？認出色碼與顏色的對應，順便搞懂十六進位。',
+    level: '入門',
+    blurb: '網頁上的 #FF8800 到底是什麼顏色？不用背，只要知道「數字越大這個顏色越多」就能推出來。',
     how: [
-      '題目會給你一個顏色，或一組 #RRGGBB 色碼。',
-      '從四個選項中挑出正確的那一個。',
-      '每題 12 秒，越快答對分數越高，連對有加成。',
-      '下方隨時看得到 R / G / B 三個通道的數值對照。'
+      '#RRGGBB 的三組數字，分別代表紅、綠、藍各有多少。',
+      '00 是完全沒有、FF 是開到最大 —— 畫面下方隨時看得到對照表。',
+      '題目會給顏色讓你選色碼，或給色碼讓你選顏色。',
+      '選項之間一定差很多，用推的就好，不需要背。'
     ],
     controls: '點選項；鍵盤 1–4 也可以',
     duration: 70,
-    medals: { bronze: 600, silver: 1150, gold: 1750 },
+    medals: { bronze: 550, silver: 1050, gold: 1650 },
     titles: ['體驗組', '色碼新手', '調色達人', '前端之眼'],
     knowledge: {
       title: '#RRGGBB 其實就是三個 byte',
       lines: [
-        'RR、GG、BB 各是一個 16 進位的兩位數，範圍 00–FF，也就是十進位的 0–255。',
+        'RR、GG、BB 各是一個 16 進位兩位數，範圍 00–FF，也就是十進位的 0–255。',
         '0–255 剛好是 8 個位元能表示的範圍 —— 跟「二進位快打」撥的那 8 個開關一模一樣。',
         '三個通道各 1 byte，共 24 位元，可以組出 16,777,216 種顏色，俗稱「全彩」。',
-        '#FFFFFF 是三個通道全開（白），#000000 全關（黑），#FF0000 只開紅色通道。'
+        '#FF0000 只開紅色、#00FF00 只開綠色、#FFFFFF 三個全開是白、#000000 全關是黑。'
       ]
     },
 
     mount: function (stage, api) {
       var qi = 0, right = 0, wrong = 0, streak = 0, bestStreak = 0;
-      var locked = true, qLeft = 0, PER_Q = 12;
-      var answer = null, mode = 'toHex';
+      var locked = true, qLeft = 0, PER_Q = 14;
+      var answerLv = null, mode = 'toHex';
 
       var qLabel = api.el('div', { class: 'cl-label' });
       var qBox = api.el('div', { class: 'cl-q' });
+      var qHint = api.el('div', { class: 'cl-qhint' });
       var opts = api.el('div', { class: 'cl-opts' });
       var fb = api.el('div', { class: 'cl-fb' });
-      var breakdown = api.el('div', { class: 'cl-break' });
       var barIn = api.el('i', { style: { width: '0%' } });
+
+      /* 永遠放在畫面上的對照表：這款遊戲的重點是讀懂它，不是背下來 */
+      var legend = api.el('div', { class: 'cl-legend' }, [
+        api.el('div', { class: 'cl-legend-row' }, [
+          api.el('span', { class: 'cl-legend-t', text: '#' }),
+          api.el('span', { class: 'cl-legend-seg', style: { color: 'var(--red)' }, text: 'RR' }),
+          api.el('span', { class: 'cl-legend-seg', style: { color: 'var(--green)' }, text: 'GG' }),
+          api.el('span', { class: 'cl-legend-seg', style: { color: 'var(--cyan)' }, text: 'BB' }),
+          api.el('span', { class: 'faint', text: '＝ 紅 / 綠 / 藍 各有多少' })
+        ]),
+        api.el('div', { class: 'cl-scale' }, LEVELS.map(function (v, i) {
+          return api.el('div', { class: 'cl-scale-item' }, [
+            api.el('b', { text: toHex(v) }),
+            api.el('span', { text: LEVEL_WORD[i] })
+          ]);
+        }))
+      ]);
 
       stage.appendChild(api.el('div', { class: 'cl-wrap' }, [
         api.el('div', { class: 'cl-bar' }, barIn),
         qLabel,
         qBox,
+        qHint,
         opts,
         fb,
-        breakdown
+        legend
       ]));
-
-      function showBreakdown(c) {
-        CSE.ui.clear(breakdown);
-        var names = [['R', '紅', 'var(--red)'], ['G', '綠', 'var(--green)'], ['B', '藍', 'var(--cyan)']];
-        names.forEach(function (nm, i) {
-          breakdown.appendChild(api.el('div', { class: 'cl-chan' }, [
-            api.el('span', { class: 'cl-chan-k', style: { color: nm[2] }, text: nm[0] + ' ' + nm[1] }),
-            api.el('b', { text: toHex(c[i]) }),
-            api.el('span', { class: 'faint', text: '= ' + c[i] })
-          ]));
-        });
-      }
 
       function nextQ() {
         qi++;
         locked = false;
         qLeft = PER_Q;
-        answer = randColor();
+        answerLv = randLv();
         mode = qi % 2 ? 'toHex' : 'toColor';
 
+        /* 干擾選項一定要跟答案差很多，用看的就分得出來。
+           前幾題差距更大，後面才稍微縮小，但永遠不會「幾乎一樣」。 */
+        var minGap = qi <= 4 ? 4 : qi <= 9 ? 3 : 2;
         var wrongs = [];
         var guard = 0;
-        while (wrongs.length < 3 && guard++ < 80) {
-          var d = distractor(answer, qi);
-          var dup = wrongs.some(function (w) { return w[0] === d[0] && w[1] === d[1] && w[2] === d[2]; });
-          if (!dup && !(d[0] === answer[0] && d[1] === answer[1] && d[2] === answer[2])) wrongs.push(d);
+        while (wrongs.length < 3 && guard++ < 300) {
+          var cand = randLv();
+          if (dist(cand, answerLv) < minGap) continue;
+          var tooClose = wrongs.some(function (w) { return dist(w, cand) < 2; });
+          if (!tooClose) wrongs.push(cand);
         }
-        while (wrongs.length < 3) wrongs.push(randColor());
+        while (wrongs.length < 3) wrongs.push(randLv());
 
-        var all = CSE.util.shuffle([answer].concat(wrongs));
+        var all = CSE.util.shuffle([answerLv].concat(wrongs));
+        var ansRgb = lvToRgb(answerLv);
 
         CSE.ui.clear(qBox);
         CSE.ui.clear(opts);
-        CSE.ui.clear(breakdown);
         fb.className = 'cl-fb';
         fb.textContent = '';
         api.hint('');
 
         if (mode === 'toHex') {
-          qLabel.textContent = '這個顏色的色碼是？';
+          qLabel.textContent = '這個顏色的色碼是哪一個？';
+          qHint.textContent = '提示：看看紅、綠、藍各佔多少，再比對數字大小。';
           qBox.appendChild(api.el('div', {
             class: 'cl-swatch cl-swatch--big',
-            style: { background: rgbHex(answer[0], answer[1], answer[2]) }
+            style: { background: rgbHex(ansRgb) }
           }));
-          all.forEach(function (c, i) {
+          all.forEach(function (lv) {
+            var c = lvToRgb(lv);
             opts.appendChild(api.el('button', {
               type: 'button', class: 'btn cl-opt cl-opt--text',
-              text: rgbHex(c[0], c[1], c[2]),
-              onclick: function () { choose(c, this); }
+              text: rgbHex(c),
+              onclick: function () { choose(lv, this); }
             }));
           });
         } else {
           qLabel.textContent = '哪一個是這個色碼？';
-          qBox.appendChild(api.el('div', {
-            class: 'cl-code', text: rgbHex(answer[0], answer[1], answer[2])
-          }));
-          all.forEach(function (c) {
+          /* 直接把三個通道翻成白話 —— 這是教學，不是洩題：
+             玩家還是得自己把「紅全開、綠沒有」對應到色票。 */
+          qHint.textContent = '紅 ' + LEVEL_WORD[answerLv[0]] +
+                              '　綠 ' + LEVEL_WORD[answerLv[1]] +
+                              '　藍 ' + LEVEL_WORD[answerLv[2]];
+          qBox.appendChild(api.el('div', { class: 'cl-code', text: rgbHex(ansRgb) }));
+          all.forEach(function (lv) {
+            var c = lvToRgb(lv);
             opts.appendChild(api.el('button', {
               type: 'button', class: 'btn cl-opt cl-opt--sw',
-              'aria-label': rgbHex(c[0], c[1], c[2]),
-              onclick: function () { choose(c, this); }
-            }, api.el('span', {
-              class: 'cl-swatch',
-              style: { background: rgbHex(c[0], c[1], c[2]) }
-            })));
+              'aria-label': rgbHex(c),
+              onclick: function () { choose(lv, this); }
+            }, api.el('span', { class: 'cl-swatch', style: { background: rgbHex(c) } })));
           });
         }
       }
 
-      function choose(c, btn) {
+      function markAnswer() {
+        var want = rgbHex(lvToRgb(answerLv));
+        Array.prototype.forEach.call(opts.children, function (b) {
+          b.disabled = true;
+          var label = b.getAttribute('aria-label') || b.textContent;
+          if (label === want) b.classList.add('right');
+        });
+      }
+
+      function choose(lv, btn) {
         if (locked) return;
         locked = true;
-        var ok = (c[0] === answer[0] && c[1] === answer[1] && c[2] === answer[2]);
-        Array.prototype.forEach.call(opts.children, function (b) { b.disabled = true; });
+        var ok = dist(lv, answerLv) === 0;
 
         if (ok) {
           right++; streak++;
           bestStreak = Math.max(bestStreak, streak);
-          var speed = Math.max(0, Math.round(qLeft * 8));
+          var speed = Math.max(0, Math.round(qLeft * 7));
           var gain = 90 + speed + 15 * Math.min(streak - 1, 6);
           api.addScore(gain);
           api.sfx.play(streak >= 3 ? 'great' : 'ok');
-          btn.classList.add('right');
+          markAnswer();
           fb.className = 'cl-fb right';
           fb.textContent = '✓ 答對了（+' + gain + '）' + (streak > 1 ? '　' + streak + ' 連對' : '');
         } else {
           wrong++; streak = 0;
           api.sfx.play('bad');
           btn.classList.add('wrong');
-          Array.prototype.forEach.call(opts.children, function (b, i) {
-            var label = b.getAttribute('aria-label') || b.textContent;
-            if (label === rgbHex(answer[0], answer[1], answer[2])) b.classList.add('right');
-          });
+          markAnswer();
+          var a = answerLv;
           fb.className = 'cl-fb wrong';
-          fb.textContent = '✗ 正確答案是 ' + rgbHex(answer[0], answer[1], answer[2]);
+          fb.textContent = '✗ 答案是 ' + rgbHex(lvToRgb(a)) +
+            '（紅 ' + LEVEL_WORD[a[0]] + '、綠 ' + LEVEL_WORD[a[1]] + '、藍 ' + LEVEL_WORD[a[2]] + '）';
         }
         api.setStat('連對', streak);
-        showBreakdown(answer);
-        api.after(ok ? 900 : 1700, nextQ);
+        api.after(ok ? 850 : 1900, nextQ);
       }
 
       api.on(document, 'keydown', function (e) {
@@ -218,15 +238,10 @@
             wrong++; streak = 0;
             api.setStat('連對', 0);
             api.sfx.play('bad');
-            Array.prototype.forEach.call(opts.children, function (b) {
-              b.disabled = true;
-              var label = b.getAttribute('aria-label') || b.textContent;
-              if (label === rgbHex(answer[0], answer[1], answer[2])) b.classList.add('right');
-            });
+            markAnswer();
             fb.className = 'cl-fb wrong';
-            fb.textContent = '⏱ 時間到 — 正確答案是 ' + rgbHex(answer[0], answer[1], answer[2]);
-            showBreakdown(answer);
-            api.after(1700, nextQ);
+            fb.textContent = '⏱ 時間到 — 答案是 ' + rgbHex(lvToRgb(answerLv));
+            api.after(1900, nextQ);
           }
         }
       };

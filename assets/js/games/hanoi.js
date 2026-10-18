@@ -18,6 +18,7 @@
     tag: '演算法 · RECURSION',
     icon: '≡',
     accent: 'var(--lime)',
+    level: '普通',
     blurb: '把整疊圓盤搬到最右邊，大的不能壓小的。規則三秒就懂，但要用最少步數就是遞迴的經典題。',
     how: [
       '點一根柱子拿起最上面的圓盤，再點另一根放下。',
@@ -71,11 +72,19 @@
 
       function render() {
         CSE.ui.clear(board);
+        /* 拿起圓盤時先算出哪幾根放得下，直接標出來。
+           新手最卡的就是一直試錯，標示之後他們能專心想「下一步該搬哪個」。 */
+        var holding = sel >= 0 && pegs[sel].length ? pegs[sel][pegs[sel].length - 1] : 0;
+
         for (var p = 0; p < 3; p++) {
+          var top = pegs[p].length ? pegs[p][pegs[p].length - 1] : Infinity;
+          var ok = holding && p !== sel && holding < top;
+          var bad = holding && p !== sel && holding > top;
           var col = api.el('button', {
             type: 'button',
-            class: 'hn-peg' + (sel === p ? ' sel' : ''),
-            'aria-label': '第 ' + (p + 1) + ' 根柱子，' + pegs[p].length + ' 個圓盤'
+            class: 'hn-peg' + (sel === p ? ' sel' : '') + (ok ? ' can' : '') + (bad ? ' no' : ''),
+            'aria-label': '第 ' + (p + 1) + ' 根柱子，' + pegs[p].length + ' 個圓盤' +
+              (ok ? '，可以放' : bad ? '，放不下' : '')
           });
           col.appendChild(api.el('i', { class: 'hn-rod' }));
           var stack = api.el('div', { class: 'hn-stack' });

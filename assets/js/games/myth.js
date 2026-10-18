@@ -110,7 +110,7 @@
     }
   ];
 
-  var ROUND = 10, PER_Q = 10;
+  var ROUND = 10, PER_Q = 12;   /* 10 秒對讀得慢的人太趕 */
 
   CSE.registerGame({
     id: 'myth',
@@ -118,11 +118,12 @@
     tag: '認識資工系 · MYTH',
     icon: '?!',
     accent: 'var(--pink)',
+    level: '入門',
     blurb: '「資工系是不是在修電腦？」十題快問快答，三秒內判斷對錯，順手破解對資工系的誤會。',
     how: [
       '畫面出現一句關於資工系的話。',
       '判斷它是「對」還是「錯」，直接按大按鈕。',
-      '每題 10 秒，越快答對分數越高，連對有加成。',
+      '每題 12 秒，越快答對分數越高，連對有加成。',
       '每題都有解說 — 答錯沒關係，看懂才是重點。'
     ],
     controls: '點按鈕；鍵盤左右方向鍵或 O / X 也可以',
@@ -180,7 +181,7 @@
         if (ok) {
           right++; streak++;
           bestStreak = Math.max(bestStreak, streak);
-          var speed = Math.max(0, Math.round(qLeft * 9));
+          var speed = Math.max(0, Math.round(qLeft * 7));
           var gain = 100 + speed + 15 * Math.min(streak - 1, 6);
           api.addScore(gain);
           api.sfx.play(streak >= 3 ? 'great' : 'ok');

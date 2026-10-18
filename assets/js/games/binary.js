@@ -14,6 +14,7 @@
     tag: '數位邏輯 · BINARY',
     icon: '10',
     accent: 'var(--green)',
+    level: '入門',
     blurb: '電腦眼裡只有 0 和 1。撥動 8 個位元開關，湊出畫面上的十進位數字。',
     how: [
       '上方出現一個目標數字（1–255）。',
@@ -45,6 +46,7 @@
       var curVal = api.el('b', { text: '0' });
       var curBin = api.el('span', { class: 'faint', text: '' });
       var curEl = api.el('div', { class: 'bin-cur' }, ['目前：', curVal, ' ', curBin]);
+      var diffEl = api.el('div', { class: 'bin-diff' });
       var binHint = api.el('div', { class: 'bin-binary', text: '' });
 
       var bitsWrap = api.el('div', { class: 'bin-bits' });
@@ -100,6 +102,7 @@
         binHint,
         bitsWrap,
         curEl,
+        diffEl,
         api.el('div', { class: 'bin-hintrow' }, [btnHint, btnSkip, btnClear])
       ]));
 
@@ -124,6 +127,11 @@
         curVal.textContent = String(v);
         curBin.textContent = '(' + binStr(v) + ')';
         curEl.className = 'bin-cur' + (v > target ? ' hi' : v < target ? ' lo' : '');
+        /* 直接把差距算給他看 —— 不然玩家得自己心算，
+           而這款要練的是「湊出位值」，不是心算減法。 */
+        var d = target - v;
+        diffEl.textContent = d === 0 ? '' : (d > 0 ? '還差 ' + d : '多了 ' + (-d));
+        diffEl.className = 'bin-diff' + (d > 0 ? ' lo' : d < 0 ? ' hi' : '');
         for (var i = 0; i < 8; i++) {
           bitBtns[i].setAttribute('aria-pressed', bits[i] ? 'true' : 'false');
           bitBtns[i]._v.textContent = bits[i] ? '1' : '0';

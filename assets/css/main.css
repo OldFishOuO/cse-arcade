@@ -406,7 +406,19 @@ p{ margin:0 0 10px; }
   font-size:18.5px; font-weight:700; color:#fff; line-height:1.2;
   text-shadow:0 0 18px color-mix(in srgb, var(--accent) 55%, transparent);
 }
-.gcard-tag{ font-size:11px; color:var(--fg-faint); letter-spacing:.07em; }
+.gcard-tag{
+  font-size:11px; color:var(--fg-faint); letter-spacing:.07em;
+  display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+}
+/* 難度標籤：十款遊戲擺在一起，新訪客需要知道從哪開始 */
+.gcard-lv{
+  flex:0 0 auto; padding:1px 7px; border-radius:999px;
+  font-size:10px; font-weight:700; letter-spacing:.06em; font-style:normal;
+}
+.lv-easy{ background:#0c2a1a; color:var(--green); border:1px solid color-mix(in srgb, var(--green) 40%, transparent); }
+.lv-mid{ background:#2a2410; color:var(--amber); border:1px solid color-mix(in srgb, var(--amber) 40%, transparent); }
+.lv-hard{ background:#2a1420; color:var(--pink); border:1px solid color-mix(in srgb, var(--pink) 40%, transparent); }
+.navitem-txt span{ display:flex; align-items:center; gap:5px; }
 .gcard-blurb{ font-size:13.5px; color:#9fb4c4; min-height:3.2em; }
 
 /* 「推薦先玩」標記：第一次來的人需要一個明確的起點 */
@@ -549,6 +561,12 @@ input[type="text"]:focus{ border-color:var(--accent); outline:none; }
   box-shadow:0 0 16px -5px var(--green);
 }
 .bit[aria-pressed="true"] .v{ color:var(--green); text-shadow:0 0 14px var(--green); }
+.bin-diff{
+  text-align:center; min-height:1.5em;
+  font-size:clamp(15px,2.8vw,20px); font-weight:700;
+}
+.bin-diff.lo{ color:var(--cyan); }
+.bin-diff.hi{ color:var(--red); }
 .bin-hintrow{ display:flex; justify-content:center; gap:9px; flex-wrap:wrap; }
 .bin-binary{
   text-align:center; font-size:clamp(14px,3vw,20px); letter-spacing:.3em;

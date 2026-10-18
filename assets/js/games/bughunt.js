@@ -492,7 +492,7 @@
   ];
 
   var ROUND = 8;          /* 每局題數 */
-  var PER_Q = 20;         /* 每題秒數 */
+  var PER_Q = 26;         /* 每題秒數：要先讀懂程式碼，20 秒對新手太趕 */
   var LIVES = 3;
 
   /* ---------- 極簡語法上色（每種語言一套規則） ---------- */
@@ -537,12 +537,13 @@
     tag: '程式設計 · DEBUG',
     icon: '!',
     accent: 'var(--amber)',
+    level: '普通',
     blurb: '工程師一半的時間在抓 bug。自己挑語言，每段程式裡藏一個錯誤，點出是哪一行。不會寫程式也看得懂。',
     how: [
       '先選一種程式語言：Python、C 或 JavaScript。',
       '畫面顯示一小段該語言的程式，裡面藏著一個錯誤。',
       '直接點你覺得有問題的那一行。',
-      '點對加分，點錯扣一條命（共 3 條）；每題限時 20 秒。',
+      '點對加分，點錯扣一條命（共 3 條）；每題限時 26 秒。',
       '答完都會解釋為什麼錯、怎麼修 — 這才是重點。'
     ],
     controls: '點擊程式碼的任一行；也可按鍵盤數字鍵選行',
@@ -699,7 +700,7 @@
 
         if (correct) {
           right++;
-          var speed = Math.max(0, Math.round(qLeft * 7));
+          var speed = Math.max(0, Math.round(qLeft * 5));
           var gain = 100 + speed;
           api.addScore(gain);
           api.sfx.play('great');

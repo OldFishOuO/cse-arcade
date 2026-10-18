@@ -12,8 +12,13 @@
   var totalChip = document.getElementById('totalChip');
 
   /* 首頁卡片順序：先用「資工系大誤解」當開場，再往技術深處走 */
-  var ORDER = ['myth', 'binary', 'color', 'bughunt', 'cipher', 'hanoi',
-               'logic', 'sort', 'packet', 'typing'];
+  var ORDER = ['myth', 'binary', 'bughunt', 'logic', 'sort', 'packet', 'typing',
+               'hanoi', 'cipher', 'color'];
+  /* 難度標籤的樣式分類 */
+  function lvKey(lv) {
+    return lv === '入門' ? 'easy' : lv === '挑戰' ? 'hard' : 'mid';
+  }
+
   function orderedGames() {
     var out = [];
     ORDER.forEach(function (id) { if (CSE.gameById[id]) out.push(CSE.gameById[id]); });
@@ -158,9 +163,12 @@
         pick ? el('span', { class: 'gcard-pick', text: '推薦先玩' }) : null,
         el('div', { class: 'gcard-top' }, [
           el('div', { class: 'gcard-icon', html: g.icon || '#' }),
-          el('div', {}, [
+          el('div', { style: { minWidth: '0' } }, [
             el('div', { class: 'gcard-name', text: g.name }),
-            el('div', { class: 'gcard-tag', text: g.tag || '' })
+            el('div', { class: 'gcard-tag' }, [
+              g.level ? el('span', { class: 'gcard-lv lv-' + lvKey(g.level), text: g.level }) : null,
+              g.tag || ''
+            ])
           ])
         ]),
         el('div', { class: 'gcard-blurb', text: g.blurb }),
@@ -593,7 +601,10 @@
         el('span', { class: 'navitem-ic', html: g.icon || '#' }),
         el('span', { class: 'navitem-txt' }, [
           el('b', { text: g.name }),
-          el('span', { text: best ? '最佳 ' + CSE.util.nf(best) : '還沒玩過' })
+          el('span', {}, [
+            g.level ? el('i', { class: 'gcard-lv lv-' + lvKey(g.level), text: g.level }) : null,
+            best ? '最佳 ' + CSE.util.nf(best) : '還沒玩過'
+          ])
         ])
       ]);
       grid.appendChild(item);

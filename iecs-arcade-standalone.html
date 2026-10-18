@@ -1,7 +1,7 @@
 <!doctype html>
-<html data-build="a94e4a79" lang="zh-Hant" data-motion="on" data-scanline="on">
+<html data-build="6ea3eea1" lang="zh-Hant" data-motion="on" data-scanline="on">
 <head>
-<!-- 自動打包的單檔版（build a94e4a79）。要改內容請改 assets/ 底下的原始碼，再重新執行 build-single-file.py，不要直接改這個檔。 -->
+<!-- 自動打包的單檔版（build 6ea3eea1）。要改內容請改 assets/ 底下的原始碼，再重新執行 build-single-file.py，不要直接改這個檔。 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
@@ -434,7 +434,19 @@ p{ margin:0 0 10px; }
   font-size:18.5px; font-weight:700; color:#fff; line-height:1.2;
   text-shadow:0 0 18px color-mix(in srgb, var(--accent) 55%, transparent);
 }
-.gcard-tag{ font-size:11px; color:var(--fg-faint); letter-spacing:.07em; }
+.gcard-tag{
+  font-size:11px; color:var(--fg-faint); letter-spacing:.07em;
+  display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+}
+/* 難度標籤：十款遊戲擺在一起，新訪客需要知道從哪開始 */
+.gcard-lv{
+  flex:0 0 auto; padding:1px 7px; border-radius:999px;
+  font-size:10px; font-weight:700; letter-spacing:.06em; font-style:normal;
+}
+.lv-easy{ background:#0c2a1a; color:var(--green); border:1px solid color-mix(in srgb, var(--green) 40%, transparent); }
+.lv-mid{ background:#2a2410; color:var(--amber); border:1px solid color-mix(in srgb, var(--amber) 40%, transparent); }
+.lv-hard{ background:#2a1420; color:var(--pink); border:1px solid color-mix(in srgb, var(--pink) 40%, transparent); }
+.navitem-txt span{ display:flex; align-items:center; gap:5px; }
 .gcard-blurb{ font-size:13.5px; color:#9fb4c4; min-height:3.2em; }
 
 /* 「推薦先玩」標記：第一次來的人需要一個明確的起點 */
@@ -577,6 +589,12 @@ input[type="text"]:focus{ border-color:var(--accent); outline:none; }
   box-shadow:0 0 16px -5px var(--green);
 }
 .bit[aria-pressed="true"] .v{ color:var(--green); text-shadow:0 0 14px var(--green); }
+.bin-diff{
+  text-align:center; min-height:1.5em;
+  font-size:clamp(15px,2.8vw,20px); font-weight:700;
+}
+.bin-diff.lo{ color:var(--cyan); }
+.bin-diff.hi{ color:var(--red); }
 .bin-hintrow{ display:flex; justify-content:center; gap:9px; flex-wrap:wrap; }
 .bin-binary{
   text-align:center; font-size:clamp(14px,3vw,20px); letter-spacing:.3em;
@@ -973,6 +991,22 @@ html[data-motion="off"] *::after{
   background:color-mix(in srgb, var(--amber) 10%, #0c1620);
   border-color:var(--amber);
 }
+/* 拿著圓盤時，標出哪幾根放得下 */
+.hn-peg.can{
+  background:color-mix(in srgb, var(--green) 9%, #0c1620);
+  border-color:color-mix(in srgb, var(--green) 55%, transparent);
+}
+.hn-peg.can .hn-base{
+  color:var(--green); border-color:color-mix(in srgb, var(--green) 50%, transparent);
+}
+.hn-peg.can::after{
+  content:"可以放這裡"; position:absolute; top:6px; left:50%;
+  transform:translateX(-50%); white-space:nowrap;
+  padding:2px 9px; border-radius:999px;
+  background:var(--green); color:#06140c;
+  font-size:10.5px; font-weight:700;
+}
+.hn-peg.no{ opacity:.45; }
 /* 柱子本體 */
 .hn-rod{
   position:absolute; bottom:28px; left:50%; transform:translateX(-50%);
@@ -1078,14 +1112,29 @@ html[data-motion="off"] *::after{
 .cl-fb{ min-height:1.6em; font-size:13.5px; color:var(--fg-dim); }
 .cl-fb.right{ color:var(--green); }
 .cl-fb.wrong{ color:var(--red); }
-.cl-break{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; min-height:2.2em; }
-.cl-chan{
-  display:flex; align-items:baseline; gap:7px;
-  padding:5px 12px; border-radius:var(--radius);
-  background:#08111a; border:1px solid var(--line); font-size:12.5px;
+.cl-qhint{ font-size:12.5px; color:var(--fg-dim); min-height:1.5em; }
+
+/* 永遠在畫面上的對照表：這款的重點是讀懂它，不是背下來 */
+.cl-legend{
+  max-width:560px; margin:0 auto; width:100%;
+  padding:10px 12px; border-radius:var(--radius);
+  background:#08111a; border:1px solid var(--line);
+  display:flex; flex-direction:column; gap:8px;
 }
-.cl-chan-k{ font-weight:700; }
-.cl-chan b{ color:#fff; font-size:14px; }
+.cl-legend-row{
+  display:flex; align-items:center; justify-content:center;
+  gap:4px; font-size:13px; flex-wrap:wrap;
+}
+.cl-legend-t{ color:var(--fg-faint); font-weight:700; }
+.cl-legend-seg{ font-weight:700; letter-spacing:.06em; }
+.cl-legend-row .faint{ margin-left:8px; font-size:12px; }
+.cl-scale{ display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+.cl-scale-item{
+  display:flex; flex-direction:column; align-items:center; gap:1px;
+  padding:5px 2px; border-radius:3px; background:#0d1a24;
+}
+.cl-scale-item b{ color:var(--amber); font-size:13.5px; letter-spacing:.06em; }
+.cl-scale-item span{ color:var(--fg-faint); font-size:11px; }
 
 @media (max-width:420px){
   .cl-opts{ grid-template-columns:repeat(2,1fr); }
@@ -2244,6 +2293,7 @@ CSE.config = {
     tag: '數位邏輯 · BINARY',
     icon: '10',
     accent: 'var(--green)',
+    level: '入門',
     blurb: '電腦眼裡只有 0 和 1。撥動 8 個位元開關，湊出畫面上的十進位數字。',
     how: [
       '上方出現一個目標數字（1–255）。',
@@ -2275,6 +2325,7 @@ CSE.config = {
       var curVal = api.el('b', { text: '0' });
       var curBin = api.el('span', { class: 'faint', text: '' });
       var curEl = api.el('div', { class: 'bin-cur' }, ['目前：', curVal, ' ', curBin]);
+      var diffEl = api.el('div', { class: 'bin-diff' });
       var binHint = api.el('div', { class: 'bin-binary', text: '' });
 
       var bitsWrap = api.el('div', { class: 'bin-bits' });
@@ -2330,6 +2381,7 @@ CSE.config = {
         binHint,
         bitsWrap,
         curEl,
+        diffEl,
         api.el('div', { class: 'bin-hintrow' }, [btnHint, btnSkip, btnClear])
       ]));
 
@@ -2354,6 +2406,11 @@ CSE.config = {
         curVal.textContent = String(v);
         curBin.textContent = '(' + binStr(v) + ')';
         curEl.className = 'bin-cur' + (v > target ? ' hi' : v < target ? ' lo' : '');
+        /* 直接把差距算給他看 —— 不然玩家得自己心算，
+           而這款要練的是「湊出位值」，不是心算減法。 */
+        var d = target - v;
+        diffEl.textContent = d === 0 ? '' : (d > 0 ? '還差 ' + d : '多了 ' + (-d));
+        diffEl.className = 'bin-diff' + (d > 0 ? ' lo' : d < 0 ? ' hi' : '');
         for (var i = 0; i < 8; i++) {
           bitBtns[i].setAttribute('aria-pressed', bits[i] ? 'true' : 'false');
           bitBtns[i]._v.textContent = bits[i] ? '1' : '0';
@@ -2619,6 +2676,7 @@ CSE.config = {
     tag: '計算機組織 · LOGIC',
     icon: '&',
     accent: 'var(--violet)',
+    level: '挑戰',
     blurb: 'CPU 裡面幾十億個電晶體，做的就是 AND / OR / NOT。撥開關點亮燈泡，再換你來設計電路。',
     how: [
       '左邊是輸入開關（A、B、C），點一下切換 0 / 1。',
@@ -3435,7 +3493,7 @@ CSE.config = {
   ];
 
   var ROUND = 8;          /* 每局題數 */
-  var PER_Q = 20;         /* 每題秒數 */
+  var PER_Q = 26;         /* 每題秒數：要先讀懂程式碼，20 秒對新手太趕 */
   var LIVES = 3;
 
   /* ---------- 極簡語法上色（每種語言一套規則） ---------- */
@@ -3480,12 +3538,13 @@ CSE.config = {
     tag: '程式設計 · DEBUG',
     icon: '!',
     accent: 'var(--amber)',
+    level: '普通',
     blurb: '工程師一半的時間在抓 bug。自己挑語言，每段程式裡藏一個錯誤，點出是哪一行。不會寫程式也看得懂。',
     how: [
       '先選一種程式語言：Python、C 或 JavaScript。',
       '畫面顯示一小段該語言的程式，裡面藏著一個錯誤。',
       '直接點你覺得有問題的那一行。',
-      '點對加分，點錯扣一條命（共 3 條）；每題限時 20 秒。',
+      '點對加分，點錯扣一條命（共 3 條）；每題限時 26 秒。',
       '答完都會解釋為什麼錯、怎麼修 — 這才是重點。'
     ],
     controls: '點擊程式碼的任一行；也可按鍵盤數字鍵選行',
@@ -3642,7 +3701,7 @@ CSE.config = {
 
         if (correct) {
           right++;
-          var speed = Math.max(0, Math.round(qLeft * 7));
+          var speed = Math.max(0, Math.round(qLeft * 5));
           var gain = 100 + speed;
           api.addScore(gain);
           api.sfx.play('great');
@@ -3804,6 +3863,7 @@ CSE.config = {
     tag: '演算法 · SORTING',
     icon: '↕',
     accent: 'var(--cyan)',
+    level: '普通',
     blurb: '把長條由小到大排好 — 聽起來簡單，但要用「最少的交換次數」就是演算法的問題了。',
     how: [
       '點一根長條選起來，再點另一根就會交換兩者。',
@@ -4013,6 +4073,7 @@ CSE.config = {
     tag: '系統 · TERMINAL',
     icon: '>_',
     accent: 'var(--lime)',
+    level: '入門',
     blurb: '工程師的日常是黑底白字的視窗。把指令一字不差打出來，順便搞懂每個指令在做什麼。',
     how: [
       '畫面中間出現一個指令，照著打在輸入框裡。',
@@ -4290,6 +4351,7 @@ CSE.config = {
     tag: '計算機網路 · ROUTING',
     icon: '⇄',
     accent: 'var(--pink)',
+    level: '普通',
     blurb: '你按下 Enter 之後，資料要經過好幾台路由器。線上的數字是延遲，幫封包找出最快的路。',
     how: [
       '綠色是起點、紫色是目標，線上的數字是那一段的延遲（毫秒）。',
@@ -4651,7 +4713,7 @@ CSE.config = {
     }
   ];
 
-  var ROUND = 10, PER_Q = 10;
+  var ROUND = 10, PER_Q = 12;   /* 10 秒對讀得慢的人太趕 */
 
   CSE.registerGame({
     id: 'myth',
@@ -4659,11 +4721,12 @@ CSE.config = {
     tag: '認識資工系 · MYTH',
     icon: '?!',
     accent: 'var(--pink)',
+    level: '入門',
     blurb: '「資工系是不是在修電腦？」十題快問快答，三秒內判斷對錯，順手破解對資工系的誤會。',
     how: [
       '畫面出現一句關於資工系的話。',
       '判斷它是「對」還是「錯」，直接按大按鈕。',
-      '每題 10 秒，越快答對分數越高，連對有加成。',
+      '每題 12 秒，越快答對分數越高，連對有加成。',
       '每題都有解說 — 答錯沒關係，看懂才是重點。'
     ],
     controls: '點按鈕；鍵盤左右方向鍵或 O / X 也可以',
@@ -4721,7 +4784,7 @@ CSE.config = {
         if (ok) {
           right++; streak++;
           bestStreak = Math.max(bestStreak, streak);
-          var speed = Math.max(0, Math.round(qLeft * 9));
+          var speed = Math.max(0, Math.round(qLeft * 7));
           var gain = 100 + speed + 15 * Math.min(streak - 1, 6);
           api.addScore(gain);
           api.sfx.play(streak >= 3 ? 'great' : 'ok');
@@ -4838,6 +4901,7 @@ CSE.config = {
     tag: '演算法 · RECURSION',
     icon: '≡',
     accent: 'var(--lime)',
+    level: '普通',
     blurb: '把整疊圓盤搬到最右邊，大的不能壓小的。規則三秒就懂，但要用最少步數就是遞迴的經典題。',
     how: [
       '點一根柱子拿起最上面的圓盤，再點另一根放下。',
@@ -4891,11 +4955,19 @@ CSE.config = {
 
       function render() {
         CSE.ui.clear(board);
+        /* 拿起圓盤時先算出哪幾根放得下，直接標出來。
+           新手最卡的就是一直試錯，標示之後他們能專心想「下一步該搬哪個」。 */
+        var holding = sel >= 0 && pegs[sel].length ? pegs[sel][pegs[sel].length - 1] : 0;
+
         for (var p = 0; p < 3; p++) {
+          var top = pegs[p].length ? pegs[p][pegs[p].length - 1] : Infinity;
+          var ok = holding && p !== sel && holding < top;
+          var bad = holding && p !== sel && holding > top;
           var col = api.el('button', {
             type: 'button',
-            class: 'hn-peg' + (sel === p ? ' sel' : ''),
-            'aria-label': '第 ' + (p + 1) + ' 根柱子，' + pegs[p].length + ' 個圓盤'
+            class: 'hn-peg' + (sel === p ? ' sel' : '') + (ok ? ' can' : '') + (bad ? ' no' : ''),
+            'aria-label': '第 ' + (p + 1) + ' 根柱子，' + pegs[p].length + ' 個圓盤' +
+              (ok ? '，可以放' : bad ? '，放不下' : '')
           });
           col.appendChild(api.el('i', { class: 'hn-rod' }));
           var stack = api.el('div', { class: 'hn-stack' });
@@ -5081,6 +5153,7 @@ CSE.config = {
     tag: '資訊安全 · CIPHER',
     icon: '🔑',
     accent: 'var(--amber)',
+    level: '普通',
     blurb: '兩千年前凱撒大帝用的加密法：每個字母往後移幾位。轉動位移盤，把訊息還原成看得懂的英文。',
     how: [
       '上方是被加密的訊息，每個字母都被往後移了固定位數。',
@@ -5255,6 +5328,10 @@ CSE.config = {
 /* ============================================================
    遊戲 10：十六進位調色盤 — 看懂 #RRGGBB
    教的是：十六進位、一個通道一個 byte、24 位元色彩
+
+   設計原則：這款不是要考記憶力。
+   玩家只要知道「數字越大 = 這個顏色越多」就能推出答案，
+   所以選項之間一定差很多，而且畫面上永遠看得到對照表。
    ============================================================ */
 (function () {
   'use strict';
@@ -5262,31 +5339,27 @@ CSE.config = {
 
   var HEX = '0123456789ABCDEF';
 
+  /* 每個通道只用這四格，顏色才夠好分辨、數字也好記 */
+  var LEVELS = [0x00, 0x55, 0xAA, 0xFF];
+  var LEVEL_WORD = ['沒有', '一點', '很多', '全開'];
+
   function toHex(n) {
     n = CSE.util.clamp(Math.round(n), 0, 255);
     return HEX.charAt(n >> 4) + HEX.charAt(n & 15);
   }
-  function rgbHex(r, g, b) { return '#' + toHex(r) + toHex(g) + toHex(b); }
+  function rgbHex(c) { return '#' + toHex(c[0]) + toHex(c[1]) + toHex(c[2]); }
 
-  /* 產生一個「好描述」的顏色：至少一個通道明顯高或低 */
-  function randColor() {
-    var pick = function () { return CSE.util.randInt(0, 15) * 17; };   /* 00,11,22…FF 比較好讀 */
-    return [pick(), pick(), pick()];
-  }
-
-  /* 依難度產生干擾選項：越後面越接近正確答案 */
-  function distractor(c, level) {
-    var span = level < 3 ? 136 : level < 6 ? 85 : 51;
-    var out = c.slice();
-    var tries = 0;
+  /* 用「格子編號」表示顏色：[0..3, 0..3, 0..3] */
+  function randLv() {
+    var lv;
     do {
-      out = c.map(function (v) {
-        var d = CSE.util.randInt(1, span / 17) * 17 * (Math.random() < 0.5 ? -1 : 1);
-        return CSE.util.clamp(v + d, 0, 255);
-      });
-      tries++;
-    } while (out[0] === c[0] && out[1] === c[1] && out[2] === c[2] && tries < 20);
-    return out;
+      lv = [CSE.util.randInt(0, 3), CSE.util.randInt(0, 3), CSE.util.randInt(0, 3)];
+    } while (lv[0] === lv[1] && lv[1] === lv[2]);   /* 避開灰階，太難分 */
+    return lv;
+  }
+  function lvToRgb(lv) { return [LEVELS[lv[0]], LEVELS[lv[1]], LEVELS[lv[2]]]; }
+  function dist(a, b) {
+    return Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]);
   }
 
   CSE.registerGame({
@@ -5295,146 +5368,166 @@ CSE.config = {
     tag: '色彩編碼 · HEX',
     icon: '#',
     accent: 'var(--pink)',
-    blurb: '網頁上的 #FF8800 到底是什麼顏色？認出色碼與顏色的對應，順便搞懂十六進位。',
+    level: '入門',
+    blurb: '網頁上的 #FF8800 到底是什麼顏色？不用背，只要知道「數字越大這個顏色越多」就能推出來。',
     how: [
-      '題目會給你一個顏色，或一組 #RRGGBB 色碼。',
-      '從四個選項中挑出正確的那一個。',
-      '每題 12 秒，越快答對分數越高，連對有加成。',
-      '下方隨時看得到 R / G / B 三個通道的數值對照。'
+      '#RRGGBB 的三組數字，分別代表紅、綠、藍各有多少。',
+      '00 是完全沒有、FF 是開到最大 —— 畫面下方隨時看得到對照表。',
+      '題目會給顏色讓你選色碼，或給色碼讓你選顏色。',
+      '選項之間一定差很多，用推的就好，不需要背。'
     ],
     controls: '點選項；鍵盤 1–4 也可以',
     duration: 70,
-    medals: { bronze: 600, silver: 1150, gold: 1750 },
+    medals: { bronze: 550, silver: 1050, gold: 1650 },
     titles: ['體驗組', '色碼新手', '調色達人', '前端之眼'],
     knowledge: {
       title: '#RRGGBB 其實就是三個 byte',
       lines: [
-        'RR、GG、BB 各是一個 16 進位的兩位數，範圍 00–FF，也就是十進位的 0–255。',
+        'RR、GG、BB 各是一個 16 進位兩位數，範圍 00–FF，也就是十進位的 0–255。',
         '0–255 剛好是 8 個位元能表示的範圍 —— 跟「二進位快打」撥的那 8 個開關一模一樣。',
         '三個通道各 1 byte，共 24 位元，可以組出 16,777,216 種顏色，俗稱「全彩」。',
-        '#FFFFFF 是三個通道全開（白），#000000 全關（黑），#FF0000 只開紅色通道。'
+        '#FF0000 只開紅色、#00FF00 只開綠色、#FFFFFF 三個全開是白、#000000 全關是黑。'
       ]
     },
 
     mount: function (stage, api) {
       var qi = 0, right = 0, wrong = 0, streak = 0, bestStreak = 0;
-      var locked = true, qLeft = 0, PER_Q = 12;
-      var answer = null, mode = 'toHex';
+      var locked = true, qLeft = 0, PER_Q = 14;
+      var answerLv = null, mode = 'toHex';
 
       var qLabel = api.el('div', { class: 'cl-label' });
       var qBox = api.el('div', { class: 'cl-q' });
+      var qHint = api.el('div', { class: 'cl-qhint' });
       var opts = api.el('div', { class: 'cl-opts' });
       var fb = api.el('div', { class: 'cl-fb' });
-      var breakdown = api.el('div', { class: 'cl-break' });
       var barIn = api.el('i', { style: { width: '0%' } });
+
+      /* 永遠放在畫面上的對照表：這款遊戲的重點是讀懂它，不是背下來 */
+      var legend = api.el('div', { class: 'cl-legend' }, [
+        api.el('div', { class: 'cl-legend-row' }, [
+          api.el('span', { class: 'cl-legend-t', text: '#' }),
+          api.el('span', { class: 'cl-legend-seg', style: { color: 'var(--red)' }, text: 'RR' }),
+          api.el('span', { class: 'cl-legend-seg', style: { color: 'var(--green)' }, text: 'GG' }),
+          api.el('span', { class: 'cl-legend-seg', style: { color: 'var(--cyan)' }, text: 'BB' }),
+          api.el('span', { class: 'faint', text: '＝ 紅 / 綠 / 藍 各有多少' })
+        ]),
+        api.el('div', { class: 'cl-scale' }, LEVELS.map(function (v, i) {
+          return api.el('div', { class: 'cl-scale-item' }, [
+            api.el('b', { text: toHex(v) }),
+            api.el('span', { text: LEVEL_WORD[i] })
+          ]);
+        }))
+      ]);
 
       stage.appendChild(api.el('div', { class: 'cl-wrap' }, [
         api.el('div', { class: 'cl-bar' }, barIn),
         qLabel,
         qBox,
+        qHint,
         opts,
         fb,
-        breakdown
+        legend
       ]));
-
-      function showBreakdown(c) {
-        CSE.ui.clear(breakdown);
-        var names = [['R', '紅', 'var(--red)'], ['G', '綠', 'var(--green)'], ['B', '藍', 'var(--cyan)']];
-        names.forEach(function (nm, i) {
-          breakdown.appendChild(api.el('div', { class: 'cl-chan' }, [
-            api.el('span', { class: 'cl-chan-k', style: { color: nm[2] }, text: nm[0] + ' ' + nm[1] }),
-            api.el('b', { text: toHex(c[i]) }),
-            api.el('span', { class: 'faint', text: '= ' + c[i] })
-          ]));
-        });
-      }
 
       function nextQ() {
         qi++;
         locked = false;
         qLeft = PER_Q;
-        answer = randColor();
+        answerLv = randLv();
         mode = qi % 2 ? 'toHex' : 'toColor';
 
+        /* 干擾選項一定要跟答案差很多，用看的就分得出來。
+           前幾題差距更大，後面才稍微縮小，但永遠不會「幾乎一樣」。 */
+        var minGap = qi <= 4 ? 4 : qi <= 9 ? 3 : 2;
         var wrongs = [];
         var guard = 0;
-        while (wrongs.length < 3 && guard++ < 80) {
-          var d = distractor(answer, qi);
-          var dup = wrongs.some(function (w) { return w[0] === d[0] && w[1] === d[1] && w[2] === d[2]; });
-          if (!dup && !(d[0] === answer[0] && d[1] === answer[1] && d[2] === answer[2])) wrongs.push(d);
+        while (wrongs.length < 3 && guard++ < 300) {
+          var cand = randLv();
+          if (dist(cand, answerLv) < minGap) continue;
+          var tooClose = wrongs.some(function (w) { return dist(w, cand) < 2; });
+          if (!tooClose) wrongs.push(cand);
         }
-        while (wrongs.length < 3) wrongs.push(randColor());
+        while (wrongs.length < 3) wrongs.push(randLv());
 
-        var all = CSE.util.shuffle([answer].concat(wrongs));
+        var all = CSE.util.shuffle([answerLv].concat(wrongs));
+        var ansRgb = lvToRgb(answerLv);
 
         CSE.ui.clear(qBox);
         CSE.ui.clear(opts);
-        CSE.ui.clear(breakdown);
         fb.className = 'cl-fb';
         fb.textContent = '';
         api.hint('');
 
         if (mode === 'toHex') {
-          qLabel.textContent = '這個顏色的色碼是？';
+          qLabel.textContent = '這個顏色的色碼是哪一個？';
+          qHint.textContent = '提示：看看紅、綠、藍各佔多少，再比對數字大小。';
           qBox.appendChild(api.el('div', {
             class: 'cl-swatch cl-swatch--big',
-            style: { background: rgbHex(answer[0], answer[1], answer[2]) }
+            style: { background: rgbHex(ansRgb) }
           }));
-          all.forEach(function (c, i) {
+          all.forEach(function (lv) {
+            var c = lvToRgb(lv);
             opts.appendChild(api.el('button', {
               type: 'button', class: 'btn cl-opt cl-opt--text',
-              text: rgbHex(c[0], c[1], c[2]),
-              onclick: function () { choose(c, this); }
+              text: rgbHex(c),
+              onclick: function () { choose(lv, this); }
             }));
           });
         } else {
           qLabel.textContent = '哪一個是這個色碼？';
-          qBox.appendChild(api.el('div', {
-            class: 'cl-code', text: rgbHex(answer[0], answer[1], answer[2])
-          }));
-          all.forEach(function (c) {
+          /* 直接把三個通道翻成白話 —— 這是教學，不是洩題：
+             玩家還是得自己把「紅全開、綠沒有」對應到色票。 */
+          qHint.textContent = '紅 ' + LEVEL_WORD[answerLv[0]] +
+                              '　綠 ' + LEVEL_WORD[answerLv[1]] +
+                              '　藍 ' + LEVEL_WORD[answerLv[2]];
+          qBox.appendChild(api.el('div', { class: 'cl-code', text: rgbHex(ansRgb) }));
+          all.forEach(function (lv) {
+            var c = lvToRgb(lv);
             opts.appendChild(api.el('button', {
               type: 'button', class: 'btn cl-opt cl-opt--sw',
-              'aria-label': rgbHex(c[0], c[1], c[2]),
-              onclick: function () { choose(c, this); }
-            }, api.el('span', {
-              class: 'cl-swatch',
-              style: { background: rgbHex(c[0], c[1], c[2]) }
-            })));
+              'aria-label': rgbHex(c),
+              onclick: function () { choose(lv, this); }
+            }, api.el('span', { class: 'cl-swatch', style: { background: rgbHex(c) } })));
           });
         }
       }
 
-      function choose(c, btn) {
+      function markAnswer() {
+        var want = rgbHex(lvToRgb(answerLv));
+        Array.prototype.forEach.call(opts.children, function (b) {
+          b.disabled = true;
+          var label = b.getAttribute('aria-label') || b.textContent;
+          if (label === want) b.classList.add('right');
+        });
+      }
+
+      function choose(lv, btn) {
         if (locked) return;
         locked = true;
-        var ok = (c[0] === answer[0] && c[1] === answer[1] && c[2] === answer[2]);
-        Array.prototype.forEach.call(opts.children, function (b) { b.disabled = true; });
+        var ok = dist(lv, answerLv) === 0;
 
         if (ok) {
           right++; streak++;
           bestStreak = Math.max(bestStreak, streak);
-          var speed = Math.max(0, Math.round(qLeft * 8));
+          var speed = Math.max(0, Math.round(qLeft * 7));
           var gain = 90 + speed + 15 * Math.min(streak - 1, 6);
           api.addScore(gain);
           api.sfx.play(streak >= 3 ? 'great' : 'ok');
-          btn.classList.add('right');
+          markAnswer();
           fb.className = 'cl-fb right';
           fb.textContent = '✓ 答對了（+' + gain + '）' + (streak > 1 ? '　' + streak + ' 連對' : '');
         } else {
           wrong++; streak = 0;
           api.sfx.play('bad');
           btn.classList.add('wrong');
-          Array.prototype.forEach.call(opts.children, function (b, i) {
-            var label = b.getAttribute('aria-label') || b.textContent;
-            if (label === rgbHex(answer[0], answer[1], answer[2])) b.classList.add('right');
-          });
+          markAnswer();
+          var a = answerLv;
           fb.className = 'cl-fb wrong';
-          fb.textContent = '✗ 正確答案是 ' + rgbHex(answer[0], answer[1], answer[2]);
+          fb.textContent = '✗ 答案是 ' + rgbHex(lvToRgb(a)) +
+            '（紅 ' + LEVEL_WORD[a[0]] + '、綠 ' + LEVEL_WORD[a[1]] + '、藍 ' + LEVEL_WORD[a[2]] + '）';
         }
         api.setStat('連對', streak);
-        showBreakdown(answer);
-        api.after(ok ? 900 : 1700, nextQ);
+        api.after(ok ? 850 : 1900, nextQ);
       }
 
       api.on(document, 'keydown', function (e) {
@@ -5472,15 +5565,10 @@ CSE.config = {
             wrong++; streak = 0;
             api.setStat('連對', 0);
             api.sfx.play('bad');
-            Array.prototype.forEach.call(opts.children, function (b) {
-              b.disabled = true;
-              var label = b.getAttribute('aria-label') || b.textContent;
-              if (label === rgbHex(answer[0], answer[1], answer[2])) b.classList.add('right');
-            });
+            markAnswer();
             fb.className = 'cl-fb wrong';
-            fb.textContent = '⏱ 時間到 — 正確答案是 ' + rgbHex(answer[0], answer[1], answer[2]);
-            showBreakdown(answer);
-            api.after(1700, nextQ);
+            fb.textContent = '⏱ 時間到 — 答案是 ' + rgbHex(lvToRgb(answerLv));
+            api.after(1900, nextQ);
           }
         }
       };
@@ -5505,8 +5593,13 @@ CSE.config = {
   var totalChip = document.getElementById('totalChip');
 
   /* 首頁卡片順序：先用「資工系大誤解」當開場，再往技術深處走 */
-  var ORDER = ['myth', 'binary', 'color', 'bughunt', 'cipher', 'hanoi',
-               'logic', 'sort', 'packet', 'typing'];
+  var ORDER = ['myth', 'binary', 'bughunt', 'logic', 'sort', 'packet', 'typing',
+               'hanoi', 'cipher', 'color'];
+  /* 難度標籤的樣式分類 */
+  function lvKey(lv) {
+    return lv === '入門' ? 'easy' : lv === '挑戰' ? 'hard' : 'mid';
+  }
+
   function orderedGames() {
     var out = [];
     ORDER.forEach(function (id) { if (CSE.gameById[id]) out.push(CSE.gameById[id]); });
@@ -5651,9 +5744,12 @@ CSE.config = {
         pick ? el('span', { class: 'gcard-pick', text: '推薦先玩' }) : null,
         el('div', { class: 'gcard-top' }, [
           el('div', { class: 'gcard-icon', html: g.icon || '#' }),
-          el('div', {}, [
+          el('div', { style: { minWidth: '0' } }, [
             el('div', { class: 'gcard-name', text: g.name }),
-            el('div', { class: 'gcard-tag', text: g.tag || '' })
+            el('div', { class: 'gcard-tag' }, [
+              g.level ? el('span', { class: 'gcard-lv lv-' + lvKey(g.level), text: g.level }) : null,
+              g.tag || ''
+            ])
           ])
         ]),
         el('div', { class: 'gcard-blurb', text: g.blurb }),
@@ -6086,7 +6182,10 @@ CSE.config = {
         el('span', { class: 'navitem-ic', html: g.icon || '#' }),
         el('span', { class: 'navitem-txt' }, [
           el('b', { text: g.name }),
-          el('span', { text: best ? '最佳 ' + CSE.util.nf(best) : '還沒玩過' })
+          el('span', {}, [
+            g.level ? el('i', { class: 'gcard-lv lv-' + lvKey(g.level), text: g.level }) : null,
+            best ? '最佳 ' + CSE.util.nf(best) : '還沒玩過'
+          ])
         ])
       ]);
       grid.appendChild(item);

@@ -188,6 +188,7 @@
     tag: '計算機組織 · LOGIC',
     icon: '&',
     accent: 'var(--violet)',
+    level: '挑戰',
     blurb: 'CPU 裡面幾十億個電晶體，做的就是 AND / OR / NOT。撥開關點亮燈泡，再換你來設計電路。',
     how: [
       '左邊是輸入開關（A、B、C），點一下切換 0 / 1。',

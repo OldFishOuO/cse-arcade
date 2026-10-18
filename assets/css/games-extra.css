@@ -22,6 +22,22 @@
   background:color-mix(in srgb, var(--amber) 10%, #0c1620);
   border-color:var(--amber);
 }
+/* 拿著圓盤時，標出哪幾根放得下 */
+.hn-peg.can{
+  background:color-mix(in srgb, var(--green) 9%, #0c1620);
+  border-color:color-mix(in srgb, var(--green) 55%, transparent);
+}
+.hn-peg.can .hn-base{
+  color:var(--green); border-color:color-mix(in srgb, var(--green) 50%, transparent);
+}
+.hn-peg.can::after{
+  content:"可以放這裡"; position:absolute; top:6px; left:50%;
+  transform:translateX(-50%); white-space:nowrap;
+  padding:2px 9px; border-radius:999px;
+  background:var(--green); color:#06140c;
+  font-size:10.5px; font-weight:700;
+}
+.hn-peg.no{ opacity:.45; }
 /* 柱子本體 */
 .hn-rod{
   position:absolute; bottom:28px; left:50%; transform:translateX(-50%);
@@ -127,14 +143,29 @@
 .cl-fb{ min-height:1.6em; font-size:13.5px; color:var(--fg-dim); }
 .cl-fb.right{ color:var(--green); }
 .cl-fb.wrong{ color:var(--red); }
-.cl-break{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; min-height:2.2em; }
-.cl-chan{
-  display:flex; align-items:baseline; gap:7px;
-  padding:5px 12px; border-radius:var(--radius);
-  background:#08111a; border:1px solid var(--line); font-size:12.5px;
+.cl-qhint{ font-size:12.5px; color:var(--fg-dim); min-height:1.5em; }
+
+/* 永遠在畫面上的對照表：這款的重點是讀懂它，不是背下來 */
+.cl-legend{
+  max-width:560px; margin:0 auto; width:100%;
+  padding:10px 12px; border-radius:var(--radius);
+  background:#08111a; border:1px solid var(--line);
+  display:flex; flex-direction:column; gap:8px;
 }
-.cl-chan-k{ font-weight:700; }
-.cl-chan b{ color:#fff; font-size:14px; }
+.cl-legend-row{
+  display:flex; align-items:center; justify-content:center;
+  gap:4px; font-size:13px; flex-wrap:wrap;
+}
+.cl-legend-t{ color:var(--fg-faint); font-weight:700; }
+.cl-legend-seg{ font-weight:700; letter-spacing:.06em; }
+.cl-legend-row .faint{ margin-left:8px; font-size:12px; }
+.cl-scale{ display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+.cl-scale-item{
+  display:flex; flex-direction:column; align-items:center; gap:1px;
+  padding:5px 2px; border-radius:3px; background:#0d1a24;
+}
+.cl-scale-item b{ color:var(--amber); font-size:13.5px; letter-spacing:.06em; }
+.cl-scale-item span{ color:var(--fg-faint); font-size:11px; }
 
 @media (max-width:420px){
   .cl-opts{ grid-template-columns:repeat(2,1fr); }
