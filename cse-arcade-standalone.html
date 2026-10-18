@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="zh-Hant" data-motion="on" data-scanline="on">
 <head>
-<!-- 自動打包的單檔版（build 53458619）。要改內容請改 assets/ 底下的原始碼，再重新執行 build-single-file.py，不要直接改這個檔。 -->
+<!-- 自動打包的單檔版（build 8bf3814e）。要改內容請改 assets/ 底下的原始碼，再重新執行 build-single-file.py，不要直接改這個檔。 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
@@ -813,11 +813,14 @@ CSE.config = {
      下面這幾個是 2026-10 從系網 iecs.fcu.edu.tw 抄下來的，
      如果系學會有自己的帳號，直接換掉就好。                 */
   links: {
-    web:     'https://iecs.fcu.edu.tw/',                      // 系網站
-    ig:      'https://www.instagram.com/fcuiecs',             // 系上 Instagram
-    fb:      'https://www.facebook.com/share/1BiGhe2WZp/',    // 系上 Facebook
-    threads: 'https://www.threads.com/@fcuiecs',              // 系上 Threads
-    line:    ''                                               // 系學會 LINE 社群，有的話填這裡
+    // ⚠ 系學會和系上是兩個不同帳號，只差一個底線，不要貼錯：
+    //      @fcu_iecs = 系學會      @fcuiecs = 系辦
+    ig_assoc: 'https://www.instagram.com/fcu_iecs',            // 系學會 Instagram
+    web:      'https://iecs.fcu.edu.tw/',                      // 系網站
+    ig:       'https://www.instagram.com/fcuiecs',             // 系上 Instagram
+    fb:       'https://www.facebook.com/share/1BiGhe2WZp/',    // 系上 Facebook
+    threads:  'https://www.threads.com/@fcuiecs',              // 系上 Threads
+    line:     ''                                               // 系學會 LINE 社群，有的話填這裡
   },
 
   /* ---------- 4.「關於資工系」整頁的內容 ---------- */
@@ -4356,8 +4359,9 @@ CSE.config = {
 
   /* config.links 裡有填的才長出按鈕；要加新平台就在這個表加一行 */
   var LINK_LABELS = [
+    ['ig_assoc', '系學會 IG'],
     ['web', '系網站'],
-    ['ig', 'Instagram'],
+    ['ig', '系上 IG'],
     ['fb', 'Facebook'],
     ['threads', 'Threads'],
     ['line', 'LINE 社群']

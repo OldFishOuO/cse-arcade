@@ -312,8 +312,9 @@
 
   /* config.links 裡有填的才長出按鈕；要加新平台就在這個表加一行 */
   var LINK_LABELS = [
+    ['ig_assoc', '系學會 IG'],
     ['web', '系網站'],
-    ['ig', 'Instagram'],
+    ['ig', '系上 IG'],
     ['fb', 'Facebook'],
     ['threads', 'Threads'],
     ['line', 'LINE 社群']
