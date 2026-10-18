@@ -96,8 +96,8 @@ CSE.config = {
 
   goal: {
     enabled: true,
-    threshold: 6000,            // ← 完成挑戰的總分門檻
-    text: '總分達 6,000 分就完成挑戰',
+    threshold: 7000,            // ← 完成挑戰的總分門檻
+    text: '總分達 7,000 分就完成挑戰',
     reward: ''                  // ← 擺攤時才填，例：'可到攤位兌換小禮物'
   },
 
