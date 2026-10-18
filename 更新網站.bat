@@ -61,7 +61,7 @@ if errorlevel 1 (
 echo.
 echo  ============================================================
 echo   Done. The live site updates in about 1 minute:
-echo   https://oldfishouo.github.io/cse-arcade/
+echo   https://oldfishouo.github.io/iecs-arcade/
 echo   If it looks unchanged, press Ctrl+F5 in the browser.
 echo  ============================================================
 echo.

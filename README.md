@@ -2,7 +2,7 @@
 
 七款資工系主題小遊戲組成的單頁網站，專門為**學校活動擺攤**設計：完全離線、不需安裝、不需網路、不需登入。
 
-### 🔗 線上版：<https://oldfishouo.github.io/cse-arcade/>
+### 🔗 線上版：<https://oldfishouo.github.io/iecs-arcade/>
 
 把這個網址做成 QR code 貼在攤位上，訪客用自己的手機就能玩。
 
@@ -13,7 +13,7 @@
 ## 一、怎麼打開（四種方式，挑一種）
 
 ### ⓪ 最快 — 線上版
-直接開 <https://oldfishouo.github.io/cse-arcade/>。手機、平板、電腦都可以。
+直接開 <https://oldfishouo.github.io/iecs-arcade/>。手機、平板、電腦都可以。
 **需要網路。** 攤位現場網路不穩的話請改用下面的單檔版。
 
 ### ① 攤位現場最保險 — 單檔版
