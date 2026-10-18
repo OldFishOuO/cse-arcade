@@ -79,11 +79,22 @@ def main() -> None:
 
     # ---- 1. 蓋版本章，就地更新 index.html ----
     stamped, version = stamp_version(html, paths)
+
+    # 把版本也寫進 <html data-build="...">，讓網頁能自己發現有新版。
+    # （GitHub Pages 連 index.html 都會被快取 10 分鐘，光靠 ?v= 擋不住）
+    stamped = re.sub(r'\sdata-build="[^"]*"', "", stamped, count=1)
+    stamped = stamped.replace("<html ", '<html data-build="%s" ' % version, 1)
+
     if stamped != html:
         SRC.write_text(stamped, encoding="utf-8")
-        print("index.html 版本章已更新為 ?v=%s" % version)
+        print("index.html 版本章已更新為 %s" % version)
     else:
-        print("index.html 版本章不變（?v=%s）" % version)
+        print("index.html 版本章不變（%s）" % version)
+
+    # 網頁會定期抓這個檔比對版本，發現不一樣就自己重新整理
+    (ROOT / "version.json").write_text(
+        '{"v": "%s"}\n' % version, encoding="utf-8"
+    )
 
     # ---- 2. 打包單檔版 ----
     inlined = []

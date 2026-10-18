@@ -1,7 +1,7 @@
 <!doctype html>
-<html lang="zh-Hant" data-motion="on" data-scanline="on">
+<html data-build="dd413c52" lang="zh-Hant" data-motion="on" data-scanline="on">
 <head>
-<!-- 自動打包的單檔版（build 8bf3814e）。要改內容請改 assets/ 底下的原始碼，再重新執行 build-single-file.py，不要直接改這個檔。 -->
+<!-- 自動打包的單檔版（build dd413c52）。要改內容請改 assets/ 底下的原始碼，再重新執行 build-single-file.py，不要直接改這個檔。 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
@@ -4611,6 +4611,31 @@ CSE.config = {
     document.body.appendChild(attractEl);
   }
 
+  /* ---------------- 自動更新偵測 ----------------
+     GitHub Pages 把 index.html 也快取 10 分鐘，所以推了新版之後，
+     攤位上那台開著不動的裝置會一直停在舊版（連資產的 ?v= 都是舊的）。
+     這裡讓網頁自己去比對版本，發現有新版就重新整理一次。
+     只在沒人正在玩的時候做，而且每個版本只重載一次，不會無限迴圈。 */
+  function checkForUpdate() {
+    if (location.protocol !== 'http:' && location.protocol !== 'https:') return;
+    var mine = document.documentElement.dataset.build;
+    if (!mine || typeof fetch !== 'function') return;
+
+    fetch('version.json?t=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (!d || !d.v || d.v === mine) return;
+        if (CSE.host.busy) return;                  /* 有人正在玩就先不要動 */
+        var key = 'cse.reloadedFor.' + d.v;
+        try {
+          if (sessionStorage.getItem(key)) return;  /* 這個版本已經重載過了 */
+          sessionStorage.setItem(key, '1');
+        } catch (e) { return; }                     /* 存不了就不要冒險重載 */
+        location.reload();
+      })
+      .catch(function () { /* 離線或沒有 version.json，忽略 */ });
+  }
+
   function resetIdle() {
     clearTimeout(idleTimer);
     if (!CSE.settings.get('kiosk')) return;
@@ -4626,6 +4651,7 @@ CSE.config = {
       CSE.host.stop();
       if (location.hash !== '#/' && location.hash !== '' && location.hash !== '#') location.hash = '#/';
       showAttract();
+      checkForUpdate();   /* 沒人在用的空檔，順便確認有沒有新版 */
     }, secs * 1000);
   }
 
@@ -4676,6 +4702,10 @@ CSE.config = {
     window.addEventListener('hashchange', route);
     route();
     resetIdle();
+
+    /* 開啟時先確認一次，之後每 10 分鐘在沒人玩的時候再確認 */
+    checkForUpdate();
+    setInterval(function () { if (!CSE.host.busy) checkForUpdate(); }, 10 * 60 * 1000);
 
     if (CSE.games.length !== 7) {
       console.warn('[CSE] 載入了 ' + CSE.games.length + ' 款遊戲（預期 7 款），請檢查 index.html 的 script 標籤');
