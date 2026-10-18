@@ -21,6 +21,7 @@
 
 import hashlib
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -67,8 +68,81 @@ def stamp_version(html: str, paths) -> tuple:
     return ASSET_REF.sub(sub, html), version
 
 
+def read_config() -> dict:
+    """從 config.js 撈出要寫進 <head> 的幾個欄位。"""
+    txt = read(ROOT / "assets" / "js" / "config.js")
+    cfg = {}
+    for key in ("title", "school", "dept", "booth", "tagline", "siteUrl"):
+        m = re.search(key + r"\s*:\s*'([^']*)'", txt)
+        cfg[key] = m.group(1) if m else ""
+    return cfg
+
+
+def esc_attr(text: str) -> str:
+    return (text.replace("&", "&amp;").replace('"', "&quot;")
+                .replace("<", "&lt;").replace(">", "&gt;"))
+
+
+def stamp_seo(html: str, cfg: dict) -> str:
+    """把標題與分享卡片標籤寫進 index.html 的 SEO 區塊。
+
+    以前 index.html 的 <title> 是手寫的，改系名時漏掉，
+    結果貼連結出去預覽還是顯示舊名字。改成從 config.js 自動產生。
+    """
+    site = (cfg["siteUrl"].rstrip("/") + "/") if cfg["siteUrl"] else ""
+    page_title = "%s · %s" % (cfg["title"], cfg["booth"])
+    desc = cfg["tagline"]
+    site_name = " ".join(x for x in (cfg["school"], cfg["dept"]) if x)
+
+    tags = [
+        "<title>%s</title>" % esc_attr(page_title),
+        '<meta name="description" content="%s">' % esc_attr(desc),
+        '<meta property="og:type" content="website">',
+        '<meta property="og:locale" content="zh_TW">',
+        '<meta property="og:site_name" content="%s">' % esc_attr(site_name),
+        '<meta property="og:title" content="%s">' % esc_attr(page_title),
+        '<meta property="og:description" content="%s">' % esc_attr(desc),
+        '<meta name="twitter:card" content="summary_large_image">',
+        '<meta name="twitter:title" content="%s">' % esc_attr(page_title),
+        '<meta name="twitter:description" content="%s">' % esc_attr(desc),
+    ]
+    if site:
+        img = site + "assets/og.png"
+        tags.insert(2, '<meta property="og:url" content="%s">' % esc_attr(site))
+        tags += [
+            '<meta property="og:image" content="%s">' % esc_attr(img),
+            '<meta property="og:image:width" content="1200">',
+            '<meta property="og:image:height" content="630">',
+            '<meta name="twitter:image" content="%s">' % esc_attr(img),
+        ]
+
+    block = "<!--SEO:START-->\n" + "\n".join(tags) + "\n<!--SEO:END-->"
+    new, n = re.subn(r"<!--SEO:START-->.*?<!--SEO:END-->",
+                     lambda m: block, html, flags=re.S)
+    if not n:
+        sys.exit("index.html 裡找不到 <!--SEO:START--> 區塊，請不要把它刪掉。")
+    return new
+
+
+def make_share_image() -> None:
+    """順手重新產生分享預覽圖；沒有 Pillow 或腳本不在就安靜跳過。"""
+    script = ROOT / "make-share-image.py"
+    if not script.is_file():
+        return
+    try:
+        r = subprocess.run([sys.executable, str(script)],
+                           capture_output=True, text=True, timeout=60)
+        out = (r.stdout or r.stderr).strip()
+        if out:
+            print(out.splitlines()[-1])
+    except Exception as e:
+        print("（分享圖產生失敗，略過：%s）" % e)
+
+
 def main() -> None:
-    html = read(SRC)
+    cfg = read_config()
+    make_share_image()
+    html = stamp_seo(read(SRC), cfg)
     paths = asset_paths(html)
     if not paths:
         sys.exit("index.html 裡找不到任何 assets/ 連結，請檢查檔案是不是被改壞了。")
@@ -85,7 +159,7 @@ def main() -> None:
     stamped = re.sub(r'\sdata-build="[^"]*"', "", stamped, count=1)
     stamped = stamped.replace("<html ", '<html data-build="%s" ' % version, 1)
 
-    if stamped != html:
+    if stamped != read(SRC):
         SRC.write_text(stamped, encoding="utf-8")
         print("index.html 版本章已更新為 %s" % version)
     else:

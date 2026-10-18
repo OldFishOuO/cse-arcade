@@ -1,17 +1,33 @@
 <!doctype html>
-<html data-build="cf2369ed" lang="zh-Hant" data-motion="on" data-scanline="on">
+<html data-build="31da3d2e" lang="zh-Hant" data-motion="on" data-scanline="on">
 <head>
-<!-- 自動打包的單檔版（build cf2369ed）。要改內容請改 assets/ 底下的原始碼，再重新執行 build-single-file.py，不要直接改這個檔。 -->
+<!-- 自動打包的單檔版（build 31da3d2e）。要改內容請改 assets/ 底下的原始碼，再重新執行 build-single-file.py，不要直接改這個檔。 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
-<title>CSE ARCADE · 資工系遊戲攤</title>
-<meta name="description" content="七款資工系主題小遊戲：二進位、邏輯閘、抓 Bug、排序、終端機打字、封包路由、系所迷思破解。">
+<!-- 下面這段由 build-single-file.py 依 config.js 自動產生，不要手改 -->
+<!--SEO:START-->
+<title>IECS ARCADE · 資工系遊戲攤</title>
+<meta name="description" content="七款小遊戲，10 分鐘看懂資工系在學什麼">
+<meta property="og:url" content="https://oldfishouo.github.io/iecs-arcade/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:site_name" content="逢甲大學 資訊工程學系">
+<meta property="og:title" content="IECS ARCADE · 資工系遊戲攤">
+<meta property="og:description" content="七款小遊戲，10 分鐘看懂資工系在學什麼">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="IECS ARCADE · 資工系遊戲攤">
+<meta name="twitter:description" content="七款小遊戲，10 分鐘看懂資工系在學什麼">
+<meta property="og:image" content="https://oldfishouo.github.io/iecs-arcade/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:image" content="https://oldfishouo.github.io/iecs-arcade/assets/og.png">
+<!--SEO:END-->
 <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="%23070b10"/><text x="32" y="45" font-size="30" font-family="monospace" font-weight="bold" fill="%2339ff88" text-anchor="middle">&lt;/&gt;</text></svg>'>
 <style>
 /* ===== assets/css/main.css ===== */
 /* ============================================================
-   CSE ARCADE — 資工系遊戲攤
+   IECS ARCADE — 資工系遊戲攤
    風格：終端機 / CRT 螢光幕 / 電路板
    ============================================================ */
 
@@ -940,7 +956,7 @@ html[data-motion="off"] *::after{
   <a class="brand" href="#/">
     <span class="brand-mark">&lt;/&gt;</span>
     <span class="brand-text">
-      <b id="brandTitle">CSE ARCADE</b>
+      <b id="brandTitle">IECS ARCADE</b>
       <small id="brandSub">資工系遊戲攤</small>
     </span>
   </a>
@@ -988,6 +1004,10 @@ CSE.config = {
   dept:    '資訊工程學系',
   booth:   '資工系遊戲攤',
   tagline: '七款小遊戲，10 分鐘看懂資工系在學什麼',
+
+  /* 線上網址。用來產生分享卡片（LINE / IG / Discord 貼連結時的預覽）。
+     改完要跑 python build-single-file.py 才會寫進 index.html。 */
+  siteUrl: 'https://oldfishouo.github.io/iecs-arcade/',
 
   /* ---------- 2. 兌換小禮物的門檻 ----------
      總分 = 七款遊戲各自的「最佳分數」加總（不是每一局累加）

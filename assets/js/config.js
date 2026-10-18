@@ -21,6 +21,10 @@ CSE.config = {
   booth:   '資工系遊戲攤',
   tagline: '七款小遊戲，10 分鐘看懂資工系在學什麼',
 
+  /* 線上網址。用來產生分享卡片（LINE / IG / Discord 貼連結時的預覽）。
+     改完要跑 python build-single-file.py 才會寫進 index.html。 */
+  siteUrl: 'https://oldfishouo.github.io/iecs-arcade/',
+
   /* ---------- 2. 兌換小禮物的門檻 ----------
      總分 = 七款遊戲各自的「最佳分數」加總（不是每一局累加）
      enabled 改成 false 就不會顯示這個區塊                  */
