@@ -1,7 +1,7 @@
 <!doctype html>
-<html data-build="6e6b4dd0" lang="zh-Hant" data-motion="on" data-scanline="on">
+<html data-build="cf2369ed" lang="zh-Hant" data-motion="on" data-scanline="on">
 <head>
-<!-- 自動打包的單檔版（build 6e6b4dd0）。要改內容請改 assets/ 底下的原始碼，再重新執行 build-single-file.py，不要直接改這個檔。 -->
+<!-- 自動打包的單檔版（build cf2369ed）。要改內容請改 assets/ 底下的原始碼，再重新執行 build-single-file.py，不要直接改這個檔。 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
@@ -132,19 +132,78 @@ a:hover{ text-decoration:underline; }
 .brand-text b{ font-size:15px; letter-spacing:.14em; color:var(--green); }
 .brand-text small{ font-size:11px; color:var(--fg-faint); letter-spacing:.06em; }
 
-.nav{ display:flex; gap:4px; margin-left:6px; flex:1 1 auto; overflow-x:auto; scrollbar-width:none; }
-.nav::-webkit-scrollbar{ display:none; }
-.nav a{
-  flex:0 0 auto;
-  padding:6px 11px; border-radius:var(--radius);
-  color:var(--fg-dim); font-size:13px; letter-spacing:.04em;
-  border:1px solid transparent; white-space:nowrap;
+/* 導覽列：只留少數常用連結，遊戲收進下拉面板 → 任何寬度都不會溢出 */
+.nav{
+  display:flex; gap:4px; margin-left:8px;
+  flex:1 1 auto; min-width:0; align-items:center;
 }
-.nav a:hover{ color:var(--fg); background:var(--panel); text-decoration:none; }
-.nav a[aria-current="page"]{
+.navlink{
+  flex:0 0 auto;
+  display:inline-flex; align-items:center; gap:5px;
+  padding:7px 12px; border-radius:var(--radius);
+  color:var(--fg-dim); font-size:13.5px; letter-spacing:.04em;
+  border:1px solid transparent; white-space:nowrap;
+  background:transparent; font-family:inherit; cursor:pointer;
+}
+.navlink:hover{ color:#fff; background:var(--panel); text-decoration:none; }
+.navlink[aria-current="page"], .navlink--now{
   color:var(--green); border-color:color-mix(in srgb, var(--green) 40%, transparent);
   background:#0a1510;
 }
+.navbtn .caret{ font-style:normal; font-size:10px; opacity:.7; transition:transform .15s; }
+.navbtn[aria-expanded="true"]{ color:#fff; background:var(--panel-2); border-color:var(--line-2); }
+.navbtn[aria-expanded="true"] .caret{ transform:rotate(180deg); }
+.navbtn-label{ max-width:11ch; overflow:hidden; text-overflow:ellipsis; }
+
+/* 下拉／漢堡共用的面板 */
+/* 權重要壓過後面的 .iconbtn{display:grid}，所以用兩個 class */
+.iconbtn.navham{ display:none; }
+.navpanel{
+  position:absolute; z-index:400;
+  top:calc(100% + 6px); right:clamp(10px,2.5vw,22px);
+  width:min(560px, calc(100vw - 24px));
+  max-height:min(76vh, 640px); overflow-y:auto;
+  padding:14px;
+  background:var(--panel); border:1px solid var(--line-2);
+  border-top:2px solid var(--green);
+  border-radius:var(--radius-lg); box-shadow:0 24px 60px -24px rgba(0,0,0,.95);
+  animation:navin .14s ease-out;
+}
+@keyframes navin{ from{ opacity:0; transform:translateY(-8px); } }
+.navpanel-head{
+  font-size:11px; letter-spacing:.2em; color:var(--fg-faint);
+  margin:2px 0 8px; text-transform:uppercase;
+}
+.navpanel-head + .navpanel-links,
+.navpanel-grid + .navpanel-head{ margin-top:14px; }
+.navpanel-grid{
+  display:grid; gap:6px;
+  grid-template-columns:repeat(auto-fill, minmax(168px, 1fr));
+}
+.navitem{
+  display:flex; align-items:center; gap:10px;
+  padding:8px 10px; border-radius:var(--radius);
+  border:1px solid transparent; color:inherit;
+}
+.navitem:hover{
+  text-decoration:none; background:var(--panel-2);
+  border-color:color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.navitem--now{
+  background:color-mix(in srgb, var(--accent) 12%, var(--panel-2));
+  border-color:color-mix(in srgb, var(--accent) 55%, transparent);
+}
+.navitem-ic{
+  flex:0 0 auto; width:30px; height:30px; display:grid; place-items:center;
+  border-radius:var(--radius); font-size:13px; font-weight:700; letter-spacing:-.03em;
+  background:color-mix(in srgb, var(--accent) 16%, #0a1218);
+  border:1px solid color-mix(in srgb, var(--accent) 42%, transparent);
+  color:var(--accent);
+}
+.navitem-txt{ display:flex; flex-direction:column; min-width:0; line-height:1.25; }
+.navitem-txt b{ font-size:13.5px; color:#fff; }
+.navitem-txt span{ font-size:11px; color:var(--fg-faint); }
+.navpanel-links{ display:flex; flex-wrap:wrap; gap:6px; }
 
 .topright{ display:flex; align-items:center; gap:7px; flex:0 0 auto; }
 .chip{
@@ -517,7 +576,7 @@ input[type="text"]:focus{ border-color:var(--accent); outline:none; }
 .lg-task b{ color:var(--violet); }
 .lg-canvas{ flex:1; display:grid; place-items:center; min-height:160px; }
 /* 限制高度，真值表和「驗證」按鈕才不會被擠到畫面外（攤位上沒人會想捲動） */
-.lg-canvas svg{ width:100%; max-width:760px; height:auto; max-height:min(40vh,300px); overflow:visible; }
+.lg-canvas svg{ width:100%; max-width:760px; height:auto; max-height:min(46vh,340px); overflow:visible; }
 .wire{ fill:none; stroke:#2b4154; stroke-width:2.5; stroke-linecap:round; }
 .wire.on{ stroke:var(--green); filter:drop-shadow(0 0 5px var(--green)); }
 .gatebox{ fill:#0d1821; stroke:#35506a; stroke-width:1.5; }
@@ -831,16 +890,34 @@ html[data-motion="off"] *::after{
 }
 
 /* ===================== 手機 ===================== */
+/* 中等寬度：先收掉最長的那個連結，它在面板裡還找得到 */
+@media (max-width:980px){
+  .navlink--wide{ display:none; }
+}
+/* 721px 以上空間還夠，首頁／遊戲／排行榜都留著；
+   再窄就整個收成 ☰（下面的 720px 斷點） */
+@media (max-width:980px){
+  .navbtn-label{ max-width:none; }
+}
+/* 手機：整個導覽收成 ☰ */
 @media (max-width:720px){
   body{ font-size:14.5px; }
   .brand-text small{ display:none; }
-  .nav{ order:3; width:100%; margin-left:0; padding-top:6px; border-top:1px solid var(--line); }
-  .topbar{ flex-wrap:wrap; }
+  .nav{ display:none; }
+  .iconbtn.navham{ display:grid; }
+  .navpanel{ left:12px; right:12px; width:auto; }
+  .topbar{ gap:8px; }
   .gf-actions{ width:100%; }
   .gf-actions .btn{ flex:1; }
   .gcard-blurb{ min-height:0; }
   .my-btns .btn{ max-width:none; }
   .chip span{ display:none; }
+  .navpanel-grid{ grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); }
+}
+@media (max-width:420px){
+  .brand-text b{ font-size:13.5px; letter-spacing:.1em; }
+  .brand-mark{ width:32px; height:32px; font-size:13px; }
+  .navpanel-grid{ grid-template-columns:1fr; }
 }
 @media (max-width:420px){
   .bin-bits{ grid-template-columns:repeat(4,1fr); }
@@ -2293,7 +2370,17 @@ CSE.config = {
   ];
 
   /* ---------- 版面計算 ---------- */
-  var ROW = 68, PAD = 44, IN_X = 54, COL_W = 132, GATE_W = 76, GATE_H = 46;
+  /* 兩組尺寸：窄螢幕用小的，否則電路會被縮到開關按不到 */
+  var WIDE = { ROW: 68, PAD: 44, IN_X: 54, COL_W: 132, GATE_W: 76, GATE_H: 46, TAIL: 110 };
+  var NARROW = { ROW: 66, PAD: 34, IN_X: 42, COL_W: 100, GATE_W: 62, GATE_H: 40, TAIL: 76 };
+  var ROW, PAD, IN_X, COL_W, GATE_W, GATE_H, TAIL;
+
+  function useMetrics(containerW) {
+    var m = containerW && containerW < 520 ? NARROW : WIDE;
+    ROW = m.ROW; PAD = m.PAD; IN_X = m.IN_X;
+    COL_W = m.COL_W; GATE_W = m.GATE_W; GATE_H = m.GATE_H; TAIL = m.TAIL;
+  }
+  useMetrics(0);
 
   function buildLayout(level) {
     var inputs = level.inputs;
@@ -2338,17 +2425,13 @@ CSE.config = {
         }
       }
     }
-    all.forEach(function (n) { n._x = IN_X + 96 + (n._col - 1) * COL_W; });
+    all.forEach(function (n) { n._x = IN_X + GATE_W + 20 + (n._col - 1) * COL_W; });
 
     var maxY = Math.max.apply(null, inputY.concat(all.map(function (n) { return n._y; })));
-    var contentW = IN_X + 96 + (maxCol - 1) * COL_W + GATE_W / 2 + 110;
+    var contentW = IN_X + GATE_W + 20 + (maxCol - 1) * COL_W + GATE_W / 2 + TAIL;
 
-    /* 小電路不要被放大到爆：給一個最小畫布寬度並置中 */
-    var w = Math.max(560, contentW);
-    var ox = (w - contentW) / 2;
-    all.forEach(function (n) { n._x += ox; });
-
-    return { nodes: all, inputY: inputY, ox: ox, w: w, h: maxY + PAD };
+    /* 畫布就等於內容寬度（不再補白），縮放交給下面的 maxWidth 控制 */
+    return { nodes: all, inputY: inputY, ox: 0, w: contentW, h: maxY + PAD };
   }
 
   function outPort(n, lay) {
@@ -2420,6 +2503,9 @@ CSE.config = {
           viewBox: '0 0 ' + Math.round(lay.w) + ' ' + Math.round(lay.h),
           role: 'img', 'aria-label': '邏輯電路圖'
         });
+        /* 小電路最多放大 1.7 倍就好，不然字會大到不自然；
+           大電路則讓它撐滿容器，開關才不會小到按不到 */
+        svg.style.maxWidth = Math.round(Math.min(760, lay.w * 1.7)) + 'px';
 
         /* 連線 */
         lay.nodes.forEach(function (n) {
@@ -2461,6 +2547,10 @@ CSE.config = {
           var ix = IN_X + lay.ox;
           var g = api.svg('g', { class: 'sw' + (inv[i] ? ' on' : ''), tabindex: '0', role: 'button',
             'aria-label': '輸入 ' + name + ' 目前是 ' + (inv[i] ? 1 : 0) });
+          /* 看不見的放大觸控區：手機上視覺尺寸不夠 44px，但手指按得到 */
+          g.appendChild(api.svg('rect', {
+            class: 'hitbox', x: ix - 40, y: y - 32, width: 80, height: 64
+          }));
           g.appendChild(api.svg('rect', { x: ix - 30, y: y - 21, width: 60, height: 42, rx: 7 }));
           g.appendChild(api.svg('text', { class: 'n', x: ix - 14, y: y + 5, text: name }));
           g.appendChild(api.svg('text', { class: 'b', x: ix + 14, y: y + 5, text: String(inv[i] ? 1 : 0) }));
@@ -2478,6 +2568,12 @@ CSE.config = {
           var label = isQ ? (assign[n.slot] || '?') : n.t;
           var cls = 'gatebox' + (isQ && !assign[n.slot] ? ' q' : '') + (isQ && selSlot === n.slot ? ' sel' : '');
           var g = api.svg('g', isQ ? { class: 'sw', tabindex: '0', role: 'button', 'aria-label': '空的邏輯閘' } : {});
+          if (isQ) {
+            g.appendChild(api.svg('rect', {
+              class: 'hitbox', x: n._x - GATE_W / 2 - 12, y: n._y - GATE_H / 2 - 12,
+              width: GATE_W + 24, height: GATE_H + 24
+            }));
+          }
           g.appendChild(api.svg('rect', {
             class: cls, x: n._x - GATE_W / 2, y: n._y - GATE_H / 2,
             width: GATE_W, height: GATE_H, rx: 8
@@ -5051,21 +5147,133 @@ CSE.config = {
     totalChip.querySelector('b').textContent = CSE.util.nf(CSE.scores.total());
   }
 
+  /* ---------------- 導覽列 ----------------
+     七款遊戲全部塞進橫列會超出畫面，而桌機用滑鼠滑不動橫向捲動區，
+     等於後面的連結碰不到。改成：少數常用連結留在列上，
+     遊戲收進一個下拉面板，窄螢幕則整個收成 ☰。 */
+
+  var gamesBtn = null;     /* 桌機的「遊戲 ▾」按鈕 */
+  var hamBtn = null;       /* 窄螢幕的 ☰ */
+  var panel = null;        /* 開著的選單面板 */
+
+  var FLAT_LINKS = [
+    { href: '#/', label: '首頁' },
+    { href: '#/board', label: '排行榜' },
+    { href: '#/about', label: '關於資工系', wide: true }
+  ];
+
   function buildNav() {
     ui.clear(navEl);
-    navEl.appendChild(el('a', { href: '#/', text: '首頁', dataset: { route: '#/' } }));
-    orderedGames().slice(0, 7).forEach(function (g) {
-      navEl.appendChild(el('a', { href: '#/g/' + g.id, text: g.name, dataset: { route: '#/g/' + g.id } }));
+
+    navEl.appendChild(el('a', {
+      class: 'navlink', href: '#/', text: '首頁', dataset: { route: '#/' }
+    }));
+
+    gamesBtn = el('button', {
+      type: 'button', class: 'navlink navbtn', 'aria-expanded': 'false',
+      'aria-haspopup': 'true',
+      onclick: function (e) { e.stopPropagation(); togglePanel(); }
+    }, [el('span', { class: 'navbtn-label', text: '遊戲' }), el('i', { class: 'caret', text: '▾' })]);
+    navEl.appendChild(gamesBtn);
+
+    navEl.appendChild(el('a', {
+      class: 'navlink', href: '#/board', text: '排行榜', dataset: { route: '#/board' }
+    }));
+    navEl.appendChild(el('a', {
+      class: 'navlink navlink--wide', href: '#/about', text: '關於資工系',
+      dataset: { route: '#/about' }
+    }));
+
+    /* 窄螢幕的漢堡鈕，放在右側控制區最前面 */
+    hamBtn = el('button', {
+      type: 'button', class: 'iconbtn navham', 'aria-expanded': 'false',
+      'aria-label': '選單', title: '選單', text: '☰',
+      onclick: function (e) { e.stopPropagation(); togglePanel(); }
     });
-    navEl.appendChild(el('a', { href: '#/board', text: '排行榜', dataset: { route: '#/board' } }));
-    navEl.appendChild(el('a', { href: '#/about', text: '關於資工系', dataset: { route: '#/about' } }));
+    var right = document.querySelector('.topright');
+    right.insertBefore(hamBtn, right.firstChild);
+  }
+
+  function closePanel() {
+    if (!panel) return;
+    if (panel.parentNode) panel.parentNode.removeChild(panel);
+    panel = null;
+    if (gamesBtn) gamesBtn.setAttribute('aria-expanded', 'false');
+    if (hamBtn) hamBtn.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('keydown', onPanelKey, true);
+    document.removeEventListener('click', onOutside, true);
+  }
+
+  function onPanelKey(e) {
+    if (e.key === 'Escape') { e.stopPropagation(); closePanel(); }
+  }
+  function onOutside(e) {
+    if (panel && !panel.contains(e.target) &&
+        e.target !== gamesBtn && !gamesBtn.contains(e.target) &&
+        e.target !== hamBtn) closePanel();
+  }
+
+  function togglePanel() {
+    if (panel) { closePanel(); return; }
+    CSE.sfx.play('click');
+
+    var hash = location.hash || '#/';
+    var grid = el('div', { class: 'navpanel-grid' });
+    orderedGames().forEach(function (g) {
+      var href = '#/g/' + g.id;
+      var best = CSE.scores.best(g.id);
+      var item = el('a', {
+        class: 'navitem' + (hash.indexOf(href) === 0 ? ' navitem--now' : ''),
+        href: href, style: { '--accent': g.accent || 'var(--green)' },
+        onclick: function () { closePanel(); }
+      }, [
+        el('span', { class: 'navitem-ic', html: g.icon || '#' }),
+        el('span', { class: 'navitem-txt' }, [
+          el('b', { text: g.name }),
+          el('span', { text: best ? '最佳 ' + CSE.util.nf(best) : '還沒玩過' })
+        ])
+      ]);
+      grid.appendChild(item);
+    });
+
+    var others = el('div', { class: 'navpanel-links' },
+      FLAT_LINKS.concat([{ href: '#/settings', label: '攤位設定' }]).map(function (l) {
+        return el('a', {
+          class: 'navlink' + (hash === l.href ? ' navlink--now' : ''),
+          href: l.href, text: l.label,
+          onclick: function () { closePanel(); }
+        });
+      }));
+
+    panel = el('div', { class: 'navpanel', role: 'menu' }, [
+      el('div', { class: 'navpanel-head', text: '七款小遊戲' }),
+      grid,
+      el('div', { class: 'navpanel-head', text: '其他' }),
+      others
+    ]);
+    panel.addEventListener('click', function (e) { e.stopPropagation(); });
+
+    document.querySelector('.topbar').appendChild(panel);
+    if (gamesBtn) gamesBtn.setAttribute('aria-expanded', 'true');
+    if (hamBtn) hamBtn.setAttribute('aria-expanded', 'true');
+    document.addEventListener('keydown', onPanelKey, true);
+    /* 延後一拍再掛，免得開啟這一次的 click 立刻把它關掉 */
+    setTimeout(function () { document.addEventListener('click', onOutside, true); }, 0);
   }
 
   function markNav(route) {
+    closePanel();
     Array.prototype.forEach.call(navEl.children, function (a) {
-      if (a.dataset.route === route) a.setAttribute('aria-current', 'page');
-      else a.removeAttribute('aria-current');
+      if (a.dataset && a.dataset.route === route) a.setAttribute('aria-current', 'page');
+      else if (a.dataset) a.removeAttribute('aria-current');
     });
+    /* 在遊戲頁時，按鈕直接顯示目前玩的是哪一款，不用再猜自己在哪 */
+    if (!gamesBtn) return;
+    var inGame = route.indexOf('#/g/') === 0;
+    var g = inGame ? CSE.gameById[route.slice(4)] : null;
+    gamesBtn.querySelector('.navbtn-label').textContent = g ? g.name : '遊戲';
+    if (inGame) gamesBtn.setAttribute('aria-current', 'page');
+    else gamesBtn.removeAttribute('aria-current');
   }
 
   /* ---------------- 路由 ---------------- */

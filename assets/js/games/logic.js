@@ -112,7 +112,17 @@
   ];
 
   /* ---------- 版面計算 ---------- */
-  var ROW = 68, PAD = 44, IN_X = 54, COL_W = 132, GATE_W = 76, GATE_H = 46;
+  /* 兩組尺寸：窄螢幕用小的，否則電路會被縮到開關按不到 */
+  var WIDE = { ROW: 68, PAD: 44, IN_X: 54, COL_W: 132, GATE_W: 76, GATE_H: 46, TAIL: 110 };
+  var NARROW = { ROW: 66, PAD: 34, IN_X: 42, COL_W: 100, GATE_W: 62, GATE_H: 40, TAIL: 76 };
+  var ROW, PAD, IN_X, COL_W, GATE_W, GATE_H, TAIL;
+
+  function useMetrics(containerW) {
+    var m = containerW && containerW < 520 ? NARROW : WIDE;
+    ROW = m.ROW; PAD = m.PAD; IN_X = m.IN_X;
+    COL_W = m.COL_W; GATE_W = m.GATE_W; GATE_H = m.GATE_H; TAIL = m.TAIL;
+  }
+  useMetrics(0);
 
   function buildLayout(level) {
     var inputs = level.inputs;
@@ -157,17 +167,13 @@
         }
       }
     }
-    all.forEach(function (n) { n._x = IN_X + 96 + (n._col - 1) * COL_W; });
+    all.forEach(function (n) { n._x = IN_X + GATE_W + 20 + (n._col - 1) * COL_W; });
 
     var maxY = Math.max.apply(null, inputY.concat(all.map(function (n) { return n._y; })));
-    var contentW = IN_X + 96 + (maxCol - 1) * COL_W + GATE_W / 2 + 110;
+    var contentW = IN_X + GATE_W + 20 + (maxCol - 1) * COL_W + GATE_W / 2 + TAIL;
 
-    /* 小電路不要被放大到爆：給一個最小畫布寬度並置中 */
-    var w = Math.max(560, contentW);
-    var ox = (w - contentW) / 2;
-    all.forEach(function (n) { n._x += ox; });
-
-    return { nodes: all, inputY: inputY, ox: ox, w: w, h: maxY + PAD };
+    /* 畫布就等於內容寬度（不再補白），縮放交給下面的 maxWidth 控制 */
+    return { nodes: all, inputY: inputY, ox: 0, w: contentW, h: maxY + PAD };
   }
 
   function outPort(n, lay) {
@@ -239,6 +245,9 @@
           viewBox: '0 0 ' + Math.round(lay.w) + ' ' + Math.round(lay.h),
           role: 'img', 'aria-label': '邏輯電路圖'
         });
+        /* 小電路最多放大 1.7 倍就好，不然字會大到不自然；
+           大電路則讓它撐滿容器，開關才不會小到按不到 */
+        svg.style.maxWidth = Math.round(Math.min(760, lay.w * 1.7)) + 'px';
 
         /* 連線 */
         lay.nodes.forEach(function (n) {
@@ -280,6 +289,10 @@
           var ix = IN_X + lay.ox;
           var g = api.svg('g', { class: 'sw' + (inv[i] ? ' on' : ''), tabindex: '0', role: 'button',
             'aria-label': '輸入 ' + name + ' 目前是 ' + (inv[i] ? 1 : 0) });
+          /* 看不見的放大觸控區：手機上視覺尺寸不夠 44px，但手指按得到 */
+          g.appendChild(api.svg('rect', {
+            class: 'hitbox', x: ix - 40, y: y - 32, width: 80, height: 64
+          }));
           g.appendChild(api.svg('rect', { x: ix - 30, y: y - 21, width: 60, height: 42, rx: 7 }));
           g.appendChild(api.svg('text', { class: 'n', x: ix - 14, y: y + 5, text: name }));
           g.appendChild(api.svg('text', { class: 'b', x: ix + 14, y: y + 5, text: String(inv[i] ? 1 : 0) }));
@@ -297,6 +310,12 @@
           var label = isQ ? (assign[n.slot] || '?') : n.t;
           var cls = 'gatebox' + (isQ && !assign[n.slot] ? ' q' : '') + (isQ && selSlot === n.slot ? ' sel' : '');
           var g = api.svg('g', isQ ? { class: 'sw', tabindex: '0', role: 'button', 'aria-label': '空的邏輯閘' } : {});
+          if (isQ) {
+            g.appendChild(api.svg('rect', {
+              class: 'hitbox', x: n._x - GATE_W / 2 - 12, y: n._y - GATE_H / 2 - 12,
+              width: GATE_W + 24, height: GATE_H + 24
+            }));
+          }
           g.appendChild(api.svg('rect', {
             class: cls, x: n._x - GATE_W / 2, y: n._y - GATE_H / 2,
             width: GATE_W, height: GATE_H, rx: 8

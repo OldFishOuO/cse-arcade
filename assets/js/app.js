@@ -500,21 +500,133 @@
     totalChip.querySelector('b').textContent = CSE.util.nf(CSE.scores.total());
   }
 
+  /* ---------------- 導覽列 ----------------
+     七款遊戲全部塞進橫列會超出畫面，而桌機用滑鼠滑不動橫向捲動區，
+     等於後面的連結碰不到。改成：少數常用連結留在列上，
+     遊戲收進一個下拉面板，窄螢幕則整個收成 ☰。 */
+
+  var gamesBtn = null;     /* 桌機的「遊戲 ▾」按鈕 */
+  var hamBtn = null;       /* 窄螢幕的 ☰ */
+  var panel = null;        /* 開著的選單面板 */
+
+  var FLAT_LINKS = [
+    { href: '#/', label: '首頁' },
+    { href: '#/board', label: '排行榜' },
+    { href: '#/about', label: '關於資工系', wide: true }
+  ];
+
   function buildNav() {
     ui.clear(navEl);
-    navEl.appendChild(el('a', { href: '#/', text: '首頁', dataset: { route: '#/' } }));
-    orderedGames().slice(0, 7).forEach(function (g) {
-      navEl.appendChild(el('a', { href: '#/g/' + g.id, text: g.name, dataset: { route: '#/g/' + g.id } }));
+
+    navEl.appendChild(el('a', {
+      class: 'navlink', href: '#/', text: '首頁', dataset: { route: '#/' }
+    }));
+
+    gamesBtn = el('button', {
+      type: 'button', class: 'navlink navbtn', 'aria-expanded': 'false',
+      'aria-haspopup': 'true',
+      onclick: function (e) { e.stopPropagation(); togglePanel(); }
+    }, [el('span', { class: 'navbtn-label', text: '遊戲' }), el('i', { class: 'caret', text: '▾' })]);
+    navEl.appendChild(gamesBtn);
+
+    navEl.appendChild(el('a', {
+      class: 'navlink', href: '#/board', text: '排行榜', dataset: { route: '#/board' }
+    }));
+    navEl.appendChild(el('a', {
+      class: 'navlink navlink--wide', href: '#/about', text: '關於資工系',
+      dataset: { route: '#/about' }
+    }));
+
+    /* 窄螢幕的漢堡鈕，放在右側控制區最前面 */
+    hamBtn = el('button', {
+      type: 'button', class: 'iconbtn navham', 'aria-expanded': 'false',
+      'aria-label': '選單', title: '選單', text: '☰',
+      onclick: function (e) { e.stopPropagation(); togglePanel(); }
     });
-    navEl.appendChild(el('a', { href: '#/board', text: '排行榜', dataset: { route: '#/board' } }));
-    navEl.appendChild(el('a', { href: '#/about', text: '關於資工系', dataset: { route: '#/about' } }));
+    var right = document.querySelector('.topright');
+    right.insertBefore(hamBtn, right.firstChild);
+  }
+
+  function closePanel() {
+    if (!panel) return;
+    if (panel.parentNode) panel.parentNode.removeChild(panel);
+    panel = null;
+    if (gamesBtn) gamesBtn.setAttribute('aria-expanded', 'false');
+    if (hamBtn) hamBtn.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('keydown', onPanelKey, true);
+    document.removeEventListener('click', onOutside, true);
+  }
+
+  function onPanelKey(e) {
+    if (e.key === 'Escape') { e.stopPropagation(); closePanel(); }
+  }
+  function onOutside(e) {
+    if (panel && !panel.contains(e.target) &&
+        e.target !== gamesBtn && !gamesBtn.contains(e.target) &&
+        e.target !== hamBtn) closePanel();
+  }
+
+  function togglePanel() {
+    if (panel) { closePanel(); return; }
+    CSE.sfx.play('click');
+
+    var hash = location.hash || '#/';
+    var grid = el('div', { class: 'navpanel-grid' });
+    orderedGames().forEach(function (g) {
+      var href = '#/g/' + g.id;
+      var best = CSE.scores.best(g.id);
+      var item = el('a', {
+        class: 'navitem' + (hash.indexOf(href) === 0 ? ' navitem--now' : ''),
+        href: href, style: { '--accent': g.accent || 'var(--green)' },
+        onclick: function () { closePanel(); }
+      }, [
+        el('span', { class: 'navitem-ic', html: g.icon || '#' }),
+        el('span', { class: 'navitem-txt' }, [
+          el('b', { text: g.name }),
+          el('span', { text: best ? '最佳 ' + CSE.util.nf(best) : '還沒玩過' })
+        ])
+      ]);
+      grid.appendChild(item);
+    });
+
+    var others = el('div', { class: 'navpanel-links' },
+      FLAT_LINKS.concat([{ href: '#/settings', label: '攤位設定' }]).map(function (l) {
+        return el('a', {
+          class: 'navlink' + (hash === l.href ? ' navlink--now' : ''),
+          href: l.href, text: l.label,
+          onclick: function () { closePanel(); }
+        });
+      }));
+
+    panel = el('div', { class: 'navpanel', role: 'menu' }, [
+      el('div', { class: 'navpanel-head', text: '七款小遊戲' }),
+      grid,
+      el('div', { class: 'navpanel-head', text: '其他' }),
+      others
+    ]);
+    panel.addEventListener('click', function (e) { e.stopPropagation(); });
+
+    document.querySelector('.topbar').appendChild(panel);
+    if (gamesBtn) gamesBtn.setAttribute('aria-expanded', 'true');
+    if (hamBtn) hamBtn.setAttribute('aria-expanded', 'true');
+    document.addEventListener('keydown', onPanelKey, true);
+    /* 延後一拍再掛，免得開啟這一次的 click 立刻把它關掉 */
+    setTimeout(function () { document.addEventListener('click', onOutside, true); }, 0);
   }
 
   function markNav(route) {
+    closePanel();
     Array.prototype.forEach.call(navEl.children, function (a) {
-      if (a.dataset.route === route) a.setAttribute('aria-current', 'page');
-      else a.removeAttribute('aria-current');
+      if (a.dataset && a.dataset.route === route) a.setAttribute('aria-current', 'page');
+      else if (a.dataset) a.removeAttribute('aria-current');
     });
+    /* 在遊戲頁時，按鈕直接顯示目前玩的是哪一款，不用再猜自己在哪 */
+    if (!gamesBtn) return;
+    var inGame = route.indexOf('#/g/') === 0;
+    var g = inGame ? CSE.gameById[route.slice(4)] : null;
+    gamesBtn.querySelector('.navbtn-label').textContent = g ? g.name : '遊戲';
+    if (inGame) gamesBtn.setAttribute('aria-current', 'page');
+    else gamesBtn.removeAttribute('aria-current');
   }
 
   /* ---------------- 路由 ---------------- */
